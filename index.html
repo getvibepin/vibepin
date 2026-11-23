@@ -322,14 +322,14 @@
     </div>
   </div>
 
-  <!-- WhatsApp Tarzı Sohbetler & Arkadaşlar Listesi Modalı -->
-  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('friendsModal')">
+  <!-- WhatsApp Tarzı Canlı Sohbetler Listesi -->
+  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeFriendsModal()">
     <div class="wa-sheet">
       <div class="wa-top">
         <div style="font-size:18px; font-weight:800; color:#e9edef; display:flex; align-items:center; gap:8px;">
           <span style="color:var(--wa-green);">●</span> VibeChat
         </div>
-        <button class="close-btn" onclick="closeModal('friendsModal')">✕</button>
+        <button class="close-btn" onclick="closeFriendsModal()">✕</button>
       </div>
       <div class="wa-tabs">
         <div class="wa-tab active" id="tabChats" onclick="switchWaTab('chats')">Sohbetler</div>
@@ -343,7 +343,7 @@
     </div>
   </div>
 
-  <!-- WhatsApp Tarzı Konuşma (DM) Ekranı -->
+  <!-- WhatsApp Tarzı Canlı Konuşma (DM) Ekranı -->
   <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
     <div class="wa-sheet" style="position:relative;">
       <div class="wa-top">
@@ -352,13 +352,12 @@
           <div class="wa-avatar" id="chatHeaderAvatar" style="width:40px; height:40px; font-size:19px;">🦊</div>
           <div>
             <div id="chatFriendTitle" style="font-size:15.5px; font-weight:700; color:#e9edef;">Arkadaş</div>
-            <div style="font-size:11px; color:var(--wa-green);">çevrimiçi • VibePin</div>
+            <div id="chatStatusSub" style="font-size:11.5px; color:#8696a0; font-weight:600;">çevrimiçi • VibePin</div>
           </div>
         </div>
         <button onclick="toggleWaMenu()" style="background:none; border:none; color:#aebac1; font-size:20px; cursor:pointer; padding:4px 8px;">⋮</button>
       </div>
 
-      <!-- Sağ Üst Üç Nokta Menüsü (Sil / Engelle) -->
       <div class="wa-menu-drop" id="waChatMenu">
         <div class="wa-menu-item" onclick="removeCurrentChatFriend()">🗑️ Arkadaşı Sil</div>
         <div class="wa-menu-item" style="color:#f87171;" onclick="blockCurrentChatFriend()">🚫 Kullanıcıyı Engelle</div>
@@ -367,7 +366,7 @@
       <div id="chatMessagesBox" class="wa-messages" onclick="document.getElementById('waChatMenu').style.display='none'"></div>
 
       <div class="wa-input-bar">
-        <input type="text" id="dmInput" class="wa-input" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter') sendDirectMessage()" />
+        <input type="text" id="dmInput" class="wa-input" placeholder="Mesaj yazın..." oninput="handleDmTyping()" onkeydown="if(event.key==='Enter') sendDirectMessage()" />
         <button class="wa-send-btn" onclick="sendDirectMessage()">➤</button>
       </div>
     </div>
@@ -416,8 +415,9 @@
     let activePin = null, allPins = [], blockedIds = [], markersLayer = null, rangeCircle = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let teleportUnlocked = false, teleportPickMode = false, extraFriendQuota = 0, adRewardType = 'teleport';
-    let activeChatFriend = null, chatPollTimer = null, lastUnreadCount = 0;
+    let activeChatFriend = null, chatPollTimer = null, listPollTimer = null, lastUnreadCount = 0;
     let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waResponsesCache = [], waBlockedCache = [];
+    let realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
@@ -467,7 +467,7 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v9' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v10' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
@@ -513,8 +513,71 @@
       locateUser();
       await loadBlockedUsers();
       loadPins();
+      setupRealtimeChat();
       checkNotifications();
-      setInterval(checkNotifications, 7000);
+      setInterval(checkNotifications, 5000);
+    }
+
+    /* Canlı Mesaj & "yazıyor..." Realtime Kanalı */
+    function setupRealtimeChat() {
+      if (!sb || !currentUser || realtimeChatChannel) return;
+      realtimeChatChannel = sb.channel('vibechat-live-room')
+        .on('broadcast', { event: 'typing' }, ({ payload }) => {
+          if (!payload || payload.to !== currentUser.id) return;
+          const senderId = payload.from;
+          typingUsersMap[senderId] = true;
+          updateTypingIndicators();
+          if (typingHideTimers[senderId]) clearTimeout(typingHideTimers[senderId]);
+          typingHideTimers[senderId] = setTimeout(() => {
+            delete typingUsersMap[senderId];
+            updateTypingIndicators();
+          }, 2600);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_messages' }, (payload) => {
+          const row = payload.new || payload.old;
+          if (!row) return;
+          if (row.receiver_id === currentUser.id || row.sender_id === currentUser.id) {
+            if (activeChatFriend && (row.sender_id === activeChatFriend.id || row.receiver_id === activeChatFriend.id)) {
+              delete typingUsersMap[activeChatFriend.id];
+              updateTypingIndicators();
+              loadDirectMessages();
+            }
+            if (document.getElementById('friendsModal').classList.contains('open')) {
+              refreshFriendsData();
+            }
+            checkNotifications();
+          }
+        })
+        .subscribe();
+    }
+
+    function handleDmTyping() {
+      if (!realtimeChatChannel || !activeChatFriend || !currentUser) return;
+      const now = Date.now();
+      if (now - lastTypingSentAt > 1200) {
+        lastTypingSentAt = now;
+        realtimeChatChannel.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { from: currentUser.id, to: activeChatFriend.id }
+        });
+      }
+    }
+
+    function updateTypingIndicators() {
+      if (activeChatFriend) {
+        const sub = document.getElementById('chatStatusSub');
+        if (typingUsersMap[activeChatFriend.id]) {
+          sub.textContent = 'yazıyor...';
+          sub.style.color = 'var(--wa-green)';
+        } else {
+          sub.textContent = 'çevrimiçi • VibePin';
+          sub.style.color = '#8696a0';
+        }
+      }
+      if (document.getElementById('friendsModal').classList.contains('open') && waTab === 'chats') {
+        renderWaChatList();
+      }
     }
 
     async function checkSession() {
@@ -826,7 +889,6 @@
       });
     }
 
-    /* 1. DÜZELTME: Tekrarlı Arkadaşlık İsteği Kilidi */
     async function openPinDetail(pin) {
       activePin = pin;
       const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe Kullanıcısı';
@@ -988,7 +1050,7 @@
       document.getElementById('notifDot').style.display = totalUnread > 0 ? 'block' : 'none';
     }
 
-    /* 2, 3 & 4. DÜZELTMELER: Canlı Profil Fotoğrafı Senkronizasyonu + WhatsApp Sohbetler Listesi */
+    /* VibeChat Canlı Sohbet Listesi Yönetimi */
     function switchWaTab(tab) {
       waTab = tab;
       document.getElementById('tabChats').classList.toggle('active', tab === 'chats');
@@ -998,8 +1060,20 @@
       renderWaChatList();
     }
 
-    async function openFriendsModal() {
+    function openFriendsModal() {
       openModal('friendsModal');
+      refreshFriendsData();
+      if (listPollTimer) clearInterval(listPollTimer);
+      listPollTimer = setInterval(refreshFriendsData, 2500);
+    }
+
+    function closeFriendsModal() {
+      if (listPollTimer) { clearInterval(listPollTimer); listPollTimer = null; }
+      closeModal('friendsModal');
+    }
+
+    async function refreshFriendsData() {
+      if (!currentUser) return;
       const [{ data: fShips }, { data: bData }, { data: msgs }] = await Promise.all([
         sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false }),
         sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id),
@@ -1014,7 +1088,6 @@
       const reqTotal = waIncomingCache.length;
       document.getElementById('reqCountBadge').textContent = reqTotal > 0 ? `(${reqTotal})` : '';
 
-      // Tüm arkadaşların canlı profil fotoğrafı ve güncel isimlerini profiles tablosundan çek
       const friendIds = accepted.map(f => f.sender_id === currentUser.id ? f.receiver_id : f.sender_id);
       let profilesMap = {};
       if (friendIds.length > 0) {
@@ -1050,9 +1123,12 @@
           return;
         }
         box.innerHTML = list.map(item => {
-          const preview = item.lastMsg
-            ? (item.lastMsg.sender_id === currentUser.id ? '✓ ' + esc(item.lastMsg.message_text) : esc(item.lastMsg.message_text))
-            : 'Sohbet başlatmak için dokun 👋';
+          const isTyping = !!typingUsersMap[item.friendId];
+          const preview = isTyping
+            ? '<span style="color:var(--wa-green); font-weight:700;">yazıyor...</span>'
+            : (item.lastMsg
+                ? (item.lastMsg.sender_id === currentUser.id ? '✓ ' + esc(item.lastMsg.message_text) : esc(item.lastMsg.message_text))
+                : 'Sohbet başlatmak için dokun 👋');
           const timeStr = item.lastMsg ? formatTime(item.lastMsg.created_at) : '';
           const badgeHtml = item.unreadCount > 0 ? `<span class="wa-badge">${item.unreadCount}</span>` : '';
           return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')">
@@ -1105,10 +1181,9 @@
       }
     }
 
-    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); openFriendsModal(); }
-    async function unblockUser(targetUserId) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId); blockedIds = blockedIds.filter(id => id !== targetUserId); showToast('✅ Engel kaldırıldı.'); loadPins(); openFriendsModal(); }
+    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); refreshFriendsData(); }
+    async function unblockUser(targetUserId) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId); blockedIds = blockedIds.filter(id => id !== targetUserId); showToast('✅ Engel kaldırıldı.'); loadPins(); refreshFriendsData(); }
 
-    /* WhatsApp Tarzı Konuşma Penceresi */
     function toggleWaMenu() {
       const m = document.getElementById('waChatMenu');
       m.style.display = (m.style.display === 'block') ? 'none' : 'block';
@@ -1151,12 +1226,13 @@
       document.getElementById('chatFriendTitle').textContent = liveName;
       document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(prof, '🦊');
       document.getElementById('waChatMenu').style.display = 'none';
+      updateTypingIndicators();
 
-      closeModal('friendsModal');
+      closeFriendsModal();
       openModal('chatModal');
       loadDirectMessages();
       if (chatPollTimer) clearInterval(chatPollTimer);
-      chatPollTimer = setInterval(loadDirectMessages, 3500);
+      chatPollTimer = setInterval(loadDirectMessages, 2000);
     }
 
     function closeChatModal() { if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; } activeChatFriend = null; closeModal('chatModal'); checkNotifications(); }
