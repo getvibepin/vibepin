@@ -15,6 +15,12 @@
     .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
     .leaflet-control-attribution { display:none !important; }
 
+    /* Kullanıcının Canlı GPS Konum İkonu */
+    .my-loc-wrap { position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
+    .my-loc-pulse { position:absolute; inset:0; border-radius:50%; background:rgba(56,189,248,0.45); animation:locPulse 2s infinite ease-out; }
+    .my-loc-dot { position:relative; width:14px; height:14px; border-radius:50%; background:#0ea5e9; border:2.5px solid #ffffff; box-shadow:0 0 12px #38bdf8; }
+    @keyframes locPulse { 0% { transform:scale(0.6); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
+
     /* Premium Giriş Ekranı */
     #authGate { position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at 50% 15%, #2e1065 0%, #0f172a 48%, #070a10 90%); display:flex; flex-direction:column; justify-content:center; padding:18px; overflow-y:auto; }
     .radar-bg { position:absolute; top:7%; left:50%; transform:translateX(-50%); width:320px; height:320px; border-radius:50%; border:1px solid rgba(124,58,237,0.28); box-shadow:0 0 80px rgba(6,182,212,0.18), inset 0 0 50px rgba(124,58,237,0.2); pointer-events:none; animation:pulseRadar 4s infinite ease-in-out; }
@@ -322,7 +328,7 @@
         <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
       </div>
 
-      <!-- Cinsiyet & Yaş Seçim Alanı -->
+      <!-- Cinsiyet & Yaş (13-99) Seçim Alanı -->
       <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:8px; margin-bottom:2px;">
         <select id="profileGenderInput" style="margin-bottom:8px;">
           <option value="">Cinsiyet Seçin</option>
@@ -330,7 +336,7 @@
           <option value="male">👨 Erkek</option>
           <option value="other">🧑 Belirtmek İstemiyorum</option>
         </select>
-        <input type="number" id="profileAgeInput" min="18" max="99" placeholder="Yaş (18-99)" style="margin-bottom:8px;" />
+        <input type="number" id="profileAgeInput" min="13" max="99" placeholder="Yaş (13-99)" style="margin-bottom:8px;" />
       </div>
 
       <input type="text" id="profileNameInput" placeholder="Benzersiz Kullanıcı Adın" style="margin-bottom:4px;" />
@@ -431,7 +437,7 @@
     let sb = null, map = null, realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null };
-    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, rangeCircle = null;
+    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, rangeCircle = null, myLocationMarker = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let teleportUnlocked = false, teleportPickMode = false, extraFriendQuota = 0, adRewardType = 'teleport';
     let activeChatFriend = null, chatPollTimer = null, listPollTimer = null, lastUnreadCount = 0;
@@ -444,7 +450,6 @@
     function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
 
-    /* Kullanıcının hemen yanında görünecek Cinsiyet & Yaş rozeti üretici */
     function renderDemoBadge(profile) {
       if (!profile) return '';
       const g = profile.gender || '';
@@ -500,11 +505,28 @@
       return hrs > 24 ? `⭐ ${Math.ceil(hrs/24)} Gün Kaldı` : `⏳ ${hrs} Saat Kaldı`;
     }
 
+    function updateMyLocationMarker(coords) {
+      if (!map || !window.L) return;
+      const myLocIcon = L.divIcon({
+        className: '',
+        html: `<div class="my-loc-wrap" title="Senin Konumun"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+      if (myLocationMarker) {
+        myLocationMarker.setLatLng(coords);
+      } else {
+        myLocationMarker = L.marker(coords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
+        myLocationMarker.bindPopup('📍 Senin Canlı Konumun');
+      }
+      if (rangeCircle) rangeCircle.setLatLng(coords);
+    }
+
     function initApp() {
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v13' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v14' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
@@ -517,6 +539,7 @@
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
         markersLayer = L.layerGroup().addTo(map);
         rangeCircle = L.circle(realGpsCoords, { radius: 15000, color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.05, weight: 1, dashArray: '5,5' }).addTo(map);
+        updateMyLocationMarker(realGpsCoords);
 
         map.on('click', (e) => {
           if (teleportPickMode) {
@@ -738,8 +761,9 @@
       const ageRaw = document.getElementById('profileAgeInput').value.trim();
       const ageVal = ageRaw ? parseInt(ageRaw, 10) : null;
 
-      if (ageVal !== null && (ageVal < 18 || ageVal > 99)) {
-        return showToast('⚠️ Yaş 18 ile 99 arasında olmalıdır.');
+      /* Yaş sınırı 13–99 olarak güncellendi */
+      if (ageVal !== null && (ageVal < 13 || ageVal > 99)) {
+        return showToast('⚠️ Yaş 13 ile 99 arasında olmalıdır.');
       }
 
       if (nameChanged && !isFounder()) {
@@ -826,14 +850,21 @@
     }
 
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
+
+    /* Kullanıcının canlı konumunu alır ve haritadaki mavi radar işaretçisini günceller */
     function locateUser() {
-      if (!navigator.geolocation || !map) return;
+      if (!navigator.geolocation || !map) {
+        showToast('Konum izni tarayıcıda kapalı.');
+        return;
+      }
       navigator.geolocation.getCurrentPosition((pos) => {
         realGpsCoords = [pos.coords.latitude, pos.coords.longitude];
         userCoords = [...realGpsCoords];
-        map.flyTo(userCoords, 14);
-        if (rangeCircle) rangeCircle.setLatLng(realGpsCoords);
-      }, () => {});
+        map.flyTo(userCoords, 15);
+        updateMyLocationMarker(realGpsCoords);
+      }, () => {
+        showToast('📍 Konum alınamadı, lütfen cihaz konum iznini açın.');
+      }, { enableHighAccuracy: true });
     }
 
     function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: İsim belirleyip pin bırakabilirsin!' : 'Kurucu Modu kapatıldı'); }
@@ -959,7 +990,6 @@
       });
     }
 
-    /* Pin detayında profilin hemen yanında Cinsiyet ve Yaş rozeti */
     async function openPinDetail(pin) {
       activePin = pin;
       const isBlockedByThem = blockedByIds.includes(pin.user_id);
