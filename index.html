@@ -1,6 +1,79 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head>
+<head><body>
+  <div id="map"></div>
+  <div id="toast" class="toast"></div>
+  <div class="top-bar">
+    <div class="pill">
+      <span>📍</span>
+      <select id="citySelect" class="city-select" onchange="handleCityChange(this.value)">
+        <option value="gps">Canlı Konumum</option>
+        <option value="41.0082,28.9784">İstanbul • Kadıköy</option>
+        <option value="41.0766,29.0132">İstanbul • Beşiktaş</option>
+        <option value="38.3552,38.3095">Malatya • Merkez</option>
+        <option value="vip_ny">New York • Times Sq 🔒</option>
+        <option value="vip_tk">Tokyo • Shibuya 🔒</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button id="ghostBtn" class="icon-btn" onclick="toggleGhostMode()">👻</button>
+      <button class="icon-btn" onclick="openModal('profileModal')">🦊</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
+    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik / Ortam</div>
+    <div class="chip" onclick="setFilter('social', this)">☕ Kahve & Tanışma</div>
+    <div class="chip" onclick="setFilter('question', this)">❓ Anlık Soru</div>
+    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat & İndirim</div>
+  </div>
+  <div class="bottom-bar">
+    <button class="icon-btn" onclick="locateUser()">⊕</button>
+    <button class="fab-main" onclick="openCreatePin()">＋ Buraya Vibe Bırak</button>
+    <button class="icon-btn" onclick="loadPins()">↻</button>
+  </div>
+  <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin Bırak</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
+      <div class="cat-grid">
+        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik / Ortam</button>
+        <button class="cat-opt" onclick="selectCat('social', this)">☕ Kahve & Sohbet</button>
+        <button class="cat-opt" onclick="selectCat('question', this)">❓ Bölgeye Sor</button>
+        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Sıcak Fırsat</button>
+      </div>
+      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet Kullanıcı Adı (örn: Emir_34)" /></div>
+      <textarea id="pinText" rows="3" placeholder="Şu an burada neler oluyor?"></textarea>
+      <button class="btn-primary" onclick="submitPin()">🚀 Haritada Yayınla</button>
+    </div>
+  </div>
+  <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" id="detailAuthor">Kullanıcı</div><button class="close-btn" onclick="closeModal('detailModal')">✕</button></div>
+      <p id="detailText" style="font-size:15px; line-height:1.5; margin-bottom:14px;"></p>
+      <button class="btn-primary" style="margin-bottom:16px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
+      <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:var(--muted);">Canlı Yorumlar</div>
+      <div id="commentsList" style="max-height:160px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+    </div>
+  </div>
+  <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🦊 VibePin Profil & Bulut</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
+      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); margin-bottom:14px; font-size:13px;">Durum: <span class="badge" id="userBadge">Misafir Modu</span></div>
+      <input type="email" id="authEmail" placeholder="E-posta adresin" />
+      <input type="password" id="authPass" placeholder="Şifren (en az 6 karakter)" />
+      <div style="display:flex; gap:8px; margin-bottom:10px;"><button class="btn-primary" onclick="signUpUser()">✨ Hızlı Kayıt Ol</button><button class="btn-secondary" onclick="signInUser()">Giriş Yap</button></div>
+      <button id="logoutBtn" class="btn-secondary" style="display:none; color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+    </div>
+  </div>
+  <div id="vipModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('vipModal')">
+    <div class="sheet" style="text-align:center;">
+      <div class="sheet-header"><div class="sheet-title">🌍 VibePin Global VIP</div><button class="close-btn" onclick="closeModal('vipModal')">✕</button></div>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">New York, Tokyo, Londra ve Paris sokaklarındaki canlı pinlere ışınlanmak için VIP üyeliğe geç!</p>
+      <button class="btn-primary" onclick="closeModal('vipModal'); showToast('VIP erken erişim listesine eklendin! ✨')">₺79,99 / Ay — Erken Erişime Katıl</button>
+    </div>
+  </div>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
