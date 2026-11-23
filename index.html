@@ -412,7 +412,7 @@
     let sb = null, map = null, realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null };
-    let activePin = null, allPins = [], blockedIds = [], markersLayer = null, rangeCircle = null;
+    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, rangeCircle = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let teleportUnlocked = false, teleportPickMode = false, extraFriendQuota = 0, adRewardType = 'teleport';
     let activeChatFriend = null, chatPollTimer = null, listPollTimer = null, lastUnreadCount = 0;
@@ -467,7 +467,7 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v10' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v11' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
@@ -518,12 +518,12 @@
       setInterval(checkNotifications, 5000);
     }
 
-    /* Canlı Mesaj & "yazıyor..." Realtime Kanalı */
     function setupRealtimeChat() {
       if (!sb || !currentUser || realtimeChatChannel) return;
       realtimeChatChannel = sb.channel('vibechat-live-room')
         .on('broadcast', { event: 'typing' }, ({ payload }) => {
           if (!payload || payload.to !== currentUser.id) return;
+          if (blockedIds.includes(payload.from) || blockedByIds.includes(payload.from)) return;
           const senderId = payload.from;
           typingUsersMap[senderId] = true;
           updateTypingIndicators();
@@ -553,6 +553,7 @@
 
     function handleDmTyping() {
       if (!realtimeChatChannel || !activeChatFriend || !currentUser) return;
+      if (blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id)) return;
       const now = Date.now();
       if (now - lastTypingSentAt > 1200) {
         lastTypingSentAt = now;
@@ -856,9 +857,14 @@
       document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin 24 saat boyunca haritada!'); loadPins();
     }
 
+    /* İki yönlü engelleme listesini yükle */
     async function loadBlockedUsers() {
-      const { data } = await sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id);
-      blockedIds = (data || []).map(b => b.blocked_id);
+      const [{ data: myBlocks }, { data: theirBlocks }] = await Promise.all([
+        sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id),
+        sb.from('blocked_users').select('blocker_id').eq('blocked_id', currentUser.id)
+      ]);
+      blockedIds = (myBlocks || []).map(b => b.blocked_id);
+      blockedByIds = (theirBlocks || []).map(b => b.blocker_id);
     }
 
     async function loadPins() {
@@ -1031,20 +1037,26 @@
 
     async function blockAuthor() {
       if (!activePin || !activePin.user_id) return;
-      await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]);
-      blockedIds.push(activePin.user_id);
+      if (!blockedIds.includes(activePin.user_id)) {
+        await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]);
+        blockedIds.push(activePin.user_id);
+      }
       closeModal('detailModal');
       showToast('🚫 Kullanıcı engellendi, paylaşımları gizlendi.');
       loadPins();
     }
 
+    /* Bildirim sayacında engellenen kişileri tamamen yoksay */
     async function checkNotifications() {
       if (!currentUser) return;
+      await loadBlockedUsers();
       const [{ data: fData }, { data: mData }] = await Promise.all([
-        sb.from('friendships').select('id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
-        sb.from('direct_messages').select('id').eq('receiver_id', currentUser.id).eq('is_read', false)
+        sb.from('friendships').select('id, sender_id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
+        sb.from('direct_messages').select('id, sender_id').eq('receiver_id', currentUser.id).eq('is_read', false)
       ]);
-      const totalUnread = (fData?.length || 0) + (mData?.length || 0);
+      const validFriends = (fData || []).filter(f => !blockedIds.includes(f.sender_id) && !blockedByIds.includes(f.sender_id));
+      const validMsgs = (mData || []).filter(m => !blockedIds.includes(m.sender_id) && !blockedByIds.includes(m.sender_id));
+      const totalUnread = validFriends.length + validMsgs.length;
       if (totalUnread > lastUnreadCount) playNotifSound();
       lastUnreadCount = totalUnread;
       document.getElementById('notifDot').style.display = totalUnread > 0 ? 'block' : 'none';
@@ -1074,26 +1086,39 @@
 
     async function refreshFriendsData() {
       if (!currentUser) return;
-      const [{ data: fShips }, { data: bData }, { data: msgs }] = await Promise.all([
+      await loadBlockedUsers();
+      const [{ data: fShips }, { data: msgs }] = await Promise.all([
         sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false }),
-        sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id),
         sb.from('direct_messages').select('*').or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order('created_at', { ascending: false })
       ]);
 
-      const accepted = (fShips || []).filter(f => f.status === 'accepted');
-      waIncomingCache = (fShips || []).filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
-      waResponsesCache = (fShips || []).filter(f => f.sender_id === currentUser.id && f.status !== 'pending');
-      waBlockedCache = bData || [];
+      // Engellenenleri sohbet listesinden gizle ama arkadaşlık kaydını koru
+      const accepted = (fShips || []).filter(f => {
+        if (f.status !== 'accepted') return false;
+        const otherId = f.sender_id === currentUser.id ? f.receiver_id : f.sender_id;
+        return !blockedIds.includes(otherId);
+      });
+
+      waIncomingCache = (fShips || []).filter(f => f.receiver_id === currentUser.id && f.status === 'pending' && !blockedIds.includes(f.sender_id));
+      waResponsesCache = (fShips || []).filter(f => f.sender_id === currentUser.id && f.status !== 'pending' && !blockedIds.includes(f.receiver_id));
 
       const reqTotal = waIncomingCache.length;
       document.getElementById('reqCountBadge').textContent = reqTotal > 0 ? `(${reqTotal})` : '';
 
+      // Hem aktif arkadaşların hem de engellenen kullanıcıların güncel profillerini çek
       const friendIds = accepted.map(f => f.sender_id === currentUser.id ? f.receiver_id : f.sender_id);
+      const allProfileIds = [...new Set([...friendIds, ...blockedIds])];
       let profilesMap = {};
-      if (friendIds.length > 0) {
-        const { data: profs } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url').in('id', friendIds);
+      if (allProfileIds.length > 0) {
+        const { data: profs } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url').in('id', allProfileIds);
         (profs || []).forEach(p => { profilesMap[p.id] = p; });
       }
+
+      waBlockedCache = blockedIds.map(bid => ({
+        blocked_id: bid,
+        profile: profilesMap[bid] || null,
+        name: profilesMap[bid]?.username || `Kullanıcı (${bid.slice(0,6)})`
+      }));
 
       waFriendsCache = accepted.map(f => {
         const isSender = (f.sender_id === currentUser.id);
@@ -1174,15 +1199,27 @@
         }
         box.innerHTML = waBlockedCache.map(b => `
           <div class="wa-chat-row" style="cursor:default;">
-            <div class="wa-avatar">🚫</div>
-            <div style="flex:1; font-size:13.5px; color:#e9edef;">Engelli Kullanıcı (${b.blocked_id.slice(0,6)}...)</div>
+            <div class="wa-avatar">${avatarHtml(b.profile, '🚫')}</div>
+            <div style="flex:1;">
+              <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(b.name)}</div>
+              <div style="font-size:11.5px; color:#f87171;">Engellendi • Sohbet gizli</div>
+            </div>
             <button onclick="unblockUser('${b.blocked_id}')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Engeli Kaldır</button>
           </div>`).join('');
       }
     }
 
     async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); refreshFriendsData(); }
-    async function unblockUser(targetUserId) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId); blockedIds = blockedIds.filter(id => id !== targetUserId); showToast('✅ Engel kaldırıldı.'); loadPins(); refreshFriendsData(); }
+
+    /* Engeli kaldırınca arkadaşlık kaydı korunduğu için kişi geçmiş mesajlarıyla sohbet listesine geri döner */
+    async function unblockUser(targetUserId) {
+      await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
+      blockedIds = blockedIds.filter(id => id !== targetUserId);
+      showToast('✅ Engel kaldırıldı, sohbet geri yüklendi.');
+      loadPins();
+      await refreshFriendsData();
+      switchWaTab('chats');
+    }
 
     function toggleWaMenu() {
       const m = document.getElementById('waChatMenu');
@@ -1197,13 +1234,15 @@
       backToChats();
     }
 
+    /* Engellemede arkadaşlık kaydını SİLME, sadece blocked_users tablosuna ekle */
     async function blockCurrentChatFriend() {
       document.getElementById('waChatMenu').style.display = 'none';
       if (!activeChatFriend) return;
-      if (activeChatFriend.friendshipId) await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId);
-      await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]);
-      blockedIds.push(activeChatFriend.id);
-      showToast('🚫 Kullanıcı engellendi.');
+      if (!blockedIds.includes(activeChatFriend.id)) {
+        await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]);
+        blockedIds.push(activeChatFriend.id);
+      }
+      showToast('🚫 Kullanıcı engellendi. Engeli kaldırdığında sohbet geri gelir.');
       loadPins();
       backToChats();
     }
@@ -1261,9 +1300,19 @@
       box.scrollTop = box.scrollHeight;
     }
 
+    /* Engellenen veya seni engelleyen kişiye mesaj gönderimini durdur */
     async function sendDirectMessage() {
       const input = document.getElementById('dmInput'), text = input.value.trim();
       if (!text || !activeChatFriend || !currentUser) return;
+
+      await loadBlockedUsers();
+      if (blockedIds.includes(activeChatFriend.id)) {
+        return showToast('🚫 Bu kullanıcıyı engelledin. Mesaj atmak için önce engelini kaldır.');
+      }
+      if (blockedByIds.includes(activeChatFriend.id)) {
+        return showToast('🚫 Bu kullanıcı tarafından engellendiğiniz için mesaj gönderemezsiniz.');
+      }
+
       input.value = '';
       const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
       if (error) return showToast('Mesaj gönderilemedi: ' + error.message);
