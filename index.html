@@ -106,6 +106,11 @@
         Google ile Devam Et
       </button>
 
+      <button type="button" class="btn-oauth btn-apple" id="appleLoginBtn">
+        <svg width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+        Apple ile Devam Et
+      </button>
+
       <div class="divider">veya E-posta ile Hızlı Giriş</div>
 
       <input type="email" id="gateEmail" placeholder="E-posta adresin" />
@@ -176,7 +181,7 @@
     <button class="icon-btn" onclick="loadPins()">↻</button>
   </div>
 
-  <!-- Pin Oluşturma Modalı (24 Saat + Doğrudan Kamera & Galeri Ayrımı) -->
+  <!-- Pin Oluşturma Modalı -->
   <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
     <div class="sheet">
       <div class="sheet-header">
@@ -192,15 +197,15 @@
         <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
         <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
       </div>
-      <div id="ghostFields" style="display:none; padding:10px; border-radius:14px; background:rgba(236,72,153,0.1); border:1px solid rgba(236,72,153,0.3); margin-bottom:10px;">
-        <input type="text" id="ghostNameInput" placeholder="Hayalet İsim veya Mekan Adı (örn: Kahve Dünyası)" />
+      <div id="ghostFields" style="display:none; padding:10px; border-radius:14px; background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.35); margin-bottom:10px;">
+        <div style="font-size:11px; color:#f472b6; font-weight:700; margin-bottom:6px;">👻 Kurucu Modu: İsim veya Mekan Adı Belirle</div>
+        <input type="text" id="ghostNameInput" placeholder="Görünecek İsim veya Mekan Adı (örn: Kahve Dünyası)" />
         <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#facc15; cursor:pointer;">
           <input type="checkbox" id="sponsorCheck" style="width:18px; height:18px; margin:0;" /> ⭐ Sponsorlu / Öne Çıkan Mekan Pini Yap
         </label>
       </div>
       <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, mekan fırsatını veya durumu paylaş..."></textarea>
 
-      <!-- Doğrudan Kamera Çekimi & Galeri Seçimi -->
       <div class="media-row">
         <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent); background:rgba(6,182,212,0.12);">📸 Kamera ile Çek</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
@@ -406,10 +411,11 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v7' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v8' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
+      document.getElementById('appleLoginBtn').addEventListener('click', () => signInWithProvider('apple'));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
       document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
@@ -466,7 +472,7 @@
     async function signInWithProvider(provider) {
       const status = document.getElementById('loginStatus');
       status.style.color = '#38bdf8';
-      status.textContent = 'Google hesabına yönlendiriliyor...';
+      status.textContent = (provider === 'apple' ? 'Apple' : 'Google') + ' hesabına yönlendiriliyor...';
       const { error } = await sb.auth.signInWithOAuth({
         provider,
         options: { redirectTo: 'https://getvibepin.github.io/vibepin/' }
@@ -598,7 +604,7 @@
       }, () => {});
     }
 
-    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
+    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: İsim belirleyip pin bırakabilirsin!' : 'Kurucu Modu kapatıldı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
@@ -612,7 +618,7 @@
         return;
       }
       selectedCoords = target;
-      document.getElementById('ghostFields').style.display = (fromGhost && isFounder()) ? 'block' : 'none';
+      document.getElementById('ghostFields').style.display = (ghostMode && isFounder()) ? 'block' : 'none';
       document.getElementById('sponsorCheck').checked = false;
       selectedPhotoFile = null; recordedAudioBlob = null;
       document.getElementById('photoPreview').style.display = 'none';
