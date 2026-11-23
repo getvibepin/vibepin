@@ -4,23 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>VibePin — Canlı Konum & Sosyal Harita</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#090c12" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    :root { --bg:#090c12; --panel:rgba(17,22,33,0.92); --border:rgba(255,255,255,0.1); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
+    :root { --bg:#090c12; --panel:rgba(17,22,33,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
     * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
-    body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
-    #map { width:100%; height:100%; z-index:1; background:#090c12; }
+    body, html { width:100%; height:100%; background:#090c12; color:#f8fafc; overflow:hidden; }
+    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:#090c12; }
     .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
     .leaflet-control-attribution { display:none !important; }
-    #authGate { position:fixed; inset:0; z-index:5000; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 72%); display:flex; flex-direction:column; justify-content:space-between; padding:36px 24px 24px; overflow-y:auto; }
+    #authGate { position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 75%); display:flex; flex-direction:column; justify-content:center; padding:24px; overflow-y:auto; }
+    .gate-card { width:100%; max-width:400px; margin:0 auto; background:rgba(17,22,33,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:24px; }
     .top-bar { position:fixed; top:14px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
-    .pill { background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--border); border-radius:999px; padding:8px 13px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; cursor:pointer; }
+    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:8px 13px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; cursor:pointer; }
     .icon-btn { position:relative; width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; overflow:hidden; }
     .icon-btn img { width:100%; height:100%; object-fit:cover; }
     .notif-dot { position:absolute; top:2px; right:2px; width:11px; height:11px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
@@ -33,7 +31,179 @@
     .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.4); }
     .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.5); }
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .sheet { width:100%; max-width:480px; background:#111621; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
+    .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .sheet-title { font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; }
+    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
+    .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
+    .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
+    .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
+    textarea, input[type="email"], input[type="password"], input[type="text"] { width:100%; background:rgba(255,255,255,0.07); border:1px solid var(--border); border-radius:14px; padding:13px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
+    .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+    .media-btn { padding:11px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
+    .media-btn.recording { border-color:var(--danger); background:rgba(239,68,68,0.2); color:#fca5a5; }
+    .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
+    .btn-google { width:100%; padding:13px; border-radius:14px; border:none; background:#fff; color:#0f172a; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
+    .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
+    .btn-danger { width:100%; padding:11px; border-radius:14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
+    .avatar-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .av-opt { width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); }
+    .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:10000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; }
+    .card-row { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; font-size:13px; }
+    .chat-box { height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:10px; background:rgba(0,0,0,0.35); border-radius:16px; margin-bottom:12px; border:1px solid var(--border); }
+    .msg-bubble { max-width:78%; padding:9px 13px; border-radius:16px; font-size:13px; line-height:1.4; word-break:break-word; }
+    .msg-mine { align-self:flex-end; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border-bottom-right-radius:4px; }
+    .msg-theirs { align-self:flex-start; background:rgba(255,255,255,0.1); color:#f8fafc; border-bottom-left-radius:4px; }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <div id="authGate">
+    <div class="gate-card">
+      <div style="font-size:38px; margin-bottom:8px;">📍</div>
+      <h1 style="font-size:26px; font-weight:900; margin-bottom:4px;">VibePin</h1>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:18px;">Şehrin Nabzını Canlı Yakala</p>
+
+      <button type="button" class="btn-google" id="googleLoginBtn">
+        <span style="font-size:18px; font-weight:900; color:#4285F4;">G</span> Google ile Tek Tıkla Devam Et
+      </button>
+
+      <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:12px;">— veya E-posta ile Giriş / Kayıt —</div>
+
+      <input type="email" id="gateEmail" placeholder="E-posta adresin" />
+      <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" />
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button type="button" class="btn-primary" id="loginBtn">🔐 Giriş Yap</button>
+        <button type="button" class="btn-secondary" id="signupBtn">✨ Kayıt Ol</button>
+      </div>
+      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:12px; text-align:center; min-height:18px;"></p>
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <div class="top-bar">
+    <div style="display:flex; gap:6px;">
+      <div class="pill" onclick="locateUser()">📍 Canlı Konum</div>
+      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()">🌍 Haritadan Seç 🔒</div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="icon-btn" onclick="openFriendsModal()">💬<span id="notifDot" class="notif-dot"></span></button>
+      <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👻</button>
+      <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
+    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
+    <div class="chip" onclick="setFilter('social', this)">☕ Yeme & İçme</div>
+    <div class="chip" onclick="setFilter('question', this)">❓ Durum / Soru</div>
+    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat</div>
+  </div>
+  <div class="bottom-bar">
+    <button class="icon-btn" onclick="locateUser()">⊕</button>
+    <button class="fab-main" onclick="openCreatePin()">＋ Fotoğraf / Ses / Vibe Bırak</button>
+    <button class="icon-btn" onclick="loadPins()">↻</button>
+  </div>
+
+  <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
+      <div class="cat-grid">
+        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
+        <button class="cat-opt" onclick="selectCat('social', this)">☕ Yeme & İçme</button>
+        <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
+        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
+      </div>
+      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Emir_34)" /></div>
+      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini veya buradaki durumu paylaş..."></textarea>
+      <div class="media-row">
+        <label class="media-btn" for="photoInput" id="photoLabel">📷 Fotoğraf Çek / Seç</label>
+        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)" />
+        <button type="button" class="media-btn" id="audioBtn" onclick="toggleAudioRecord()">🎙️ Ses Kaydet</button>
+      </div>
+      <img id="photoPreview" style="display:none; width:100%; max-height:170px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
+      <audio id="audioPreview" controls style="display:none; width:100%; margin-bottom:10px;"></audio>
+      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla</button>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="addFriendBtn" style="padding:6px 12px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:12px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
+        </div>
+      </div>
+      <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
+      <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
+      <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
+      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:14px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
+      <div id="commentsList" style="max-height:130px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🎭 Profil & Fotoğraf</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <div id="profilePhotoPreview" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
+        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Profil Fotoğrafı Yükle</label>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Veya Hızlı Avatar Seç:</p>
+      <div class="avatar-grid" id="avatarGrid">
+        <div class="av-opt selected" onclick="pickAvatar('🦊', this)">🦊</div>
+        <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
+        <div class="av-opt" onclick="pickAvatar('🐼', this)">🐼</div>
+        <div class="av-opt" onclick="pickAvatar('🚀', this)">🚀</div>
+        <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
+        <div class="av-opt" onclick="pickAvatar('🎧', this)">🎧</div>
+      </div>
+      <input type="text" id="profileNameInput" placeholder="Görünen Kullanıcı Adın (örn: Davut_34)" />
+      <button class="btn-primary" style="margin-bottom:12px;" onclick="saveProfile()">💾 Profili Kaydet</button>
+      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+    </div>
+  </div>
+
+  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('friendsModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">💬 Sohbet & Arkadaşlar</div><button class="close-btn" onclick="closeModal('friendsModal')">✕</button></div>
+      <p style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px;">Gelen İstekler & Bildirimler</p>
+      <div id="pendingList" style="margin-bottom:16px;"></div>
+      <p style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px;">Arkadaşlarım (Mesajlaşmak İçin Dokun)</p>
+      <div id="acceptedList"></div>
+    </div>
+  </div>
+
+  <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div class="sheet-title" id="chatFriendTitle">💬 Sohbet</div>
+        <button class="close-btn" onclick="closeChatModal()">✕</button>
+      </div>
+      <div id="chatMessagesBox" class="chat-box"></div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="dmInput" style="margin-bottom:0;" placeholder="Mesajını yaz..." onkeydown="if(event.key==='Enter') sendDirectMessage()" />
+        <button class="btn-primary" style="width:auto; padding:0 18px;" onclick="sendDirectMessage()">Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
+    <div class="sheet" style="text-align:center;">
+      <div class="sheet-header"><div class="sheet-title">🌍 Başka Konuma Işınlan</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumun dışındaki herhangi bir mahalleye veya şehre haritadan dokunarak gitmek için kısa sponsorlu tanıtımı izle.</p>
+      <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ Sponsorlu Tanıtım: <span id="adSec">5</span> sn...</div>
+      <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
+    </div>
+  </div>
   <script>
     const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
@@ -52,7 +222,7 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v4' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v5' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
@@ -104,7 +274,7 @@
       status.textContent = 'Google hesabına yönlendiriliyor...';
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: { redirectTo: 'https://getvibepin.github.io/vibepin/' }
       });
       if (error) { status.style.color = '#f87171'; status.textContent = 'Google giriş hatası: ' + error.message; }
     }
