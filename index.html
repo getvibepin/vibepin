@@ -1,110 +1,51 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head><body>
-  <div id="map"></div>
-  <div id="toast" class="toast"></div>
-  <div class="top-bar">
-    <div class="pill">
-      <span>📍</span>
-      <select id="citySelect" class="city-select" onchange="handleCityChange(this.value)">
-        <option value="gps">Canlı Konumum</option>
-        <option value="41.0082,28.9784">İstanbul • Kadıköy</option>
-        <option value="41.0766,29.0132">İstanbul • Beşiktaş</option>
-        <option value="38.3552,38.3095">Malatya • Merkez</option>
-        <option value="vip_ny">New York • Times Sq 🔒</option>
-        <option value="vip_tk">Tokyo • Shibuya 🔒</option>
-      </select>
-    </div>
-    <div style="display:flex; gap:8px;">
-      <button id="ghostBtn" class="icon-btn" onclick="toggleGhostMode()">👻</button>
-      <button class="icon-btn" onclick="openModal('profileModal')">🦊</button>
-    </div>
-  </div>
-  <div class="filter-row">
-    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik / Ortam</div>
-    <div class="chip" onclick="setFilter('social', this)">☕ Kahve & Tanışma</div>
-    <div class="chip" onclick="setFilter('question', this)">❓ Anlık Soru</div>
-    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat & İndirim</div>
-  </div>
-  <div class="bottom-bar">
-    <button class="icon-btn" onclick="locateUser()">⊕</button>
-    <button class="fab-main" onclick="openCreatePin()">＋ Buraya Vibe Bırak</button>
-    <button class="icon-btn" onclick="loadPins()">↻</button>
-  </div>
-  <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin Bırak</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
-      <div class="cat-grid">
-        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik / Ortam</button>
-        <button class="cat-opt" onclick="selectCat('social', this)">☕ Kahve & Sohbet</button>
-        <button class="cat-opt" onclick="selectCat('question', this)">❓ Bölgeye Sor</button>
-        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Sıcak Fırsat</button>
-      </div>
-      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet Kullanıcı Adı (örn: Emir_34)" /></div>
-      <textarea id="pinText" rows="3" placeholder="Şu an burada neler oluyor?"></textarea>
-      <button class="btn-primary" onclick="submitPin()">🚀 Haritada Yayınla</button>
-    </div>
-  </div>
-  <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="detailAuthor">Kullanıcı</div><button class="close-btn" onclick="closeModal('detailModal')">✕</button></div>
-      <p id="detailText" style="font-size:15px; line-height:1.5; margin-bottom:14px;"></p>
-      <button class="btn-primary" style="margin-bottom:16px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
-      <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:var(--muted);">Canlı Yorumlar</div>
-      <div id="commentsList" style="max-height:160px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
-    </div>
-  </div>
-  <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🦊 VibePin Profil & Bulut</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); margin-bottom:14px; font-size:13px;">Durum: <span class="badge" id="userBadge">Misafir Modu</span></div>
-      <input type="email" id="authEmail" placeholder="E-posta adresin" />
-      <input type="password" id="authPass" placeholder="Şifren (en az 6 karakter)" />
-      <div style="display:flex; gap:8px; margin-bottom:10px;"><button class="btn-primary" onclick="signUpUser()">✨ Hızlı Kayıt Ol</button><button class="btn-secondary" onclick="signInUser()">Giriş Yap</button></div>
-      <button id="logoutBtn" class="btn-secondary" style="display:none; color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
-    </div>
-  </div>
-  <div id="vipModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('vipModal')">
-    <div class="sheet" style="text-align:center;">
-      <div class="sheet-header"><div class="sheet-title">🌍 VibePin Global VIP</div><button class="close-btn" onclick="closeModal('vipModal')">✕</button></div>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">New York, Tokyo, Londra ve Paris sokaklarındaki canlı pinlere ışınlanmak için VIP üyeliğe geç!</p>
-      <button class="btn-primary" onclick="closeModal('vipModal'); showToast('VIP erken erişim listesine eklendin! ✨')">₺79,99 / Ay — Erken Erişime Katıl</button>
-    </div>
-  </div>
-
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
   <title>VibePin — Canlı Konum & Sosyal Harita</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg: #0b0e14;
-      --panel: rgba(19, 24, 36, 0.92);
-      --border: rgba(255, 255, 255, 0.12);
-      --primary: #7c3aed;
-      --accent: #06b6d4;
-      --pink: #ec4899;
-      --amber: #f59e0b;
-      --green: #10b981;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body, html { width: 100%; height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
-    #map { width: 100%; height: 100%; z-index: 1; }
-    .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
-    .leaflet-control-attribution { display: none !important; }
-    .top-bar { position: fixed; top: 14px; left: 14px; right: 14px; z-index: 1000; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; }
-    .top-bar > * { pointer-events: auto; }
-    .pill { background: var(--panel); backdrop-filter: blur(14px); border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); font-size: 13px; font-weight: 600; }
-    .icon-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); backdrop-filter: blur(14px); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
-    .ghost-active { border-color: var(--pink); box-shadow: 0 
+    :root { --bg:#0b0e14; --panel:rgba(19,24,36,0.92); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+    body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
+    #map { width:100%; height:100%; z-index:1; }
+    .leaflet-tile-pane { filter:invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+    .leaflet-control-attribution { display:none !important; }
+    .top-bar { position:fixed; top:14px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
+    .top-bar > * { pointer-events:auto; }
+    .pill { background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--border); border-radius:999px; padding:8px 14px; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; }
+    .icon-btn { width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; }
+    .ghost-active { border-color:var(--pink); background:rgba(236,72,153,0.25); }
+    select.city-select { background:transparent; border:none; color:var(--text); font-weight:700; font-size:13px; outline:none; }
+    select.city-select option { background:#131824; color:#fff; }
+    .filter-row { position:fixed; top:66px; left:14px; right:14px; z-index:999; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+    .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; }
+    .chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .bottom-bar { position:fixed; bottom:22px; left:16px; right:16px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+    .bottom-bar > * { pointer-events:auto; }
+    .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:15px; font-weight:800; cursor:pointer; }
+    .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; }
+    .vibe-marker span { transform:rotate(45deg); font-size:20px; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .sheet { width:100%; max-width:480px; background:#131824; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:88vh; overflow-y:auto; }
+    .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .sheet-title { font-size:17px; font-weight:800; }
+    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
+    .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
+    .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
+    .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
+    textarea, input { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px; color:#fff; font-size:14px; outline:none; margin-bottom:12px; }
+    .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
+    .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
+    .badge { font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(16,185,129,0.18); color:var(--green); font-weight:700; }
+    .toast { position:fixed; top:115px; left:50%; transform:translateX(-50%); z-index:3000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:9px 16px; border-radius:999px; font-size:12px; font-weight:600; display:none; }
+    .comment-item { padding:10px; border-radius:12px; background:rgba(255,255,255,0.04); margin-bottom:8px; font-size:13px; }
+  </style>
+</head>
 <body>
   <div id="map"></div>
   <div id="toast" class="toast"></div>
@@ -127,10 +68,10 @@
   </div>
   <div class="filter-row">
     <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik / Ortam</div>
-    <div class="chip" onclick="setFilter('social', this)">☕ Kahve & Tanışma</div>
-    <div class="chip" onclick="setFilter('question', this)">❓ Anlık Soru</div>
-    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat & İndirim</div>
+    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
+    <div class="chip" onclick="setFilter('social', this)">☕ Kahve</div>
+    <div class="chip" onclick="setFilter('question', this)">❓ Soru</div>
+    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat</div>
   </div>
   <div class="bottom-bar">
     <button class="icon-btn" onclick="locateUser()">⊕</button>
@@ -139,49 +80,44 @@
   </div>
   <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin Bırak</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
+      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
       <div class="cat-grid">
-        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik / Ortam</button>
-        <button class="cat-opt" onclick="selectCat('social', this)">☕ Kahve & Sohbet</button>
-        <button class="cat-opt" onclick="selectCat('question', this)">❓ Bölgeye Sor</button>
-        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Sıcak Fırsat</button>
+        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
+        <button class="cat-opt" onclick="selectCat('social', this)">☕ Kahve</button>
+        <button class="cat-opt" onclick="selectCat('question', this)">❓ Soru</button>
+        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
       </div>
-      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet Kullanıcı Adı (örn: Emir_34)" /></div>
-      <textarea id="pinText" rows="3" placeholder="Şu an burada neler oluyor?"></textarea>
+      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Emir_34)" /></div>
+      <textarea id="pinText" rows="3" placeholder="Burada neler oluyor?"></textarea>
       <button class="btn-primary" onclick="submitPin()">🚀 Haritada Yayınla</button>
     </div>
   </div>
   <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title" id="detailAuthor">Kullanıcı</div><button class="close-btn" onclick="closeModal('detailModal')">✕</button></div>
-      <p id="detailText" style="font-size:15px; line-height:1.5; margin-bottom:14px;"></p>
+      <p id="detailText" style="font-size:15px; margin-bottom:14px;"></p>
       <button class="btn-primary" style="margin-bottom:16px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
-      <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:var(--muted);">Canlı Yorumlar</div>
-      <div id="commentsList" style="max-height:160px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div id="commentsList" style="max-height:150px; overflow-y:auto; margin-bottom:10px;"></div>
       <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
   </div>
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🦊 VibePin Profil & Bulut</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); margin-bottom:14px; font-size:13px;">Durum: <span class="badge" id="userBadge">Misafir Modu</span></div>
+      <div class="sheet-header"><div class="sheet-title">🦊 VibePin Profil</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
+      <div style="padding:10px; border-radius:12px; background:rgba(255,255,255,0.04); margin-bottom:12px; font-size:13px;">Durum: <span class="badge" id="userBadge">Misafir Modu</span></div>
       <input type="email" id="authEmail" placeholder="E-posta adresin" />
       <input type="password" id="authPass" placeholder="Şifren (en az 6 karakter)" />
-      <div style="display:flex; gap:8px; margin-bottom:10px;"><button class="btn-primary" onclick="signUpUser()">✨ Hızlı Kayıt Ol</button><button class="btn-secondary" onclick="signInUser()">Giriş Yap</button></div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;"><button class="btn-primary" onclick="signUpUser()">✨ Kayıt Ol</button><button class="btn-secondary" onclick="signInUser()">Giriş Yap</button></div>
       <button id="logoutBtn" class="btn-secondary" style="display:none; color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
     </div>
   </div>
   <div id="vipModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('vipModal')">
     <div class="sheet" style="text-align:center;">
       <div class="sheet-header"><div class="sheet-title">🌍 VibePin Global VIP</div><button class="close-btn" onclick="closeModal('vipModal')">✕</button></div>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">New York, Tokyo, Londra ve Paris sokaklarındaki canlı pinlere ışınlanmak için VIP üyeliğe geç!</p>
-      <button class="btn-primary" onclick="closeModal('vipModal'); showToast('VIP erken erişim listesine eklendin! ✨')">₺79,99 / Ay — Erken Erişime Katıl</button>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">New York ve Tokyo sokaklarındaki canlı pinlere ışınlanmak için VIP üyeliğe geç!</p>
+      <button class="btn-primary" onclick="closeModal('vipModal'); showToast('VIP listesine eklendin! ✨')">₺79,99 / Ay — Katıl</button>
     </div>
   </div>
-  <script>
-    const sb = window.supabase.createClient('https://xotxhjckccwvddahdvxo.supabase.co', 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA');
-    let map, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, activePin = null, allPins = [], markersLayer = L.layerGroup();
-    const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#
   <script>
     const sb = window.supabase.createClient('https://xotxhjckccwvddahdvxo.supabase.co', 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA');
     let map, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, activePin = null, allPins = [], markersLayer = L.layerGroup();
@@ -196,16 +132,16 @@
     }
     function locateUser() { if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition((pos) => { userCoords = [pos.coords.latitude, pos.coords.longitude]; map.flyTo(userCoords, 15); }, () => showToast('Konum izni bekleniyor 📍')); }
     function handleCityChange(val) { if (val.startsWith('vip_')) { document.getElementById('citySelect').value = 'gps'; openModal('vipModal'); return; } if (val === 'gps') { locateUser(); return; } const [lat, lng] = val.split(',').map(Number); userCoords = [lat, lng]; map.flyTo(userCoords, 14); }
-    function toggleGhostMode() { ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Pin atmak için haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
+    function toggleGhostMode() { ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
     function setFilter(cat, el) { currentFilter = cat; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderPins(); }
-    function openCreatePin(fromGhost = false) { if (!fromGhost) selectedCoords = [map.getCenter().lat, map.getCenter().lng]; document.getElementById('ghostFields').style.display = fromGhost ? 'block' : 'none'; document.getElementById('createTitle').textContent = fromGhost ? '👻 Hayalet Pin Tohumla' : '📍 Yeni VibePin Bırak'; openModal('createModal'); }
+    function openCreatePin(fromGhost = false) { if (!fromGhost) selectedCoords = [map.getCenter().lat, map.getCenter().lng]; document.getElementById('ghostFields').style.display = fromGhost ? 'block' : 'none'; document.getElementById('createTitle').textContent = fromGhost ? '👻 Hayalet Pin Tohumla' : '📍 Yeni VibePin'; openModal('createModal'); }
     async function checkSession() { const { data: { session } } = await sb.auth.getSession(); currentUser = session?.user || null; updateAuthUI(); }
     function updateAuthUI() { const b = document.getElementById('userBadge'), l = document.getElementById('logoutBtn'); if (currentUser) { b.textContent = 'Bağlı: ' + currentUser.email; l.style.display = 'block'; } else { b.textContent = 'Misafir Modu'; l.style.display = 'none'; } }
     async function signUpUser() { const email = document.getElementById('authEmail').value.trim(), password = document.getElementById('authPass').value.trim(); if (!email || password.length < 6) return showToast('Geçerli e-posta ve min 6 haneli şifre girin'); const { data, error } = await sb.auth.signUp({ email, password }); if (error) return showToast('Hata: ' + error.message); currentUser = data.user; updateAuthUI(); showToast('🎉 Hesap oluşturuldu!'); }
-    async function signInUser() { const email = document.getElementById('authEmail').value.trim(), password = document.getElementById('authPass').value.trim(); const { data, error } = await sb.auth.signInWithPassword({ email, password }); if (error) return showToast('Giriş hatası: ' + error.message); currentUser = data.user; updateAuthUI(); showToast('✅ Hoş geldin!'); }
+    async function signInUser() { const email = document.getElementById('authEmail').value.trim(), password = document.getElementById('authPass').value.trim(); const { data, error } = await sb.auth.signInWithPassword({ email, password }); if (error) return showToast('Hata: ' + error.message); currentUser = data.user; updateAuthUI(); showToast('✅ Hoş geldin!'); }
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; updateAuthUI(); showToast('Çıkış yapıldı'); }
     async function submitPin() { const text = document.getElementById('pinText').value.trim(); if (!text) return showToast('Mesaj yazın'); if (!currentUser) { closeModal('createModal'); openModal('profileModal'); return showToast('Önce kayıt ol!'); } const ghostName = ghostMode ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null; const [lat, lng] = selectedCoords || userCoords; const { error } = await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory, content_text: text, latitude: lat, longitude: lng }]); if (error) return showToast('Hata: ' + error.message); document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin yayınlandı!'); loadPins(); }
     async function loadPins() { const { data, error } = await sb.from('pins').select('*, profiles(username)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }); if (!error && data) { allPins = data; renderPins(); } }
