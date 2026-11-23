@@ -5,52 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>VibePin — Canlı Konum & Sosyal Harita</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0b0e14" />
+  <meta name="theme-color" content="#090c12" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --bg:#0b0e14; --panel:rgba(19,24,36,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --text:#f8fafc; --muted:#94a3b8; }
+    :root { --bg:#090c12; --panel:rgba(17,22,33,0.92); --border:rgba(255,255,255,0.1); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
     * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
     body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
-    #map { width:100%; height:100%; z-index:1; }
-    .leaflet-tile-pane { filter:invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+    #map { width:100%; height:100%; z-index:1; background:#090c12; }
     .leaflet-control-attribution { display:none !important; }
-    #authGate { position:fixed; inset:0; z-index:5000; background:radial-gradient(circle at top,#1e1b4b 0%,#0b0e14 72%); display:flex; flex-direction:column; justify-content:space-between; padding:32px 24px 24px; overflow-y:auto; }
-    .social-btn { width:100%; padding:13px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.07); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; margin-bottom:10px; }
-    .social-btn.google { background:#fff; color:#0f172a; border:none; }
-    .social-btn.apple { background:#000; color:#fff; border:1px solid rgba(255,255,255,0.25); }
-    .divider { text-align:center; font-size:12px; color:var(--muted); margin:10px 0; }
+    #authGate { position:fixed; inset:0; z-index:5000; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 72%); display:flex; flex-direction:column; justify-content:space-between; padding:42px 24px 24px; overflow-y:auto; }
     .top-bar { position:fixed; top:14px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
     .pill { background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--border); border-radius:999px; padding:8px 13px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; cursor:pointer; }
-    .icon-btn { position:relative; width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; }
-    .notif-dot { position:absolute; top:2px; right:2px; width:11px; height:11px; border-radius:50%; background:#ef4444; border:2px solid #0b0e14; display:none; }
+    .icon-btn { position:relative; width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; overflow:hidden; }
+    .icon-btn img { width:100%; height:100%; object-fit:cover; }
+    .notif-dot { position:absolute; top:2px; right:2px; width:11px; height:11px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
     .ghost-active { border-color:var(--pink); background:rgba(236,72,153,0.25); }
     .filter-row { position:fixed; top:66px; left:14px; right:14px; z-index:999; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
     .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; }
     .chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
     .bottom-bar { position:fixed; bottom:22px; left:16px; right:16px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
     .bottom-bar > * { pointer-events:auto; }
-    .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; }
-    .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; }
-    .vibe-marker span { transform:rotate(45deg); font-size:20px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
+    .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.4); }
+    .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.5); }
+    .vibe-marker span { transform:rotate(45deg); font-size:19px; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
-    .sheet { width:100%; max-width:480px; background:#131824; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
+    .sheet { width:100%; max-width:480px; background:#111621; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
     .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .sheet-title { font-size:17px; font-weight:800; }
+    .sheet-title { font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; }
     .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
     .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
     .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
-    textarea, input[type="email"], input[type="password"], input[type="text"] { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
+    textarea, input[type="email"], input[type="password"], input[type="text"] { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:13px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
     .media-btn { padding:11px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
-    .media-btn.recording { border-color:#ef4444; background:rgba(239,68,68,0.2); color:#fca5a5; }
+    .media-btn.recording { border-color:var(--danger); background:rgba(239,68,68,0.2); color:#fca5a5; }
     .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
     .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
+    .btn-danger { width:100%; padding:11px; border-radius:14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
     .avatar-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
     .av-opt { width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
     .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); }
@@ -64,19 +61,12 @@
     <div>
       <img src="icon.svg" alt="VibePin" style="width:72px; height:72px; border-radius:20px; margin-bottom:14px; box-shadow:0 12px 32px rgba(124,58,237,0.5);" />
       <h1 style="font-size:28px; font-weight:900; margin-bottom:6px;">VibePin</h1>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:20px;">Çevrendeki canlı anları, mekanları ve arkadaşlarını haritada keşfet.</p>
-      <button class="social-btn google" onclick="oauthLogin('google')">🔵 Google ile Devam Et</button>
-      <button class="social-btn apple" onclick="oauthLogin('apple')"> Apple ile Devam Et</button>
-      <div class="divider">— veya E-posta / Telefon ile Kaydol —</div>
-      <input type="email" id="gateEmail" placeholder="E-posta adresin" />
-      <input type="password" id="gatePass" placeholder="Şifre belirle (en az 6 karakter)" />
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn-primary" onclick="gateSignUp()">✨ Hemen Kaydol</button>
-        <button class="btn-secondary" onclick="gateSignIn()">Giriş Yap</button>
-      </div>
-      <button class="btn-secondary" onclick="phonePrompt()">📱 Telefon Numarası ile Kaydol</button>
+      <p style="font-size:14px; color:var(--muted); margin-bottom:22px;">Kurucu & Yönetici Erişimi</p>
+      <input type="email" id="gateEmail" placeholder="Kurucu e-posta adresin" />
+      <input type="password" id="gatePass" placeholder="Şifren" />
+      <button class="btn-primary" onclick="gateSignIn()">🔐 Giriş Yap</button>
     </div>
-    <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:14px;">VibePin Canlı Sosyal Harita Ağı</p>
+    <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:14px;">VibePin Özel Yönetim Paneli</p>
   </div>
 
   <div id="map"></div>
@@ -87,7 +77,7 @@
     </div>
     <div style="display:flex; gap:6px;">
       <button class="icon-btn" onclick="openFriendsModal()">🔔<span id="notifDot" class="notif-dot"></span></button>
-      <button id="ghostBtn" class="icon-btn" onclick="toggleGhostMode()">👻</button>
+      <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👻</button>
       <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
     </div>
   </div>
@@ -138,7 +128,8 @@
       <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
-      <button class="btn-primary" style="margin-bottom:14px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
+      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:14px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
       <div id="commentsList" style="max-height:130px; overflow-y:auto; margin-bottom:10px;"></div>
       <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
@@ -146,8 +137,13 @@
 
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🎭 Profil & Avatar Düzenle</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Avatarını Seç:</p>
+      <div class="sheet-header"><div class="sheet-title">🎭 Profil & Fotoğraf</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <div id="profilePhotoPreview" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
+        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Profil Fotoğrafı Yükle</label>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Veya Hızlı Avatar Seç:</p>
       <div class="avatar-grid" id="avatarGrid">
         <div class="av-opt selected" onclick="pickAvatar('🦊', this)">🦊</div>
         <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
@@ -162,35 +158,22 @@
     </div>
   </div>
 
-  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('friendsModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">👥 Arkadaşlar & Bildirimler</div><button class="close-btn" onclick="closeModal('friendsModal')">✕</button></div>
-      <p style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px;">Gelen İstekler & Bildirimler</p>
-      <div id="pendingList" style="margin-bottom:16px;"></div>
-      <p style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px;">Arkadaş Listem</p>
-      <div id="acceptedList"></div>
-    </div>
-  </div>
-
-  <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
-    <div class="sheet" style="text-align:center;">
-      <div class="sheet-header"><div class="sheet-title">🌍 Başka Konuma Işınlan</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumun dışındaki herhangi bir mahalleye veya şehre haritadan dokunarak gitmek için kısa sponsorlu tanıtımı izle.</p>
-      <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ Sponsorlu Tanıtım: <span id="adSec">5</span> sn...</div>
-      <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
-    </div>
-  </div>
+  <div id
   <script>
+    const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const sb = window.supabase.createClient('https://xotxhjckccwvddahdvxo.supabase.co', 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA');
-    let map, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊' }, activePin = null, allPins = [], markersLayer = L.layerGroup();
-    let selectedPhotoFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null, teleportUnlocked = false, teleportPickMode = false;
+    let map, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null }, activePin = null, allPins = [], markersLayer = L.layerGroup();
+    let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null, teleportUnlocked = false, teleportPickMode = false;
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
+    function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
     function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3500); }
+    function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
 
     function initApp() {
       map = L.map('map', { zoomControl: false }).setView(userCoords, 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.7 }).addTo(map);
       markersLayer.addTo(map);
       map.on('click', (e) => {
         if (teleportPickMode) {
@@ -200,7 +183,7 @@
           showToast('🌍 Seçtiğin konuma ışınlandın!');
           return;
         }
-        if (ghostMode) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
+        if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
       });
       checkSession();
     }
@@ -208,37 +191,63 @@
     async function checkSession() {
       const { data: { session } } = await sb.auth.getSession();
       currentUser = session?.user || null;
-      if (currentUser) {
+      if (currentUser && isFounder()) {
         document.getElementById('authGate').style.display = 'none';
+        document.getElementById('ghostBtn').style.display = 'flex';
         await loadMyProfile();
         locateUser(); loadPins(); checkFriendNotifications();
       } else {
+        if (currentUser) await sb.auth.signOut();
         document.getElementById('authGate').style.display = 'flex';
+      }
+    }
+
+    function updateAvatarUI() {
+      const btn = document.getElementById('myAvatarBtn');
+      const prev = document.getElementById('profilePhotoPreview');
+      if (myProfile.avatar_url) {
+        btn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
+        prev.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
+      } else {
+        btn.textContent = myProfile.avatar_emoji || '🦊';
+        prev.textContent = myProfile.avatar_emoji || '🦊';
       }
     }
 
     async function loadMyProfile() {
       const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-      if (data) { myProfile = data; } else { myProfile = { username: (currentUser.email || 'Uye').split('@')[0], avatar_emoji: '🦊' }; }
-      document.getElementById('myAvatarBtn').textContent = myProfile.avatar_emoji || '🦊';
+      if (data) { myProfile = data; } else { myProfile = { username: (currentUser.email || 'Kurucu').split('@')[0], avatar_emoji: '🦊', avatar_url: null }; }
       document.getElementById('profileNameInput').value = myProfile.username || '';
+      updateAvatarUI();
     }
 
-    function openProfileModal() { openModal('profileModal'); }
-    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); }
+    function openProfileModal() { selectedAvatarFile = null; openModal('profileModal'); }
+    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; selectedAvatarFile = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); updateAvatarUI(); }
+    function handleAvatarFile(input) {
+      if (input.files && input.files[0]) {
+        selectedAvatarFile = input.files[0];
+        document.getElementById('avatarUploadLabel').textContent = '✅ Fotoğraf Seçildi';
+        document.getElementById('profilePhotoPreview').innerHTML = `<img src="${URL.createObjectURL(selectedAvatarFile)}" style="width:100%;height:100%;object-fit:cover;" />`;
+      }
+    }
+
     async function saveProfile() {
-      const name = document.getElementById('profileNameInput').value.trim() || 'Vibe_Uyesi';
+      const name = document.getElementById('profileNameInput').value.trim() || 'Vibe_Kurucu';
       myProfile.username = name;
-      const { error } = await sb.from('profiles').upsert({ id: currentUser.id, username: name, avatar_emoji: myProfile.avatar_emoji });
+      if (selectedAvatarFile) {
+        const ext = selectedAvatarFile.name.split('.').pop() || 'jpg';
+        const path = `${currentUser.id}/avatar_${Date.now()}.${ext}`;
+        const { error: upErr } = await sb.storage.from('vibe-media').upload(path, selectedAvatarFile);
+        if (!upErr) myProfile.avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+      }
+      const { error } = await sb.from('profiles').upsert({ id: currentUser.id, username: name, avatar_emoji: myProfile.avatar_emoji, avatar_url: myProfile.avatar_url });
       if (error) return showToast('Hata: ' + error.message);
-      document.getElementById('myAvatarBtn').textContent = myProfile.avatar_emoji;
-      closeModal('profileModal'); showToast('✅ Profil & Avatar güncellendi!');
+      updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil & Fotoğraf kaydedildi!');
     }
 
     function triggerTeleport() {
       if (!teleportUnlocked) { openModal('adModal'); return; }
-      teleportPickMode = true;
-      map.setZoom(6);
+      teleportPickMode = true; map.setZoom(6);
       showToast('🗺️ Haritada gitmek istediğin şehre veya sokağa dokun!');
     }
 
@@ -248,45 +257,21 @@
       let sec = 5;
       const timer = setInterval(() => {
         sec--; document.getElementById('adSec').textContent = sec;
-        if (sec <= 0) {
-          clearInterval(timer);
-          teleportUnlocked = true;
-          document.getElementById('teleportBtn').innerHTML = '🌍 Haritadan Seç 🔓';
-          closeModal('adModal');
-          triggerTeleport();
-        }
+        if (sec <= 0) { clearInterval(timer); teleportUnlocked = true; document.getElementById('teleportBtn').innerHTML = '🌍 Haritadan Seç 🔓'; closeModal('adModal'); triggerTeleport(); }
       }, 1000);
     }
 
-    async function oauthLogin(provider) {
-      const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } });
-      if (error) showToast('Sağlayıcı ayarı gerekli: ' + error.message);
-    }
-    async function gateSignUp() {
-      const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
-      if (!email || password.length < 6) return showToast('Geçerli e-posta ve min 6 karakter şifre girin');
-      const { data, error } = await sb.auth.signUp({ email, password });
-      if (error) return showToast('Hata: ' + error.message);
-      if (data.session) { checkSession(); } else { showToast('📩 Onay maili gönderildi! Onaylayıp Giriş Yap.'); }
-    }
     async function gateSignIn() {
       const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
+      if (email.toLowerCase() !== FOUNDER_EMAIL.toLowerCase()) return showToast('⛔ Sadece kurucu hesabı giriş yapabilir.');
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) return showToast('Giriş hatası: ' + error.message);
-      showToast('✅ Hoş geldin!'); checkSession();
-    }
-    async function phonePrompt() {
-      const phone = prompt('Başında +90 olacak şekilde telefon numaranız (örn: +905551234567):');
-      if (!phone) return;
-      const { error } = await sb.auth.signInWithOtp({ phone });
-      if (error) return showToast('SMS servisi henüz aktif değil: ' + error.message);
-      const token = prompt('SMS ile gelen 6 haneli kodu girin:');
-      if (token) { const { error: vErr } = await sb.auth.verifyOtp({ phone, token, type: 'sms' }); if (!vErr) checkSession(); }
+      showToast('✅ Hoş geldin Kurucu!'); checkSession();
     }
     async function signOutUser() { await sb.auth.signOut(); closeModal('profileModal'); checkSession(); }
 
     function locateUser() { if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition((pos) => { userCoords = [pos.coords.latitude, pos.coords.longitude]; map.flyTo(userCoords, 15); }, () => {}); }
-    function toggleGhostMode() { ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
+    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
@@ -294,7 +279,7 @@
 
     function openCreatePin(fromGhost = false) {
       if (!fromGhost) selectedCoords = [map.getCenter().lat, map.getCenter().lng];
-      document.getElementById('ghostFields').style.display = fromGhost ? 'block' : 'none';
+      document.getElementById('ghostFields').style.display = (fromGhost && isFounder()) ? 'block' : 'none';
       selectedPhotoFile = null; recordedAudioBlob = null;
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('audioPreview').style.display = 'none';
@@ -344,7 +329,7 @@
         const { error } = await sb.storage.from('vibe-media').upload(path, recordedAudioBlob);
         if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
-      const ghostName = ghostMode ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
+      const ghostName = (ghostMode && isFounder()) ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
       const [lat, lng] = selectedCoords || userCoords;
       const { error } = await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory, content_text: text || '📍 Canlı Paylaşım', latitude: lat, longitude: lng, image_url, audio_url }]);
       btn.textContent = '🚀 Haritada Yayınla'; btn.disabled = false;
@@ -353,7 +338,7 @@
     }
 
     async function loadPins() {
-      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
+      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
       if (!error && data) { allPins = data; renderPins(); }
     }
 
@@ -372,16 +357,27 @@
 
     async function openPinDetail(pin) {
       activePin = pin;
-      const av = pin.profiles?.avatar_emoji || '🦊';
       const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe Kullanıcısı';
-      document.getElementById('detailAuthor').textContent = `${av} ${author}`;
+      const avHtml = (!pin.ghost_author_name && pin.profiles?.avatar_url)
+        ? `<img src="${esc(pin.profiles.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />`
+        : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`;
+      document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
-      document.getElementById('addFriendBtn').style.display = (pin.user_id && pin.user_id !== currentUser.id) ? 'block' : 'none';
+      const isMine = (pin.user_id && pin.user_id === currentUser.id);
+      document.getElementById('addFriendBtn').style.display = (pin.user_id && !isMine) ? 'block' : 'none';
+      document.getElementById('deletePinBtn').style.display = isMine ? 'block' : 'none';
       const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
       if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else { img.style.display = 'none'; }
       if (pin.audio_url) { aud.src = pin.audio_url; aud.style.display = 'block'; } else { aud.style.display = 'none'; }
       openModal('detailModal'); loadComments(pin.id);
+    }
+
+    async function deleteCurrentPin() {
+      if (!activePin || !currentUser) return;
+      const { error } = await sb.from('pins').delete().eq('id', activePin.id).eq('user_id', currentUser.id);
+      if (error) return showToast('Silme hatası: ' + error.message);
+      closeModal('detailModal'); showToast('🗑️ Paylaşımın silindi!'); loadPins();
     }
 
     async function sendFriendRequest() {
@@ -407,13 +403,13 @@
       const friends = (data || []).filter(f => f.status === 'accepted');
 
       pList.innerHTML = (incoming.length === 0 && responses.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Yeni bildirim yok.</div>' :
-        incoming.map(f => `<div class="card-row"><span><strong>${f.sender_name || 'Üye'}</strong> arkadaş olmak istiyor</span><div style="display:flex; gap:6px;"><button onclick="respondFriend('${f.id}','accepted')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--green); color:#fff; font-weight:700;">Kabul</button><button onclick="respondFriend('${f.id}','rejected')" style="padding:5px 10px; border-radius:8px; border:none; background:#ef4444; color:#fff; font-weight:700;">Red</button></div></div>`).join('') +
-        responses.map(f => `<div class="card-row"><span><strong>${f.receiver_name || 'Üye'}</strong> isteğini ${f.status === 'accepted' ? '✅ kabul etti' : '❌ reddetti'}</span></div>`).join('');
+        incoming.map(f => `<div class="card-row"><span><strong>${esc(f.sender_name || 'Üye')}</strong> arkadaş olmak istiyor</span><div style="display:flex; gap:6px;"><button onclick="respondFriend('${f.id}','accepted')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--green); color:#fff; font-weight:700;">Kabul</button><button onclick="respondFriend('${f.id}','rejected')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--danger); color:#fff; font-weight:700;">Red</button></div></div>`).join('') +
+        responses.map(f => `<div class="card-row"><span><strong>${esc(f.receiver_name || 'Üye')}</strong> isteğini ${f.status === 'accepted' ? '✅ kabul etti' : '❌ reddetti'}</span></div>`).join('');
 
-      aList.innerHTML = friends.length === 0 ? '<div style="color:var(--muted); font-size:12px;">Henüz arkadaşın yok. Haritadaki pinlere tıklayıp arkadaş ekleyebilirsin!</div>' :
+      aList.innerHTML = friends.length === 0 ? '<div style="color:var(--muted); font-size:12px;">Henüz arkadaşın yok.</div>' :
         friends.map(f => {
           const fname = f.sender_id === currentUser.id ? f.receiver_name : f.sender_name;
-          return `<div class="card-row"><span>🦊 <strong>${fname || 'Vibe Arkadaşı'}</strong></span><span style="color:var(--green); font-size:11px;">● Arkadaş</span></div>`;
+          return `<div class="card-row"><span>🦊 <strong>${esc(fname || 'Vibe Arkadaşı')}</strong></span><span style="color:var(--green); font-size:11px;">● Arkadaş</span></div>`;
         }).join('');
     }
 
@@ -435,7 +431,7 @@
     async function loadComments(pinId) {
       const list = document.getElementById('commentsList');
       const { data } = await sb.from('pin_comments').select('*, profiles(username)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Henüz yorum yok.</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${c.profiles?.username || 'Üye'}:</strong> ${c.comment_text}</div>`).join('');
+      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Henüz yorum yok.</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'Üye')}:</strong> ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
