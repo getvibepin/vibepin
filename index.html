@@ -8,51 +8,74 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    :root { --bg:#090c12; --panel:rgba(17,22,33,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
-    body, html { width:100%; height:100%; background:#090c12; color:#f8fafc; overflow:hidden; }
-    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:#090c12; }
+    :root { --bg:#070a10; --panel:rgba(15,20,32,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --green:#10b981; --gold:#f59e0b; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-tap-highlight-color:transparent; }
+    body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
+    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:var(--bg); }
     .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
     .leaflet-control-attribution { display:none !important; }
-    #authGate { position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 75%); display:flex; flex-direction:column; justify-content:center; padding:24px; overflow-y:auto; }
-    .gate-card { width:100%; max-width:400px; margin:0 auto; background:rgba(17,22,33,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:24px; }
-    .top-bar { position:fixed; top:14px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
+
+    /* Premium Giriş Ekranı */
+    #authGate { position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at 50% 15%, #2e1065 0%, #0f172a 48%, #070a10 90%); display:flex; flex-direction:column; justify-content:center; padding:20px; overflow-y:auto; }
+    .radar-bg { position:absolute; top:8%; left:50%; transform:translateX(-50%); width:320px; height:320px; border-radius:50%; border:1px solid rgba(124,58,237,0.28); box-shadow:0 0 80px rgba(6,182,212,0.18), inset 0 0 50px rgba(124,58,237,0.2); pointer-events:none; animation:pulseRadar 4s infinite ease-in-out; }
+    @keyframes pulseRadar { 0%,100% { transform:translateX(-50%) scale(0.95); opacity:0.5; } 50% { transform:translateX(-50%) scale(1.06); opacity:0.95; } }
+    .gate-card { position:relative; width:100%; max-width:410px; margin:0 auto; background:rgba(15,20,34,0.82); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.15); border-radius:28px; padding:26px 22px; box-shadow:0 24px 60px rgba(0,0,0,0.65); }
+    .live-badge { display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); color:#6ee7b7; font-size:11px; font-weight:700; margin-bottom:14px; }
+    .live-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
+    .brand-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .brand-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,var(--primary),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:25px; box-shadow:0 10px 25px rgba(124,58,237,0.45); }
+    .btn-oauth { width:100%; padding:13px 16px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; transition:transform 0.15s; }
+    .btn-oauth:active { transform:scale(0.98); }
+    .btn-google { background:#ffffff; color:#0f172a; border:none; box-shadow:0 6px 20px rgba(255,255,255,0.12); }
+    .btn-apple { background:#000000; color:#ffffff; border:1px solid rgba(255,255,255,0.24); }
+    .divider { display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--muted); font-size:11px; }
+    .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.12); }
+
+    /* Üst ve Alt Barlar */
+    .top-bar { position:fixed; top:12px; left:12px; right:12px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:6px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
-    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:8px 13px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; cursor:pointer; }
-    .icon-btn { position:relative; width:42px; height:42px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; overflow:hidden; }
+    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:8px 12px; display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; cursor:pointer; }
+    .icon-btn { position:relative; width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer; overflow:hidden; }
     .icon-btn img { width:100%; height:100%; object-fit:cover; }
-    .notif-dot { position:absolute; top:2px; right:2px; width:11px; height:11px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
-    .ghost-active { border-color:var(--pink); background:rgba(236,72,153,0.25); }
-    .filter-row { position:fixed; top:66px; left:14px; right:14px; z-index:999; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+    .notif-dot { position:absolute; top:2px; right:2px; width:10px; height:10px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
+    .ghost-active { border-color:var(--pink); background:rgba(236,72,153,0.28); }
+    .filter-row { position:fixed; top:62px; left:12px; right:12px; z-index:999; display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; }
     .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; }
     .chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-    .bottom-bar { position:fixed; bottom:22px; left:16px; right:16px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+    .bottom-bar { position:fixed; bottom:20px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:10px; pointer-events:none; }
     .bottom-bar > * { pointer-events:auto; }
-    .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.4); }
-    .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.5); }
+    .fab-main { flex:1; height:52px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.45); }
+
+    /* Harita İğneleri */
+    .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.55); }
+    .vibe-marker.sponsored { border:3px solid #facc15; box-shadow:0 0 20px rgba(250,204,21,0.85); width:50px; height:50px; }
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
+
+    /* Modallar ve Formlar */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
-    .sheet { width:100%; max-width:480px; background:#111621; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
+    .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
     .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
     .sheet-title { font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; }
     .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
     .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
     .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
-    textarea, input[type="email"], input[type="password"], input[type="text"] { width:100%; background:rgba(255,255,255,0.07); border:1px solid var(--border); border-radius:14px; padding:13px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
+    textarea, input[type="email"], input[type="password"], input[type="text"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px 14px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
+    textarea:focus, input:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
     .media-btn { padding:11px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
     .media-btn.recording { border-color:var(--danger); background:rgba(239,68,68,0.2); color:#fca5a5; }
     .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
-    .btn-google { width:100%; padding:13px; border-radius:14px; border:none; background:#fff; color:#0f172a; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
     .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
     .btn-danger { width:100%; padding:11px; border-radius:14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
-    .avatar-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-    .av-opt { width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); }
-    .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:10000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; }
-    .card-row { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; font-size:13px; }
+    .action-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .act-pill { padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
+    .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:12px; max-height:165px; overflow-y:auto; padding:4px; }
+    .av-opt { height:42px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:21px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .card-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; font-size:13px; }
     .chat-box { height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:10px; background:rgba(0,0,0,0.35); border-radius:16px; margin-bottom:12px; border:1px solid var(--border); }
     .msg-bubble { max-width:78%; padding:9px 13px; border-radius:16px; font-size:13px; line-height:1.4; word-break:break-word; }
     .msg-mine { align-self:flex-end; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border-bottom-right-radius:4px; }
@@ -61,17 +84,32 @@
 </head>
 <body>
   <div id="toast" class="toast"></div>
-  <div id="authGate">
-    <div class="gate-card">
-      <div style="font-size:38px; margin-bottom:8px;">📍</div>
-      <h1 style="font-size:26px; font-weight:900; margin-bottom:4px;">VibePin</h1>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:18px;">Şehrin Nabzını Canlı Yakala</p>
 
-      <button type="button" class="btn-google" id="googleLoginBtn">
-        <span style="font-size:18px; font-weight:900; color:#4285F4;">G</span> Google ile Tek Tıkla Devam Et
+  <!-- Premium Giriş Kapısı -->
+  <div id="authGate">
+    <div class="radar-bg"></div>
+    <div class="gate-card">
+      <div class="live-badge"><span class="live-dot"></span> 15 km Çevrende Canlı Keşif Ücretsiz</div>
+      <div class="brand-row">
+        <div class="brand-icon">📍</div>
+        <div>
+          <h1 style="font-size:26px; font-weight:900; letter-spacing:-0.5px;">VibePin</h1>
+          <p style="font-size:12.5px; color:var(--muted);">Şehrin Nabzını Anlık Fotoğraf & Sesle Yakala</p>
+        </div>
+      </div>
+      <div style="height:16px;"></div>
+
+      <button type="button" class="btn-oauth btn-google" id="googleLoginBtn">
+        <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Google ile Devam Et
       </button>
 
-      <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:12px;">— veya E-posta ile Giriş / Kayıt —</div>
+      <button type="button" class="btn-oauth btn-apple" id="appleLoginBtn">
+        <svg width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+        Apple ile Devam Et
+      </button>
+
+      <div class="divider">veya E-posta ile Hızlı Giriş</div>
 
       <input type="email" id="gateEmail" placeholder="E-posta adresin" />
       <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" />
@@ -79,17 +117,19 @@
         <button type="button" class="btn-primary" id="loginBtn">🔐 Giriş Yap</button>
         <button type="button" class="btn-secondary" id="signupBtn">✨ Kayıt Ol</button>
       </div>
-      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:12px; text-align:center; min-height:18px;"></p>
+      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:12px; text-align:center; min-height:16px;"></p>
     </div>
   </div>
 
+  <!-- Harita ve Ana Arayüz -->
   <div id="map"></div>
   <div class="top-bar">
     <div style="display:flex; gap:6px;">
-      <div class="pill" onclick="locateUser()">📍 Canlı Konum</div>
-      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()">🌍 Haritadan Seç 🔒</div>
+      <div class="pill" onclick="locateUser()">📍 15 km Ücretsiz</div>
+      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()">🌍 Uzak Alan 🔒</div>
     </div>
     <div style="display:flex; gap:6px;">
+      <button class="icon-btn" onclick="openModal('supportModal')" title="Sorun Bildir">🆘</button>
       <button class="icon-btn" onclick="openFriendsModal()">💬<span id="notifDot" class="notif-dot"></span></button>
       <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👻</button>
       <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
@@ -97,6 +137,7 @@
   </div>
   <div class="filter-row">
     <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
+    <div class="chip" onclick="setFilter('sponsored', this)">⭐ Sponsorlu</div>
     <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
     <div class="chip" onclick="setFilter('social', this)">☕ Yeme & İçme</div>
     <div class="chip" onclick="setFilter('question', this)">❓ Durum / Soru</div>
@@ -108,6 +149,7 @@
     <button class="icon-btn" onclick="loadPins()">↻</button>
   </div>
 
+  <!-- Pin Oluşturma Modalı -->
   <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
@@ -117,8 +159,13 @@
         <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
         <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
       </div>
-      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Emir_34)" /></div>
-      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini veya buradaki durumu paylaş..."></textarea>
+      <div id="ghostFields" style="display:none; padding:10px; border-radius:14px; background:rgba(236,72,153,0.1); border:1px solid rgba(236,72,153,0.3); margin-bottom:10px;">
+        <input type="text" id="ghostNameInput" placeholder="Hayalet İsim veya Mekan Adı (örn: Kahve Dünyası)" />
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#facc15; cursor:pointer;">
+          <input type="checkbox" id="sponsorCheck" style="width:18px; height:18px; margin:0;" /> ⭐ Sponsorlu / Öne Çıkan Mekan Pini Yap
+        </label>
+      </div>
+      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, mekan fırsatını veya durumu paylaş..."></textarea>
       <div class="media-row">
         <label class="media-btn" for="photoInput" id="photoLabel">📷 Fotoğraf Çek / Seç</label>
         <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)" />
@@ -130,58 +177,103 @@
     </div>
   </div>
 
+  <!-- Pin Detay Modalı -->
   <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
     <div class="sheet">
       <div class="sheet-header">
-        <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <button id="addFriendBtn" style="padding:6px 12px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:12px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+        <div>
+          <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
+          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven Puanı: 100</div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
           <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
         </div>
       </div>
+      <div id="sponsorBanner" style="display:none; padding:7px 12px; border-radius:10px; background:rgba(250,204,21,0.15); border:1px solid #facc15; color:#fde047; font-size:12px; font-weight:800; margin-bottom:10px;">⭐ SPONSORLU ÖNE ÇIKAN MEKAN</div>
       <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
-      <button class="btn-primary" style="margin-bottom:8px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
-      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:14px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
-      <div id="commentsList" style="max-height:130px; overflow-y:auto; margin-bottom:10px;"></div>
+
+      <!-- Beğeni, Doğrulama ve Yalan Bildirimi -->
+      <div class="action-bar">
+        <button class="act-pill" style="border-color:var(--pink); background:rgba(236,72,153,0.16);" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
+        <button class="act-pill" style="border-color:var(--green); background:rgba(16,185,129,0.16);" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
+        <button class="act-pill" style="border-color:var(--danger); background:rgba(239,68,68,0.16); color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
+      </div>
+
+      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
+      <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
       <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
   </div>
 
+  <!-- Profil & Zengin Avatar Modalı -->
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🎭 Profil & Fotoğraf</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">🎭 Profil & Avatar</div>
+          <div id="myTrustScoreText" style="font-size:12px; color:var(--green); font-weight:700;">🛡️ Güven Puanın: 100 / 100</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
+      </div>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
         <div id="profilePhotoPreview" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
-        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Profil Fotoğrafı Yükle</label>
+        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Galeriden Fotoğraf Yükle</label>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
       </div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Veya Hızlı Avatar Seç:</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:6px;">Kadın & Erkek Özel Avatar Koleksiyonu:</p>
       <div class="avatar-grid" id="avatarGrid">
-        <div class="av-opt selected" onclick="pickAvatar('🦊', this)">🦊</div>
+        <!-- Kadın Temalı -->
+        <div class="av-opt" onclick="pickAvatar('👸', this)">👸</div>
+        <div class="av-opt" onclick="pickAvatar('💄', this)">💄</div>
+        <div class="av-opt" onclick="pickAvatar('👠', this)">👠</div>
+        <div class="av-opt" onclick="pickAvatar('👜', this)">👜</div>
+        <div class="av-opt" onclick="pickAvatar('🧚‍♀️', this)">🧚‍♀️</div>
+        <div class="av-opt" onclick="pickAvatar('🦋', this)">🦋</div>
+        <div class="av-opt" onclick="pickAvatar('🌸', this)">🌸</div>
+        <div class="av-opt" onclick="pickAvatar('💎', this)">💎</div>
+        <div class="av-opt" onclick="pickAvatar('🦄', this)">🦄</div>
+        <div class="av-opt" onclick="pickAvatar('💃', this)">💃</div>
+        <div class="av-opt" onclick="pickAvatar('🎀', this)">🎀</div>
+        <div class="av-opt" onclick="pickAvatar('✨', this)">✨</div>
+        <!-- Erkek & Güç Temalı -->
         <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
-        <div class="av-opt" onclick="pickAvatar('🐼', this)">🐼</div>
+        <div class="av-opt" onclick="pickAvatar('🐺', this)">🐺</div>
+        <div class="av-opt" onclick="pickAvatar('🤴', this)">🤴</div>
+        <div class="av-opt" onclick="pickAvatar('👑', this)">👑</div>
+        <div class="av-opt" onclick="pickAvatar('🦅', this)">🦅</div>
+        <div class="av-opt" onclick="pickAvatar('🐯', this)">🐯</div>
+        <div class="av-opt" onclick="pickAvatar('🦈', this)">🦈</div>
+        <div class="av-opt" onclick="pickAvatar('🏎️', this)">🏎️</div>
+        <div class="av-opt" onclick="pickAvatar('🕶️', this)">🕶️</div>
+        <div class="av-opt" onclick="pickAvatar('🦊', this)">🦊</div>
         <div class="av-opt" onclick="pickAvatar('🚀', this)">🚀</div>
         <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
-        <div class="av-opt" onclick="pickAvatar('🎧', this)">🎧</div>
       </div>
-      <input type="text" id="profileNameInput" placeholder="Görünen Kullanıcı Adın (örn: Davut_34)" />
-      <button class="btn-primary" style="margin-bottom:12px;" onclick="saveProfile()">💾 Profili Kaydet</button>
+      <input type="text" id="profileNameInput" placeholder="Görünen Kullanıcı Adın" />
+      <button class="btn-primary" style="margin-bottom:10px;" onclick="saveProfile()">💾 Profili Kaydet</button>
+      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:10px; border-color:var(--gold); color:#fde047;" onclick="openAdminTickets()">📬 Gelen Şikayet & Destek Mesajları (Kurucu)</button>
       <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
     </div>
   </div>
 
+  <!-- Arkadaşlar & Engellenenler Modalı -->
   <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('friendsModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">💬 Sohbet & Arkadaşlar</div><button class="close-btn" onclick="closeModal('friendsModal')">✕</button></div>
       <p style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px;">Gelen İstekler & Bildirimler</p>
       <div id="pendingList" style="margin-bottom:16px;"></div>
-      <p style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px;">Arkadaşlarım (Mesajlaşmak İçin Dokun)</p>
-      <div id="acceptedList"></div>
+      <p style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px;">Arkadaşlarım (Sohbet Et / Sil / Engelle)</p>
+      <div id="acceptedList" style="margin-bottom:16px;"></div>
+      <p style="font-size:12px; font-weight:700; color:var(--danger); margin-bottom:8px;">Engellenen Kullanıcılar</p>
+      <div id="blockedList"></div>
     </div>
   </div>
 
+  <!-- Özel Mesajlaşma (DM) Modalı -->
   <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
     <div class="sheet">
       <div class="sheet-header">
@@ -196,10 +288,35 @@
     </div>
   </div>
 
+  <!-- Sorun Bildir & İletişim Modalı -->
+  <div id="supportModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('supportModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🆘 Sorun Bildir & İletişim</div><button class="close-btn" onclick="closeModal('supportModal')">✕</button></div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Hata bildirimi, kullanıcı şikayeti veya mekan reklamı başvurusu için doğrudan bize yazabilirsin.</p>
+      <select id="supportCat">
+        <option value="bug">🐞 Teknik Sorun / Hata Bildirimi</option>
+        <option value="abuse">🚨 Kullanıcı / Yalan Paylaşım Şikayeti</option>
+        <option value="business">⭐ Mekan Reklamı / İşbirliği Talebi</option>
+        <option value="idea">💡 Öneri & Görüş</option>
+      </select>
+      <textarea id="supportMsg" rows="3" placeholder="Mesajını detaylıca yaz..."></textarea>
+      <button class="btn-primary" onclick="submitSupportTicket()">📨 Mesajı Gönder</button>
+    </div>
+  </div>
+
+  <!-- Kurucu Gelen Şikayet Kutusu Modalı -->
+  <div id="adminTicketsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adminTicketsModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">📬 Gelen Destek & Şikayetler</div><button class="close-btn" onclick="closeModal('adminTicketsModal')">✕</button></div>
+      <div id="ticketsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Ödüllü Reklam Modalı (15 km Dışı & 10+ Arkadaşlık İsteği) -->
   <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
     <div class="sheet" style="text-align:center;">
-      <div class="sheet-header"><div class="sheet-title">🌍 Başka Konuma Işınlan</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumun dışındaki herhangi bir mahalleye veya şehre haritadan dokunarak gitmek için kısa sponsorlu tanıtımı izle.</p>
+      <div class="sheet-header"><div class="sheet-title" id="adModalTitle">🌍 15 km Dışı Uzak Alan Kilidi</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
+      <p id="adModalDesc" style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumundan 15 km dışındaki bir konuma ışınlanmak ve paylaşım yapmak için kısa sponsorlu tanıtımı izle.</p>
       <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ Sponsorlu Tanıtım: <span id="adSec">5</span> sn...</div>
       <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
     </div>
@@ -208,75 +325,113 @@
     const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
-    let sb = null, map = null, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
-    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null }, activePin = null, allPins = [], markersLayer = null;
-    let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null, teleportUnlocked = false, teleportPickMode = false;
-    let activeChatFriend = null, chatPollTimer = null;
+    let sb = null, map = null, realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
+    let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
+    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0 };
+    let activePin = null, allPins = [], blockedIds = [], markersLayer = null, rangeCircle = null;
+    let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
+    let teleportUnlocked = false, teleportPickMode = false, extraFriendQuota = 0, adRewardType = 'teleport';
+    let activeChatFriend = null, chatPollTimer = null, lastUnreadCount = 0;
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
-    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3500); }
+    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
+
+    // Tatlı Web Audio API Bildirim Sesi
+    function playNotifSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    // İki koordinat arası mesafe (km)
+    function getDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
 
     function initApp() {
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v5' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v6' }
       });
 
-      document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
+      document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
+      document.getElementById('appleLoginBtn').addEventListener('click', () => signInWithProvider('apple'));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
       document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
       if (window.L) {
-        map = L.map('map', { zoomControl: false }).setView(userCoords, 15);
+        map = L.map('map', { zoomControl: false }).setView(userCoords, 13);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
         markersLayer = L.layerGroup().addTo(map);
+        rangeCircle = L.circle(realGpsCoords, { radius: 15000, color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.05, weight: 1, dashArray: '5,5' }).addTo(map);
+
         map.on('click', (e) => {
           if (teleportPickMode) {
             teleportPickMode = false;
             userCoords = [e.latlng.lat, e.latlng.lng];
-            map.flyTo(userCoords, 15);
-            showToast('🌍 Seçtiğin konuma ışınlandın!');
+            map.flyTo(userCoords, 14);
+            showToast('🌍 Seçtiğin uzak bölgeye ışınlandın!');
             return;
           }
           if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
         });
       }
 
-      sb.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) { enterApp(session.user); }
-      });
+      sb.auth.onAuthStateChange((_event, session) => { if (session?.user) enterApp(session.user); });
       checkSession();
     }
 
     async function enterApp(user) {
       currentUser = user;
+      await loadMyProfile();
+      if (myProfile.is_banned || (myProfile.trust_score !== null && myProfile.trust_score <= 30)) {
+        await sb.auth.signOut();
+        document.getElementById('authGate').style.display = 'flex';
+        document.getElementById('loginStatus').textContent = '🚫 Güven puanınız 30 altına düştüğü için hesabınız kısıtlandı.';
+        return;
+      }
       document.getElementById('authGate').style.display = 'none';
       document.getElementById('ghostBtn').style.display = isFounder() ? 'flex' : 'none';
+      document.getElementById('adminTicketsBtn').style.display = isFounder() ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
-      await loadMyProfile();
-      locateUser(); loadPins(); checkNotifications();
+      locateUser();
+      await loadBlockedUsers();
+      loadPins();
+      checkNotifications();
+      setInterval(checkNotifications, 7000);
     }
 
     async function checkSession() {
       try {
         const { data: { session } } = await sb.auth.getSession();
-        if (session?.user) { await enterApp(session.user); }
-        else { document.getElementById('authGate').style.display = 'flex'; }
+        if (session?.user) await enterApp(session.user);
+        else document.getElementById('authGate').style.display = 'flex';
       } catch (e) { document.getElementById('authGate').style.display = 'flex'; }
     }
 
-    async function signInWithGoogle() {
+    async function signInWithProvider(provider) {
       const status = document.getElementById('loginStatus');
       status.style.color = '#38bdf8';
-      status.textContent = 'Google hesabına yönlendiriliyor...';
+      status.textContent = (provider === 'apple' ? 'Apple' : 'Google') + ' hesabına yönlendiriliyor...';
       const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
+        provider,
         options: { redirectTo: 'https://getvibepin.github.io/vibepin/' }
       });
-      if (error) { status.style.color = '#f87171'; status.textContent = 'Google giriş hatası: ' + error.message; }
+      if (error) { status.style.color = '#f87171'; status.textContent = 'Giriş hatası: ' + error.message; }
     }
 
     async function gateSignIn() {
@@ -308,6 +463,10 @@
         btn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
         prev.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
       } else { btn.textContent = myProfile.avatar_emoji || '🦊'; prev.textContent = myProfile.avatar_emoji || '🦊'; }
+      const score = myProfile.trust_score ?? 100;
+      const tEl = document.getElementById('myTrustScoreText');
+      tEl.textContent = `🛡️ Güven Puanın: ${score} / 100`;
+      tEl.style.color = score >= 70 ? '#10b981' : (score >= 45 ? '#f59e0b' : '#ef4444');
     }
 
     async function loadMyProfile() {
@@ -315,8 +474,8 @@
       if (data) { myProfile = data; }
       else {
         const defaultName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null };
-        await sb.from('profiles').upsert({ id: currentUser.id, username: myProfile.username, avatar_emoji: '🦊', avatar_url: myProfile.avatar_url });
+        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null, trust_score: 100, is_banned: false, friend_requests_sent: 0 };
+        await sb.from('profiles').upsert({ id: currentUser.id, ...myProfile });
       }
       document.getElementById('profileNameInput').value = myProfile.username || '';
       updateAvatarUI();
@@ -346,10 +505,26 @@
       updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil kaydedildi!');
     }
 
+    // 15 km Menzil & Ödüllü Reklam Kilidi
+    function openAdFor(type) {
+      adRewardType = type;
+      document.getElementById('watchAdBtn').style.display = 'block';
+      document.getElementById('adCountdownBox').style.display = 'none';
+      document.getElementById('adSec').textContent = '5';
+      if (type === 'teleport') {
+        document.getElementById('adModalTitle').textContent = '🌍 15 km Dışı Uzak Alan Kilidi';
+        document.getElementById('adModalDesc').textContent = 'Canlı konumundan 15 km dışındaki bölgelere ışınlanmak ve paylaşım yapmak için kısa sponsorlu tanıtımı izle.';
+      } else {
+        document.getElementById('adModalTitle').textContent = '🤝 Ekstra Arkadaşlık İsteği Hakkı';
+        document.getElementById('adModalDesc').textContent = 'Ücretsiz 10 arkadaşlık isteği limitine ulaştın! Kısa tanıtımı izleyerek +5 yeni istek hakkı açabilirsin.';
+      }
+      openModal('adModal');
+    }
+
     function triggerTeleport() {
-      if (!teleportUnlocked) { openModal('adModal'); return; }
-      teleportPickMode = true; if (map) map.setZoom(6);
-      showToast('🗺️ Haritada gitmek istediğin şehre veya sokağa dokun!');
+      if (!teleportUnlocked && !isFounder()) { openAdFor('teleport'); return; }
+      teleportPickMode = true; if (map) map.setZoom(7);
+      showToast('🗺️ Haritada gitmek istediğin şehre veya bölgeye dokun!');
     }
 
     function startRewardAd() {
@@ -358,12 +533,32 @@
       let sec = 5;
       const timer = setInterval(() => {
         sec--; document.getElementById('adSec').textContent = sec;
-        if (sec <= 0) { clearInterval(timer); teleportUnlocked = true; document.getElementById('teleportBtn').innerHTML = '🌍 Haritadan Seç 🔓'; closeModal('adModal'); triggerTeleport(); }
+        if (sec <= 0) {
+          clearInterval(timer);
+          closeModal('adModal');
+          if (adRewardType === 'teleport') {
+            teleportUnlocked = true;
+            document.getElementById('teleportBtn').innerHTML = '🌍 Uzak Alan 🔓';
+            triggerTeleport();
+          } else {
+            extraFriendQuota += 5;
+            showToast('🎉 +5 Arkadaşlık İsteği Hakkı Açıldı!');
+          }
+        }
       }, 1000);
     }
 
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
-    function locateUser() { if (!navigator.geolocation || !map) return; navigator.geolocation.getCurrentPosition((pos) => { userCoords = [pos.coords.latitude, pos.coords.longitude]; map.flyTo(userCoords, 15); }, () => {}); }
+    function locateUser() {
+      if (!navigator.geolocation || !map) return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        realGpsCoords = [pos.coords.latitude, pos.coords.longitude];
+        userCoords = [...realGpsCoords];
+        map.flyTo(userCoords, 14);
+        if (rangeCircle) rangeCircle.setLatLng(realGpsCoords);
+      }, () => {});
+    }
+
     function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: Haritaya dokun!' : 'Kurucu Modu kapatıldı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -371,8 +566,15 @@
     function setFilter(cat, el) { currentFilter = cat; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderPins(); }
 
     function openCreatePin(fromGhost = false) {
-      if (!fromGhost && map) selectedCoords = [map.getCenter().lat, map.getCenter().lng];
+      const target = fromGhost ? selectedCoords : (map ? [map.getCenter().lat, map.getCenter().lng] : userCoords);
+      const dist = getDistanceKm(realGpsCoords[0], realGpsCoords[1], target[0], target[1]);
+      if (dist > 15 && !teleportUnlocked && !isFounder()) {
+        openAdFor('teleport');
+        return;
+      }
+      selectedCoords = target;
       document.getElementById('ghostFields').style.display = (fromGhost && isFounder()) ? 'block' : 'none';
+      document.getElementById('sponsorCheck').checked = false;
       selectedPhotoFile = null; recordedAudioBlob = null;
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('audioPreview').style.display = 'none';
@@ -422,27 +624,47 @@
         const { error } = await sb.storage.from('vibe-media').upload(path, recordedAudioBlob);
         if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
-      const ghostName = (ghostMode && isFounder()) ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
+      const isGhost = (ghostMode && isFounder());
+      const ghostName = isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
+      const isSponsored = isGhost && document.getElementById('sponsorCheck').checked;
       const [lat, lng] = selectedCoords || userCoords;
-      const { error } = await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory, content_text: text || '📍 Canlı Paylaşım', latitude: lat, longitude: lng, image_url, audio_url }]);
+      const { error } = await sb.from('pins').insert([{
+        user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory,
+        content_text: text || '📍 Canlı Paylaşım', latitude: lat, longitude: lng,
+        image_url, audio_url, is_sponsored: isSponsored, sponsor_title: isSponsored ? ghostName : null
+      }]);
       btn.textContent = '🚀 Haritada Yayınla'; btn.disabled = false;
       if (error) return showToast('Hata: ' + error.message);
       document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin yayınlandı!'); loadPins();
     }
 
+    async function loadBlockedUsers() {
+      const { data } = await sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id);
+      blockedIds = (data || []).map(b => b.blocked_id);
+    }
+
     async function loadPins() {
-      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
-      if (!error && data) { allPins = data; renderPins(); }
+      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
+      if (!error && data) {
+        allPins = data.filter(p => !blockedIds.includes(p.user_id));
+        renderPins();
+      }
     }
 
     function renderPins() {
       if (!markersLayer) return;
       markersLayer.clearLayers();
-      const filtered = currentFilter === 'all' ? allPins : allPins.filter(p => p.category === currentFilter);
+      const filtered = currentFilter === 'all' ? allPins :
+        (currentFilter === 'sponsored' ? allPins.filter(p => p.is_sponsored) : allPins.filter(p => p.category === currentFilter));
       filtered.forEach(pin => {
         const meta = CAT_META[pin.category] || CAT_META.event;
-        const badge = pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji);
-        const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${meta.color}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
+        const badge = pin.is_sponsored ? '⭐' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji));
+        const bg = pin.is_sponsored ? 'linear-gradient(135deg,#f59e0b,#d97706)' : meta.color;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="vibe-marker ${pin.is_sponsored ? 'sponsored' : ''}" style="background:${bg}"><span>${badge}</span></div>`,
+          iconSize: [46, 46], iconAnchor: [23, 46]
+        });
         const marker = L.marker([pin.latitude, pin.longitude], { icon });
         marker.on('click', () => openPinDetail(pin));
         markersLayer.addLayer(marker);
@@ -456,45 +678,124 @@
         ? `<img src="${esc(pin.profiles.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />`
         : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`;
       document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>`;
+      const tScore = pin.profiles?.trust_score ?? 100;
+      document.getElementById('detailTrustBadge').textContent = `🛡️ Güven Puanı: ${tScore}`;
       document.getElementById('detailText').textContent = pin.content_text;
+      document.getElementById('detailLikes').textContent = pin.likes_count || 0;
       document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
+      document.getElementById('detailFakes').textContent = pin.fake_reports_count || 0;
+      document.getElementById('sponsorBanner').style.display = pin.is_sponsored ? 'block' : 'none';
+
       const isMine = (pin.user_id && pin.user_id === currentUser.id);
       document.getElementById('addFriendBtn').style.display = (pin.user_id && !isMine) ? 'block' : 'none';
-      document.getElementById('deletePinBtn').style.display = isMine ? 'block' : 'none';
+      document.getElementById('blockUserBtn').style.display = (pin.user_id && !isMine) ? 'block' : 'none';
+      document.getElementById('deletePinBtn').style.display = (isMine || isFounder()) ? 'block' : 'none';
+
       const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
       if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else { img.style.display = 'none'; }
       if (pin.audio_url) { aud.src = pin.audio_url; aud.style.display = 'block'; } else { aud.style.display = 'none'; }
       openModal('detailModal'); loadComments(pin.id);
     }
 
+    async function likeCurrentPin() {
+      if (!activePin || !currentUser) return;
+      const { error } = await sb.from('pin_likes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]);
+      if (error) return showToast('Bu paylaşımı zaten beğendin ❤️');
+      const newLikes = (activePin.likes_count || 0) + 1;
+      await sb.from('pins').update({ likes_count: newLikes }).eq('id', activePin.id);
+      activePin.likes_count = newLikes;
+      document.getElementById('detailLikes').textContent = newLikes;
+      showToast('❤️ Beğenildi!');
+    }
+
+    async function upvoteCurrentPin() {
+      if (!activePin || !currentUser) return;
+      const { error } = await sb.from('pin_upvotes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]);
+      if (error) return showToast('Zaten doğruladın ✅');
+      const newCount = (activePin.upvotes_count || 1) + 1;
+      await sb.from('pins').update({ upvotes_count: newCount }).eq('id', activePin.id);
+      activePin.upvotes_count = newCount; document.getElementById('detailUpvotes').textContent = newCount;
+      showToast('✅ Doğrulandı!');
+    }
+
+    async function reportFakePin() {
+      if (!activePin || !currentUser) return;
+      if ((myProfile.trust_score ?? 100) < 50) return showToast('Güven puanınız düşük olduğu için raporlama yapamazsınız.');
+      const { error } = await sb.from('pin_fake_reports').insert([{ pin_id: activePin.id, reporter_id: currentUser.id }]);
+      if (error) return showToast('Bu paylaşımı zaten yalan olarak bildirdin ⚠️');
+
+      const newFakes = (activePin.fake_reports_count || 0) + 1;
+      await sb.from('pins').update({ fake_reports_count: newFakes }).eq('id', activePin.id);
+      activePin.fake_reports_count = newFakes;
+      document.getElementById('detailFakes').textContent = newFakes;
+
+      // Sahip güven puanını düşür ve 3+ yalan bildiriminde otomatik sil
+      if (activePin.user_id) {
+        const currentAuthorScore = activePin.profiles?.trust_score ?? 100;
+        const updatedScore = Math.max(0, currentAuthorScore - 15);
+        await sb.from('profiles').update({ trust_score: updatedScore, is_banned: updatedScore <= 30 }).eq('id', activePin.user_id);
+      }
+      if (newFakes >= 3) {
+        await sb.from('pins').delete().eq('id', activePin.id);
+        closeModal('detailModal');
+        showToast('🚨 Çoklu yalan bildirimi nedeniyle paylaşım kaldırıldı!');
+        loadPins();
+      } else {
+        showToast('⚠️ Yalan bildirimi işlendi, kullanıcının güven puanı düşürüldü.');
+      }
+    }
+
     async function deleteCurrentPin() {
       if (!activePin || !currentUser) return;
-      const { error } = await sb.from('pins').delete().eq('id', activePin.id).eq('user_id', currentUser.id);
+      const { error } = await sb.from('pins').delete().eq('id', activePin.id);
       if (error) return showToast('Silme hatası: ' + error.message);
-      closeModal('detailModal'); showToast('🗑️ Paylaşımın silindi!'); loadPins();
+      closeModal('detailModal'); showToast('🗑️ Paylaşım silindi!'); loadPins();
+    }
+
+    async function blockAuthor() {
+      if (!activePin || !activePin.user_id) return;
+      await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]);
+      blockedIds.push(activePin.user_id);
+      closeModal('detailModal');
+      showToast('🚫 Kullanıcı engellendi, paylaşımları gizlendi.');
+      loadPins();
     }
 
     async function sendFriendRequest() {
       if (!activePin || !activePin.user_id) return;
+      const sentCount = myProfile.friend_requests_sent || 0;
+      const allowedLimit = 10 + extraFriendQuota;
+      if (sentCount >= allowedLimit && !isFounder()) {
+        openAdFor('friend');
+        return;
+      }
       const targetName = activePin.ghost_author_name || activePin.profiles?.username || 'Üye';
       const { error } = await sb.from('friendships').insert([{ sender_id: currentUser.id, receiver_id: activePin.user_id, sender_name: myProfile.username, receiver_name: targetName, status: 'pending' }]);
       if (error) return showToast('Hata: ' + error.message);
-      showToast(`📨 ${targetName} adlı kişiye arkadaşlık isteği gönderildi!`);
+      myProfile.friend_requests_sent = sentCount + 1;
+      await sb.from('profiles').update({ friend_requests_sent: myProfile.friend_requests_sent }).eq('id', currentUser.id);
+      showToast(`📨 ${targetName} adlı kişiye istek gönderildi! (${myProfile.friend_requests_sent}/${allowedLimit})`);
     }
 
     async function checkNotifications() {
+      if (!currentUser) return;
       const [{ data: fData }, { data: mData }] = await Promise.all([
         sb.from('friendships').select('id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
         sb.from('direct_messages').select('id').eq('receiver_id', currentUser.id).eq('is_read', false)
       ]);
-      const hasNotif = ((fData && fData.length > 0) || (mData && mData.length > 0));
-      document.getElementById('notifDot').style.display = hasNotif ? 'block' : 'none';
+      const totalUnread = (fData?.length || 0) + (mData?.length || 0);
+      if (totalUnread > lastUnreadCount) playNotifSound();
+      lastUnreadCount = totalUnread;
+      document.getElementById('notifDot').style.display = totalUnread > 0 ? 'block' : 'none';
     }
 
     async function openFriendsModal() {
       openModal('friendsModal');
-      const { data } = await sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false });
-      const pList = document.getElementById('pendingList'), aList = document.getElementById('acceptedList');
+      const [{ data }, { data: bData }] = await Promise.all([
+        sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false }),
+        sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id)
+      ]);
+      const pList = document.getElementById('pendingList'), aList = document.getElementById('acceptedList'), bList = document.getElementById('blockedList');
       const incoming = (data || []).filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
       const responses = (data || []).filter(f => f.sender_id === currentUser.id && f.status !== 'pending');
       const friends = (data || []).filter(f => f.status === 'accepted');
@@ -508,8 +809,37 @@
           const isSender = (f.sender_id === currentUser.id);
           const friendId = isSender ? f.receiver_id : f.sender_id;
           const fname = isSender ? f.receiver_name : f.sender_name;
-          return `<div class="card-row" style="cursor:pointer;" onclick="openDirectChat('${friendId}', '${esc(fname || 'Arkadaş')}')"><span>🦊 <strong>${esc(fname || 'Vibe Arkadaşı')}</strong></span><span style="padding:5px 11px; border-radius:999px; background:var(--primary); color:#fff; font-size:11px; font-weight:700;">💬 Mesaj Yaz</span></div>`;
+          return `<div class="card-row">
+            <span style="cursor:pointer; flex:1;" onclick="openDirectChat('${friendId}', '${esc(fname || 'Arkadaş')}')">🦊 <strong>${esc(fname || 'Arkadaş')}</strong></span>
+            <button onclick="openDirectChat('${friendId}', '${esc(fname || 'Arkadaş')}')" style="padding:5px 10px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11px; font-weight:700;">💬</button>
+            <button onclick="removeFriend('${f.id}')" style="padding:5px 9px; border-radius:999px; border:none; background:rgba(255,255,255,0.12); color:#fff; font-size:11px;">Sil</button>
+            <button onclick="blockFriend('${f.id}', '${friendId}')" style="padding:5px 9px; border-radius:999px; border:none; background:rgba(239,68,68,0.25); color:#fca5a5; font-size:11px;">Engelle</button>
+          </div>`;
         }).join('');
+
+      bList.innerHTML = (!bData || bData.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Engellenen kullanıcı yok.</div>' :
+        bData.map(b => `<div class="card-row"><span>🚫 Engelli Kullanıcı (${b.blocked_id.slice(0,6)}...)</span><button onclick="unblockUser('${b.blocked_id}')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--accent); color:#000; font-weight:700; font-size:11px;">Engeli Kaldır</button></div>`).join('');
+    }
+
+    async function removeFriend(friendshipId) {
+      await sb.from('friendships').delete().eq('id', friendshipId);
+      showToast('Arkadaş listesinden çıkarıldı.');
+      openFriendsModal();
+    }
+
+    async function blockFriend(friendshipId, targetUserId) {
+      await sb.from('friendships').delete().eq('id', friendshipId);
+      await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: targetUserId }]);
+      blockedIds.push(targetUserId);
+      showToast('🚫 Kullanıcı engellendi.');
+      loadPins(); openFriendsModal();
+    }
+
+    async function unblockUser(targetUserId) {
+      await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
+      blockedIds = blockedIds.filter(id => id !== targetUserId);
+      showToast('✅ Engel kaldırıldı.');
+      loadPins(); openFriendsModal();
     }
 
     async function respondFriend(id, status) {
@@ -521,30 +851,28 @@
     function openDirectChat(friendId, friendName) {
       activeChatFriend = { id: friendId, name: friendName };
       document.getElementById('chatFriendTitle').textContent = '💬 ' + friendName;
-      closeModal('friendsModal');
-      openModal('chatModal');
-      loadDirectMessages();
+      closeModal('friendsModal'); openModal('chatModal'); loadDirectMessages();
       if (chatPollTimer) clearInterval(chatPollTimer);
       chatPollTimer = setInterval(loadDirectMessages, 3500);
     }
 
     function closeChatModal() {
       if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
-      activeChatFriend = null;
-      closeModal('chatModal');
-      checkNotifications();
+      activeChatFriend = null; closeModal('chatModal'); checkNotifications();
     }
 
     async function loadDirectMessages() {
       if (!activeChatFriend || !currentUser) return;
       const box = document.getElementById('chatMessagesBox');
-      const { data } = await sb.from('direct_messages')
-        .select('*')
+      const { data } = await sb.from('direct_messages').select('*')
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
 
-      await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
-
+      const hasUnreadFromFriend = (data || []).some(m => m.sender_id === activeChatFriend.id && !m.is_read);
+      if (hasUnreadFromFriend) {
+        playNotifSound();
+        await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
+      }
       box.innerHTML = (!data || data.length === 0)
         ? '<div style="color:var(--muted); font-size:12px; text-align:center; margin:auto;">Henüz mesaj yok. İlk mesajı sen gönder! 👋</div>'
         : data.map(m => `<div class="msg-bubble ${m.sender_id === currentUser.id ? 'msg-mine' : 'msg-theirs'}">${esc(m.message_text)}</div>`).join('');
@@ -552,8 +880,7 @@
     }
 
     async function sendDirectMessage() {
-      const input = document.getElementById('dmInput');
-      const text = input.value.trim();
+      const input = document.getElementById('dmInput'), text = input.value.trim();
       if (!text || !activeChatFriend || !currentUser) return;
       input.value = '';
       const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
@@ -561,13 +888,26 @@
       loadDirectMessages();
     }
 
-    async function upvoteCurrentPin() {
-      if (!activePin || !currentUser) return;
-      const { error } = await sb.from('pin_upvotes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]);
-      if (error) return showToast('Zaten doğruladın 🔥');
-      const newCount = (activePin.upvotes_count || 1) + 1;
-      await sb.from('pins').update({ upvotes_count: newCount }).eq('id', activePin.id);
-      activePin.upvotes_count = newCount; document.getElementById('detailUpvotes').textContent = newCount; showToast('🔥 Doğrulandı!');
+    async function submitSupportTicket() {
+      const category = document.getElementById('supportCat').value;
+      const message = document.getElementById('supportMsg').value.trim();
+      if (!message) return showToast('Lütfen mesajınızı yazın.');
+      const { error } = await sb.from('support_tickets').insert([{ user_id: currentUser?.id, user_email: currentUser?.email, category, message }]);
+      if (error) return showToast('Hata: ' + error.message);
+      document.getElementById('supportMsg').value = '';
+      closeModal('supportModal');
+      showToast('📨 Mesajınız ekibimize iletildi, teşekkürler!');
+    }
+
+    async function openAdminTickets() {
+      closeModal('profileModal'); openModal('adminTicketsModal');
+      const { data } = await sb.from('support_tickets').select('*').order('created_at', { ascending: false });
+      const box = document.getElementById('ticketsContainer');
+      box.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:13px;">Henüz destek mesajı yok.</div>' :
+        data.map(t => `<div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.05); margin-bottom:10px; border:1px solid var(--border);">
+          <div style="font-size:11px; color:var(--accent); font-weight:700; margin-bottom:4px;">[${esc(t.category.toUpperCase())}] ${esc(t.user_email || 'Anonim')}</div>
+          <div style="font-size:13px; line-height:1.4;">${esc(t.message)}</div>
+        </div>`).join('');
     }
 
     async function loadComments(pinId) {
