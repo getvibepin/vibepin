@@ -16,19 +16,19 @@
     .leaflet-control-attribution { display:none !important; }
 
     /* Premium Giriş Ekranı */
-    #authGate { position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at 50% 15%, #2e1065 0%, #0f172a 48%, #070a10 90%); display:flex; flex-direction:column; justify-content:center; padding:20px; overflow-y:auto; }
-    .radar-bg { position:absolute; top:8%; left:50%; transform:translateX(-50%); width:320px; height:320px; border-radius:50%; border:1px solid rgba(124,58,237,0.28); box-shadow:0 0 80px rgba(6,182,212,0.18), inset 0 0 50px rgba(124,58,237,0.2); pointer-events:none; animation:pulseRadar 4s infinite ease-in-out; }
+    #authGate { position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at 50% 15%, #2e1065 0%, #0f172a 48%, #070a10 90%); display:flex; flex-direction:column; justify-content:center; padding:18px; overflow-y:auto; }
+    .radar-bg { position:absolute; top:7%; left:50%; transform:translateX(-50%); width:320px; height:320px; border-radius:50%; border:1px solid rgba(124,58,237,0.28); box-shadow:0 0 80px rgba(6,182,212,0.18), inset 0 0 50px rgba(124,58,237,0.2); pointer-events:none; animation:pulseRadar 4s infinite ease-in-out; }
     @keyframes pulseRadar { 0%,100% { transform:translateX(-50%) scale(0.95); opacity:0.5; } 50% { transform:translateX(-50%) scale(1.06); opacity:0.95; } }
-    .gate-card { position:relative; width:100%; max-width:410px; margin:0 auto; background:rgba(15,20,34,0.82); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.15); border-radius:28px; padding:26px 22px; box-shadow:0 24px 60px rgba(0,0,0,0.65); }
+    .gate-card { position:relative; width:100%; max-width:410px; margin:0 auto; background:rgba(15,20,34,0.85); backdrop-filter:blur(22px); border:1px solid rgba(255,255,255,0.16); border-radius:28px; padding:24px 20px 18px; box-shadow:0 24px 60px rgba(0,0,0,0.68); }
     .live-badge { display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); color:#6ee7b7; font-size:11px; font-weight:700; margin-bottom:14px; }
     .live-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
     .brand-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
-    .brand-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,var(--primary),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:25px; box-shadow:0 10px 25px rgba(124,58,237,0.45); }
+    .brand-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,var(--primary),var(--pink)); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 25px rgba(124,58,237,0.45); }
     .btn-oauth { width:100%; padding:13px 16px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; transition:transform 0.15s; }
     .btn-oauth:active { transform:scale(0.98); }
     .btn-google { background:#ffffff; color:#0f172a; border:none; box-shadow:0 6px 20px rgba(255,255,255,0.12); }
     .btn-apple { background:#000000; color:#ffffff; border:1px solid rgba(255,255,255,0.24); }
-    .divider { display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--muted); font-size:11px; }
+    .divider { display:flex; align-items:center; gap:10px; margin:12px 0; color:var(--muted); font-size:11px; }
     .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.12); }
 
     /* Üst ve Alt Barlar */
@@ -52,19 +52,19 @@
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
 
     /* Modallar ve Formlar */
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:10005; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
     .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
     .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .sheet-title { font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; }
+    .sheet-title { font-size:16.5px; font-weight:800; display:flex; align-items:center; gap:8px; }
     .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
     .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
     .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
     textarea, input[type="email"], input[type="password"], input[type="text"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px 14px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
     textarea:focus, input:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
-    .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-    .media-btn { padding:11px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
+    .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+    .media-btn { padding:11px 8px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer; text-align:center; display:block; }
     .media-btn.recording { border-color:var(--danger); background:rgba(239,68,68,0.2); color:#fca5a5; }
     .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
     .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
@@ -74,7 +74,7 @@
     .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:12px; max-height:165px; overflow-y:auto; padding:4px; }
     .av-opt { height:42px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:21px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
     .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
-    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
     .card-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; font-size:13px; }
     .chat-box { height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:10px; background:rgba(0,0,0,0.35); border-radius:16px; margin-bottom:12px; border:1px solid var(--border); }
     .msg-bubble { max-width:78%; padding:9px 13px; border-radius:16px; font-size:13px; line-height:1.4; word-break:break-word; }
@@ -85,39 +85,66 @@
 <body>
   <div id="toast" class="toast"></div>
 
-  <!-- Premium Giriş Kapısı -->
+  <!-- Premium Kurumsal Giriş Kapısı -->
   <div id="authGate">
     <div class="radar-bg"></div>
     <div class="gate-card">
       <div class="live-badge"><span class="live-dot"></span> 15 km Çevrende Canlı Keşif Ücretsiz</div>
       <div class="brand-row">
-        <div class="brand-icon">📍</div>
+        <div class="brand-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
         <div>
           <h1 style="font-size:26px; font-weight:900; letter-spacing:-0.5px;">VibePin</h1>
           <p style="font-size:12.5px; color:var(--muted);">Şehrin Nabzını Anlık Fotoğraf & Sesle Yakala</p>
         </div>
       </div>
-      <div style="height:16px;"></div>
+      <div style="height:14px;"></div>
 
       <button type="button" class="btn-oauth btn-google" id="googleLoginBtn">
         <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Google ile Devam Et
       </button>
 
-      <button type="button" class="btn-oauth btn-apple" id="appleLoginBtn">
-        <svg width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-        Apple ile Devam Et
-      </button>
-
       <div class="divider">veya E-posta ile Hızlı Giriş</div>
 
       <input type="email" id="gateEmail" placeholder="E-posta adresin" />
-      <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" />
+      <div style="position:relative; margin-bottom:10px;">
+        <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" style="margin-bottom:0; padding-right:42px;" />
+        <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);">👁️</button>
+      </div>
+
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
         <button type="button" class="btn-primary" id="loginBtn">🔐 Giriş Yap</button>
         <button type="button" class="btn-secondary" id="signupBtn">✨ Kayıt Ol</button>
       </div>
-      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:12px; text-align:center; min-height:16px;"></p>
+      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
+
+      <!-- Kişisel Haklar, KVKK & Gizlilik Politikası -->
+      <p style="font-size:11px; color:var(--muted); text-align:center; line-height:1.45; margin-top:4px;">
+        Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:var(--accent); text-decoration:underline; font-weight:600;">Kullanım Koşulları, KVKK ve Kişisel Haklar</a> metnini kabul etmiş olursunuz.
+      </p>
+
+      <!-- Teknoloji Firması İmzası -->
+      <div style="margin-top:14px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <div style="font-size:10.5px; letter-spacing:1.3px; text-transform:uppercase; color:rgba(148,163,184,0.75); font-weight:700;">
+          Powered by <span style="background:linear-gradient(90deg,#a78bfa,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:900;">VibeLabs Technologies</span>
+        </div>
+        <div style="font-size:9.5px; color:rgba(148,163,184,0.45); margin-top:2px;">© 2026 VibeLabs Inc. Tüm Hakları Saklıdır.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KVKK & Kişisel Haklar Modalı -->
+  <div id="legalModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('legalModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🛡️ KVKK, Gizlilik & Kişisel Haklar</div><button class="close-btn" onclick="closeModal('legalModal')">✕</button></div>
+      <div style="font-size:13px; color:#cbd5e1; line-height:1.55; display:flex; flex-direction:column; gap:10px;">
+        <p><strong>1. Kişisel Verilerin Korunması (KVKK):</strong> VibeLabs Technologies olarak e-posta, konum ve profil verileriniz yalnızca canlı harita deneyimini sunmak amacıyla şifreli sunucularda işlenir; üçüncü taraf reklam ağlarına satılmaz.</p>
+        <p><strong>2. Paylaşım Süresi ve Otomatik Silme:</strong> Haritaya bırakılan standart fotoğraf, ses ve metin paylaşımları <strong>24 saat</strong> sonunda sistemden otomatik olarak kaldırılır.</p>
+        <p><strong>3. Kullanıcı Hakları & Silme Talebi:</strong> Dilediğiniz an profilinizdeki paylaşımları silebilir, rahatsız edici kullanıcıları engelleyebilir veya hesabınızın tamamen silinmesini talep edebilirsiniz.</p>
+      </div>
+      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal('legalModal')">Okudum, Anladım</button>
     </div>
   </div>
 
@@ -149,10 +176,16 @@
     <button class="icon-btn" onclick="loadPins()">↻</button>
   </div>
 
-  <!-- Pin Oluşturma Modalı -->
+  <!-- Pin Oluşturma Modalı (24 Saat + Doğrudan Kamera & Galeri Ayrımı) -->
   <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="createTitle">📍 Yeni VibePin</div>
+          <div style="font-size:11.5px; color:var(--accent); font-weight:600; margin-top:2px;">⏳ Paylaşımlar haritada 24 saat boyunca canlı kalır</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('createModal')">✕</button>
+      </div>
       <div class="cat-grid">
         <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
         <button class="cat-opt" onclick="selectCat('social', this)">☕ Yeme & İçme</button>
@@ -166,14 +199,20 @@
         </label>
       </div>
       <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, mekan fırsatını veya durumu paylaş..."></textarea>
+
+      <!-- Doğrudan Kamera Çekimi & Galeri Seçimi -->
       <div class="media-row">
-        <label class="media-btn" for="photoInput" id="photoLabel">📷 Fotoğraf Çek / Seç</label>
-        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)" />
-        <button type="button" class="media-btn" id="audioBtn" onclick="toggleAudioRecord()">🎙️ Ses Kaydet</button>
+        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent); background:rgba(6,182,212,0.12);">📸 Kamera ile Çek</label>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
+
+        <label class="media-btn" for="galleryInput" id="galleryLabel">🖼️ Galeriden Seç</label>
+        <input type="file" id="galleryInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this, 'gallery')" />
       </div>
+      <button type="button" class="media-btn" id="audioBtn" style="width:100%; margin-bottom:12px;" onclick="toggleAudioRecord()">🎙️ Canlı Ses Kaydı Ekle</button>
+
       <img id="photoPreview" style="display:none; width:100%; max-height:170px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
       <audio id="audioPreview" controls style="display:none; width:100%; margin-bottom:10px;"></audio>
-      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla</button>
+      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla (24 Saat)</button>
     </div>
   </div>
 
@@ -183,7 +222,7 @@
       <div class="sheet-header">
         <div>
           <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
-          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven Puanı: 100</div>
+          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven Puanı: 100 • ⏳ 24s Canlı</div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
           <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
@@ -196,7 +235,6 @@
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
 
-      <!-- Beğeni, Doğrulama ve Yalan Bildirimi -->
       <div class="action-bar">
         <button class="act-pill" style="border-color:var(--pink); background:rgba(236,72,153,0.16);" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
         <button class="act-pill" style="border-color:var(--green); background:rgba(16,185,129,0.16);" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
@@ -226,7 +264,6 @@
       </div>
       <p style="font-size:12px; color:var(--muted); margin-bottom:6px;">Kadın & Erkek Özel Avatar Koleksiyonu:</p>
       <div class="avatar-grid" id="avatarGrid">
-        <!-- Kadın Temalı -->
         <div class="av-opt" onclick="pickAvatar('👸', this)">👸</div>
         <div class="av-opt" onclick="pickAvatar('💄', this)">💄</div>
         <div class="av-opt" onclick="pickAvatar('👠', this)">👠</div>
@@ -239,7 +276,6 @@
         <div class="av-opt" onclick="pickAvatar('💃', this)">💃</div>
         <div class="av-opt" onclick="pickAvatar('🎀', this)">🎀</div>
         <div class="av-opt" onclick="pickAvatar('✨', this)">✨</div>
-        <!-- Erkek & Güç Temalı -->
         <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
         <div class="av-opt" onclick="pickAvatar('🐺', this)">🐺</div>
         <div class="av-opt" onclick="pickAvatar('🤴', this)">🤴</div>
@@ -312,7 +348,7 @@
     </div>
   </div>
 
-  <!-- Ödüllü Reklam Modalı (15 km Dışı & 10+ Arkadaşlık İsteği) -->
+  <!-- Ödüllü Reklam Modalı -->
   <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
     <div class="sheet" style="text-align:center;">
       <div class="sheet-header"><div class="sheet-title" id="adModalTitle">🌍 15 km Dışı Uzak Alan Kilidi</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
@@ -338,12 +374,10 @@
     function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
 
-    // Tatlı Web Audio API Bildirim Sesi
     function playNotifSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(587.33, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.14);
@@ -354,22 +388,28 @@
       } catch (e) {}
     }
 
-    // İki koordinat arası mesafe (km)
     function getDistanceKm(lat1, lon1, lat2, lon2) {
       const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
       const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    function getRemainingHoursText(expiresAt) {
+      if (!expiresAt) return '⏳ 24s Canlı';
+      const diffMs = new Date(expiresAt) - new Date();
+      if (diffMs <= 0) return '⌛ Süresi Doldu';
+      const hrs = Math.ceil(diffMs / (1000 * 60 * 60));
+      return hrs > 24 ? `⭐ ${Math.ceil(hrs/24)} Gün Kaldı` : `⏳ ${hrs} Saat Kaldı`;
+    }
+
     function initApp() {
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v6' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v7' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
-      document.getElementById('appleLoginBtn').addEventListener('click', () => signInWithProvider('apple'));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
       document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
@@ -426,7 +466,7 @@
     async function signInWithProvider(provider) {
       const status = document.getElementById('loginStatus');
       status.style.color = '#38bdf8';
-      status.textContent = (provider === 'apple' ? 'Apple' : 'Google') + ' hesabına yönlendiriliyor...';
+      status.textContent = 'Google hesabına yönlendiriliyor...';
       const { error } = await sb.auth.signInWithOAuth({
         provider,
         options: { redirectTo: 'https://getvibepin.github.io/vibepin/' }
@@ -505,7 +545,6 @@
       updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil kaydedildi!');
     }
 
-    // 15 km Menzil & Ödüllü Reklam Kilidi
     function openAdFor(type) {
       adRewardType = type;
       document.getElementById('watchAdBtn').style.display = 'block';
@@ -578,14 +617,21 @@
       selectedPhotoFile = null; recordedAudioBlob = null;
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('audioPreview').style.display = 'none';
-      document.getElementById('photoLabel').textContent = '📷 Fotoğraf Çek / Seç';
+      document.getElementById('cameraLabel').textContent = '📸 Kamera ile Çek';
+      document.getElementById('galleryLabel').textContent = '🖼️ Galeriden Seç';
       openModal('createModal');
     }
 
-    function handlePhotoSelect(input) {
+    function handlePhotoSelect(input, source) {
       if (input.files && input.files[0]) {
         selectedPhotoFile = input.files[0];
-        document.getElementById('photoLabel').textContent = '✅ Fotoğraf Hazır';
+        if (source === 'camera') {
+          document.getElementById('cameraLabel').textContent = '✅ Fotoğraf Çekildi';
+          document.getElementById('galleryLabel').textContent = '🖼️ Galeriden Seç';
+        } else {
+          document.getElementById('galleryLabel').textContent = '✅ Galeriden Seçildi';
+          document.getElementById('cameraLabel').textContent = '📸 Kamera ile Çek';
+        }
         const img = document.getElementById('photoPreview');
         img.src = URL.createObjectURL(selectedPhotoFile); img.style.display = 'block';
       }
@@ -628,14 +674,17 @@
       const ghostName = isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
       const isSponsored = isGhost && document.getElementById('sponsorCheck').checked;
       const [lat, lng] = selectedCoords || userCoords;
+      const expHours = isSponsored ? 168 : 24;
+      const expires_at = new Date(Date.now() + expHours * 3600 * 1000).toISOString();
+
       const { error } = await sb.from('pins').insert([{
         user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory,
         content_text: text || '📍 Canlı Paylaşım', latitude: lat, longitude: lng,
-        image_url, audio_url, is_sponsored: isSponsored, sponsor_title: isSponsored ? ghostName : null
+        image_url, audio_url, is_sponsored: isSponsored, sponsor_title: isSponsored ? ghostName : null, expires_at
       }]);
-      btn.textContent = '🚀 Haritada Yayınla'; btn.disabled = false;
+      btn.textContent = '🚀 Haritada Yayınla (24 Saat)'; btn.disabled = false;
       if (error) return showToast('Hata: ' + error.message);
-      document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin yayınlandı!'); loadPins();
+      document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin 24 saat boyunca haritada!'); loadPins();
     }
 
     async function loadBlockedUsers() {
@@ -679,7 +728,8 @@
         : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`;
       document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>`;
       const tScore = pin.profiles?.trust_score ?? 100;
-      document.getElementById('detailTrustBadge').textContent = `🛡️ Güven Puanı: ${tScore}`;
+      const remTime = getRemainingHoursText(pin.expires_at);
+      document.getElementById('detailTrustBadge').textContent = `🛡️ Güven: ${tScore} • ${remTime}`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
       document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
@@ -729,7 +779,6 @@
       activePin.fake_reports_count = newFakes;
       document.getElementById('detailFakes').textContent = newFakes;
 
-      // Sahip güven puanını düşür ve 3+ yalan bildiriminde otomatik sil
       if (activePin.user_id) {
         const currentAuthorScore = activePin.profiles?.trust_score ?? 100;
         const updatedScore = Math.max(0, currentAuthorScore - 15);
@@ -821,32 +870,10 @@
         bData.map(b => `<div class="card-row"><span>🚫 Engelli Kullanıcı (${b.blocked_id.slice(0,6)}...)</span><button onclick="unblockUser('${b.blocked_id}')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--accent); color:#000; font-weight:700; font-size:11px;">Engeli Kaldır</button></div>`).join('');
     }
 
-    async function removeFriend(friendshipId) {
-      await sb.from('friendships').delete().eq('id', friendshipId);
-      showToast('Arkadaş listesinden çıkarıldı.');
-      openFriendsModal();
-    }
-
-    async function blockFriend(friendshipId, targetUserId) {
-      await sb.from('friendships').delete().eq('id', friendshipId);
-      await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: targetUserId }]);
-      blockedIds.push(targetUserId);
-      showToast('🚫 Kullanıcı engellendi.');
-      loadPins(); openFriendsModal();
-    }
-
-    async function unblockUser(targetUserId) {
-      await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
-      blockedIds = blockedIds.filter(id => id !== targetUserId);
-      showToast('✅ Engel kaldırıldı.');
-      loadPins(); openFriendsModal();
-    }
-
-    async function respondFriend(id, status) {
-      await sb.from('friendships').update({ status }).eq('id', id);
-      showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi');
-      checkNotifications(); openFriendsModal();
-    }
+    async function removeFriend(friendshipId) { await sb.from('friendships').delete().eq('id', friendshipId); showToast('Arkadaş listesinden çıkarıldı.'); openFriendsModal(); }
+    async function blockFriend(friendshipId, targetUserId) { await sb.from('friendships').delete().eq('id', friendshipId); await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: targetUserId }]); blockedIds.push(targetUserId); showToast('🚫 Kullanıcı engellendi.'); loadPins(); openFriendsModal(); }
+    async function unblockUser(targetUserId) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId); blockedIds = blockedIds.filter(id => id !== targetUserId); showToast('✅ Engel kaldırıldı.'); loadPins(); openFriendsModal(); }
+    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); openFriendsModal(); }
 
     function openDirectChat(friendId, friendName) {
       activeChatFriend = { id: friendId, name: friendName };
@@ -856,10 +883,7 @@
       chatPollTimer = setInterval(loadDirectMessages, 3500);
     }
 
-    function closeChatModal() {
-      if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
-      activeChatFriend = null; closeModal('chatModal'); checkNotifications();
-    }
+    function closeChatModal() { if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; } activeChatFriend = null; closeModal('chatModal'); checkNotifications(); }
 
     async function loadDirectMessages() {
       if (!activeChatFriend || !currentUser) return;
@@ -867,7 +891,6 @@
       const { data } = await sb.from('direct_messages').select('*')
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
-
       const hasUnreadFromFriend = (data || []).some(m => m.sender_id === activeChatFriend.id && !m.is_read);
       if (hasUnreadFromFriend) {
         playNotifSound();
@@ -889,14 +912,11 @@
     }
 
     async function submitSupportTicket() {
-      const category = document.getElementById('supportCat').value;
-      const message = document.getElementById('supportMsg').value.trim();
+      const category = document.getElementById('supportCat').value, message = document.getElementById('supportMsg').value.trim();
       if (!message) return showToast('Lütfen mesajınızı yazın.');
       const { error } = await sb.from('support_tickets').insert([{ user_id: currentUser?.id, user_email: currentUser?.email, category, message }]);
       if (error) return showToast('Hata: ' + error.message);
-      document.getElementById('supportMsg').value = '';
-      closeModal('supportModal');
-      showToast('📨 Mesajınız ekibimize iletildi, teşekkürler!');
+      document.getElementById('supportMsg').value = ''; closeModal('supportModal'); showToast('📨 Mesajınız ekibimize iletildi, teşekkürler!');
     }
 
     async function openAdminTickets() {
