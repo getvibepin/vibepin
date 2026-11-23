@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>VibePin — Canlı Konum & Sosyal Harita</title>
+  <title>VibePin — Live Location & Social Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -26,9 +26,10 @@
     .radar-bg { position:absolute; top:7%; left:50%; transform:translateX(-50%); width:320px; height:320px; border-radius:50%; border:1px solid rgba(124,58,237,0.28); box-shadow:0 0 80px rgba(6,182,212,0.18), inset 0 0 50px rgba(124,58,237,0.2); pointer-events:none; animation:pulseRadar 4s infinite ease-in-out; }
     @keyframes pulseRadar { 0%,100% { transform:translateX(-50%) scale(0.95); opacity:0.5; } 50% { transform:translateX(-50%) scale(1.06); opacity:0.95; } }
     .gate-card { position:relative; width:100%; max-width:410px; margin:0 auto; background:rgba(15,20,34,0.85); backdrop-filter:blur(22px); border:1px solid rgba(255,255,255,0.16); border-radius:28px; padding:24px 20px 18px; box-shadow:0 24px 60px rgba(0,0,0,0.68); }
-    .live-badge { display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); color:#6ee7b7; font-size:11px; font-weight:700; margin-bottom:14px; }
+    .live-badge { display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); color:#6ee7b7; font-size:11px; font-weight:700; }
     .live-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
-    .brand-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .lang-pill { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:999px; padding:5px 10px; font-size:11.5px; font-weight:800; cursor:pointer; }
+    .brand-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; margin-top:14px; }
     .brand-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,var(--primary),var(--pink)); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 25px rgba(124,58,237,0.45); }
     .btn-oauth { width:100%; padding:13px 16px; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; transition:transform 0.15s; }
     .btn-oauth:active { transform:scale(0.98); }
@@ -38,10 +39,10 @@
     .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.12); }
 
     /* Üst ve Alt Barlar */
-    .top-bar { position:fixed; top:12px; left:12px; right:12px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:6px; pointer-events:none; }
+    .top-bar { position:fixed; top:12px; left:12px; right:12px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:5px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
-    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:8px 12px; display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; cursor:pointer; }
-    .icon-btn { position:relative; width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer; overflow:hidden; }
+    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:8px 10px; display:flex; align-items:center; gap:4px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .icon-btn { position:relative; width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; overflow:hidden; flex-shrink:0; }
     .icon-btn img { width:100%; height:100%; object-fit:cover; }
     .notif-dot { position:absolute; top:2px; right:2px; width:10px; height:10px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
     .ghost-active { border-color:var(--pink); background:rgba(236,72,153,0.28); }
@@ -90,6 +91,10 @@
     .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
     .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
 
+    /* Dil Seçim Kartları */
+    .lang-opt { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.04); margin-bottom:8px; cursor:pointer; font-size:14.5px; font-weight:700; }
+    .lang-opt.active { border-color:var(--accent); background:rgba(6,182,212,0.18); }
+
     /* WhatsApp Tarzı Sohbet Listesi & Konuşma Ekranı */
     .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-bg); border-top:1px solid var(--border); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
     .wa-top { background:var(--wa-header); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); }
@@ -124,93 +129,109 @@
   <div id="authGate">
     <div class="radar-bg"></div>
     <div class="gate-card">
-      <div class="live-badge"><span class="live-dot"></span> 15 km Çevrende Canlı Keşif Ücretsiz</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <div class="live-badge"><span class="live-dot"></span> <span data-i18n="live_badge">15 km Çevrende Canlı Keşif Ücretsiz</span></div>
+        <button type="button" class="lang-pill" id="gateLangBtn" onclick="openModal('langModal')">🌐 TR</button>
+      </div>
       <div class="brand-row">
         <div class="brand-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
         <div>
           <h1 style="font-size:26px; font-weight:900; letter-spacing:-0.5px;">VibePin</h1>
-          <p style="font-size:12.5px; color:var(--muted);">Şehrin Nabzını Anlık Fotoğraf & Sesle Yakala</p>
+          <p style="font-size:12.5px; color:var(--muted);" data-i18n="tagline">Şehrin Nabzını Anlık Fotoğraf & Sesle Yakala</p>
         </div>
       </div>
       <div style="height:14px;"></div>
 
       <button type="button" class="btn-oauth btn-google" id="googleLoginBtn">
         <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Google ile Devam Et
+        <span data-i18n="google_btn">Google ile Devam Et</span>
       </button>
 
       <button type="button" class="btn-oauth btn-apple" id="appleLoginBtn">
         <svg width="18" height="18" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-        Apple ile Devam Et
+        <span data-i18n="apple_btn">Apple ile Devam Et</span>
       </button>
 
-      <div class="divider">veya E-posta ile Hızlı Giriş</div>
+      <div class="divider" data-i18n="or_email">veya E-posta ile Hızlı Giriş</div>
 
-      <input type="email" id="gateEmail" placeholder="E-posta adresin" />
+      <input type="email" id="gateEmail" data-i18n-ph="email_ph" placeholder="E-posta adresin" />
       <div style="position:relative; margin-bottom:10px;">
-        <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" style="margin-bottom:0; padding-right:42px;" />
+        <input type="password" id="gatePass" data-i18n-ph="pass_ph" placeholder="Şifren (en az 6 karakter)" style="margin-bottom:0; padding-right:42px;" />
         <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);">👁️</button>
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <button type="button" class="btn-primary" id="loginBtn">🔐 Giriş Yap</button>
-        <button type="button" class="btn-secondary" id="signupBtn">✨ Kayıt Ol</button>
+        <button type="button" class="btn-primary" id="loginBtn" data-i18n="login_btn">🔐 Giriş Yap</button>
+        <button type="button" class="btn-secondary" id="signupBtn" data-i18n="signup_btn">✨ Kayıt Ol</button>
       </div>
       <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
 
       <p style="font-size:11px; color:var(--muted); text-align:center; line-height:1.45; margin-top:4px;">
-        Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:var(--accent); text-decoration:underline; font-weight:600;">Kullanım Koşulları, KVKK ve Kişisel Haklar</a> metnini kabul etmiş olursunuz.
+        <span data-i18n="terms_pre">Devam ederek</span> <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:var(--accent); text-decoration:underline; font-weight:600;" data-i18n="terms_link">Kullanım Koşulları, KVKK ve Kişisel Haklar</a> <span data-i18n="terms_post">metnini kabul etmiş olursunuz.</span>
       </p>
 
       <div style="margin-top:14px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:center;">
         <div style="font-size:10.5px; letter-spacing:1.3px; text-transform:uppercase; color:rgba(148,163,184,0.75); font-weight:700;">
           Powered by <span style="background:linear-gradient(90deg,#a78bfa,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:900;">VibeLabs Technologies</span>
         </div>
-        <div style="font-size:9.5px; color:rgba(148,163,184,0.45); margin-top:2px;">© 2026 VibeLabs Inc. Tüm Hakları Saklıdır.</div>
+        <div style="font-size:9.5px; color:rgba(148,163,184,0.45); margin-top:2px;">© 2026 VibeLabs Inc. All Rights Reserved.</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Dil Seçim Modalı -->
+  <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🌍 Select Language / Dil Seçin</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
+      <div class="lang-opt" id="langOpt-tr" onclick="setLanguage('tr')"><span>🇹🇷 Türkçe</span><span>TR</span></div>
+      <div class="lang-opt" id="langOpt-en" onclick="setLanguage('en')"><span>🇬🇧 English (Global)</span><span>EN</span></div>
+      <div class="lang-opt" id="langOpt-de" onclick="setLanguage('de')"><span>🇩🇪 Deutsch</span><span>DE</span></div>
+      <div class="lang-opt" id="langOpt-es" onclick="setLanguage('es')"><span>🇪🇸 Español</span><span>ES</span></div>
+      <div class="lang-opt" id="langOpt-ar" onclick="setLanguage('ar')"><span>🇸🇦 العربية</span><span>AR</span></div>
     </div>
   </div>
 
   <!-- KVKK & Kişisel Haklar Modalı -->
   <div id="legalModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('legalModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🛡️ KVKK, Gizlilik & Kişisel Haklar</div><button class="close-btn" onclick="closeModal('legalModal')">✕</button></div>
-      <div style="font-size:13px; color:#cbd5e1; line-height:1.55; display:flex; flex-direction:column; gap:10px;">
+      <div class="sheet-header"><div class="sheet-title" data-i18n="legal_title">🛡️ KVKK, Gizlilik & Kişisel Haklar</div><button class="close-btn" onclick="closeModal('legalModal')">✕</button></div>
+      <div style="font-size:13px; color:#cbd5e1; line-height:1.55; display:flex; flex-direction:column; gap:10px;" data-i18n-html="legal_body">
         <p><strong>1. Kişisel Verilerin Korunması (KVKK):</strong> VibeLabs Technologies olarak e-posta, konum ve profil verileriniz yalnızca canlı harita deneyimini sunmak amacıyla şifreli sunucularda işlenir.</p>
         <p><strong>2. Paylaşım Süresi ve Otomatik Silme:</strong> Haritaya bırakılan standart paylaşımlar <strong>24 saat</strong> sonunda sistemden otomatik olarak kaldırılır.</p>
         <p><strong>3. Kullanıcı Hakları:</strong> Dilediğiniz an paylaşımlarınızı silebilir, rahatsız edici kullanıcıları engelleyebilir veya hesabınızın silinmesini talep edebilirsiniz.</p>
       </div>
-      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal('legalModal')">Okudum, Anladım</button>
+      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal('legalModal')" data-i18n="legal_ok">Okudum, Anladım</button>
     </div>
   </div>
 
   <!-- Harita ve Ana Arayüz -->
   <div id="map"></div>
   <div class="top-bar">
-    <div style="display:flex; gap:6px;">
-      <div class="pill" onclick="locateUser()">📍 15 km Ücretsiz</div>
-      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()">🌍 Uzak Alan 🔒</div>
+    <div style="display:flex; gap:5px;">
+      <div class="pill" onclick="locateUser()" data-i18n="free_radius">📍 15 km Ücretsiz</div>
+      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()" data-i18n="remote_area">🌍 Uzak Alan 🔒</div>
     </div>
-    <div style="display:flex; gap:6px;">
-      <button class="icon-btn" onclick="openModal('supportModal')" title="Sorun Bildir">🆘</button>
+    <div style="display:flex; gap:5px;">
+      <button class="icon-btn" onclick="openModal('langModal')" id="topLangBtn" title="Language" style="font-size:11px; font-weight:800;">TR</button>
+      <button class="icon-btn" onclick="openModal('supportModal')" title="Support">🆘</button>
       <button class="icon-btn" onclick="openFriendsModal()">💬<span id="notifDot" class="notif-dot"></span></button>
       <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👻</button>
       <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
     </div>
   </div>
   <div class="filter-row">
-    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('sponsored', this)">⭐ Sponsorlu</div>
-    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
-    <div class="chip" onclick="setFilter('social', this)">☕ Yeme & İçme</div>
-    <div class="chip" onclick="setFilter('question', this)">❓ Durum / Soru</div>
-    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat</div>
+    <div class="chip active" onclick="setFilter('all', this)" data-i18n="cat_all">🔥 Tümü</div>
+    <div class="chip" onclick="setFilter('sponsored', this)" data-i18n="cat_sponsored">⭐ Sponsorlu</div>
+    <div class="chip" onclick="setFilter('event', this)" data-i18n="cat_event">🎉 Etkinlik</div>
+    <div class="chip" onclick="setFilter('social', this)" data-i18n="cat_social">☕ Yeme & İçme</div>
+    <div class="chip" onclick="setFilter('question', this)" data-i18n="cat_question">❓ Durum / Soru</div>
+    <div class="chip" onclick="setFilter('deal', this)" data-i18n="cat_deal">⚡ Fırsat</div>
   </div>
   <div class="bottom-bar">
     <button class="icon-btn" onclick="locateUser()">⊕</button>
-    <button class="fab-main" onclick="openCreatePin()">＋ Fotoğraf / Ses / Vibe Bırak</button>
+    <button class="fab-main" onclick="openCreatePin()" data-i18n="fab_create">＋ Fotoğraf / Ses / Vibe Bırak</button>
     <button class="icon-btn" onclick="loadPins()">↻</button>
   </div>
 
@@ -219,16 +240,16 @@
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title" id="createTitle">📍 Yeni VibePin</div>
-          <div style="font-size:11.5px; color:var(--accent); font-weight:600; margin-top:2px;">⏳ Paylaşımlar haritada 24 saat boyunca canlı kalır</div>
+          <div class="sheet-title" id="createTitle" data-i18n="new_pin_title">📍 Yeni VibePin</div>
+          <div style="font-size:11.5px; color:var(--accent); font-weight:600; margin-top:2px;" data-i18n="pin_24h_note">⏳ Paylaşımlar haritada 24 saat boyunca canlı kalır</div>
         </div>
         <button class="close-btn" onclick="closeModal('createModal')">✕</button>
       </div>
       <div class="cat-grid">
-        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
-        <button class="cat-opt" onclick="selectCat('social', this)">☕ Yeme & İçme</button>
-        <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
-        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
+        <button class="cat-opt selected" onclick="selectCat('event', this)" data-i18n="cat_event">🎉 Etkinlik</button>
+        <button class="cat-opt" onclick="selectCat('social', this)" data-i18n="cat_social">☕ Yeme & İçme</button>
+        <button class="cat-opt" onclick="selectCat('question', this)" data-i18n="cat_question">❓ Durum / Soru</button>
+        <button class="cat-opt" onclick="selectCat('deal', this)" data-i18n="cat_deal">⚡ Fırsat</button>
       </div>
       <div id="ghostFields" style="display:none; padding:10px; border-radius:14px; background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.35); margin-bottom:10px;">
         <div style="font-size:11px; color:#f472b6; font-weight:700; margin-bottom:6px;">👻 Kurucu Modu: İsim veya Mekan Adı Belirle</div>
@@ -237,20 +258,20 @@
           <input type="checkbox" id="sponsorCheck" style="width:18px; height:18px; margin:0;" /> ⭐ Sponsorlu / Öne Çıkan Mekan Pini Yap
         </label>
       </div>
-      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, mekan fırsatını veya durumu paylaş..."></textarea>
+      <textarea id="pinText" rows="2" data-i18n-ph="pin_text_ph" placeholder="Yediğini, içtiğini, mekan fırsatını veya durumu paylaş..."></textarea>
 
       <div class="media-row">
-        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent); background:rgba(6,182,212,0.12);">📸 Kamera ile Çek</label>
+        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent); background:rgba(6,182,212,0.12);" data-i18n="cam_btn">📸 Kamera ile Çek</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
 
-        <label class="media-btn" for="galleryInput" id="galleryLabel">🖼️ Galeriden Seç</label>
+        <label class="media-btn" for="galleryInput" id="galleryLabel" data-i18n="gal_btn">🖼️ Galeriden Seç</label>
         <input type="file" id="galleryInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this, 'gallery')" />
       </div>
-      <button type="button" class="media-btn" id="audioBtn" style="width:100%; margin-bottom:12px;" onclick="toggleAudioRecord()">🎙️ Canlı Ses Kaydı Ekle</button>
+      <button type="button" class="media-btn" id="audioBtn" style="width:100%; margin-bottom:12px;" onclick="toggleAudioRecord()" data-i18n="aud_btn">🎙️ Canlı Ses Kaydı Ekle</button>
 
       <img id="photoPreview" style="display:none; width:100%; max-height:170px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
       <audio id="audioPreview" controls style="display:none; width:100%; margin-bottom:10px;"></audio>
-      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla (24 Saat)</button>
+      <button class="btn-primary" id="publishBtn" onclick="submitPin()" data-i18n="pub_btn">🚀 Haritada Yayınla (24 Saat)</button>
     </div>
   </div>
 
@@ -260,28 +281,28 @@
       <div class="sheet-header">
         <div>
           <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
-          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven Puanı: 100 • ⏳ 24s Canlı</div>
+          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven: 100 • ⏳ 24s</div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
-          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()" data-i18n="add_friend">➕ Arkadaş Ekle</button>
           <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
           <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
         </div>
       </div>
-      <div id="sponsorBanner" style="display:none; padding:7px 12px; border-radius:10px; background:rgba(250,204,21,0.15); border:1px solid #facc15; color:#fde047; font-size:12px; font-weight:800; margin-bottom:10px;">⭐ SPONSORLU ÖNE ÇIKAN MEKAN</div>
+      <div id="sponsorBanner" style="display:none; padding:7px 12px; border-radius:10px; background:rgba(250,204,21,0.15); border:1px solid #facc15; color:#fde047; font-size:12px; font-weight:800; margin-bottom:10px;" data-i18n="sponsored_banner">⭐ SPONSORLU ÖNE ÇIKAN MEKAN</div>
       <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
 
       <div class="action-bar">
-        <button class="act-pill" style="border-color:var(--pink); background:rgba(236,72,153,0.16);" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
-        <button class="act-pill" style="border-color:var(--green); background:rgba(16,185,129,0.16);" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
-        <button class="act-pill" style="border-color:var(--danger); background:rgba(239,68,68,0.16); color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
+        <button class="act-pill" style="border-color:var(--pink); background:rgba(236,72,153,0.16);" onclick="likeCurrentPin()">❤️ <span data-i18n="like_lbl">Beğen</span> (<span id="detailLikes">0</span>)</button>
+        <button class="act-pill" style="border-color:var(--green); background:rgba(16,185,129,0.16);" onclick="upvoteCurrentPin()">✅ <span data-i18n="verify_lbl">Doğrula</span> (<span id="detailUpvotes">1</span>)</button>
+        <button class="act-pill" style="border-color:var(--danger); background:rgba(239,68,68,0.16); color:#fca5a5;" onclick="reportFakePin()">⚠️ <span data-i18n="fake_lbl">Yalan</span> (<span id="detailFakes">0</span>)</button>
       </div>
 
-      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
+      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()" data-i18n="del_pin">🗑️ Bu Paylaşımı Sil</button>
       <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" data-i18n-ph="comment_ph" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()" data-i18n="send_btn">Gönder</button></div>
     </div>
   </div>
 
@@ -290,17 +311,17 @@
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title">🎭 Profil, Cinsiyet & Yaş</div>
+          <div class="sheet-title" data-i18n="profile_title">🎭 Profil, Cinsiyet & Yaş</div>
           <div id="myTrustScoreText" style="font-size:12px; color:var(--green); font-weight:700;">🛡️ Güven Puanın: 100 / 100</div>
         </div>
         <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
       </div>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
         <div id="profilePhotoPreview" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
-        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Galeriden Fotoğraf Yükle</label>
+        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel" data-i18n="upload_avatar">📸 Galeriden Fotoğraf Yükle</label>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
       </div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:6px;">Kadın & Erkek Özel Avatar Koleksiyonu:</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:6px;" data-i18n="avatar_col">Kadın & Erkek Özel Avatar Koleksiyonu:</p>
       <div class="avatar-grid" id="avatarGrid">
         <div class="av-opt" onclick="pickAvatar('👸', this)">👸</div>
         <div class="av-opt" onclick="pickAvatar('💄', this)">💄</div>
@@ -328,22 +349,21 @@
         <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
       </div>
 
-      <!-- Cinsiyet & Yaş (13-99) Seçim Alanı -->
       <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:8px; margin-bottom:2px;">
         <select id="profileGenderInput" style="margin-bottom:8px;">
-          <option value="">Cinsiyet Seçin</option>
-          <option value="female">👩 Kadın</option>
-          <option value="male">👨 Erkek</option>
-          <option value="other">🧑 Belirtmek İstemiyorum</option>
+          <option value="" data-i18n="g_select">Cinsiyet Seçin</option>
+          <option value="female" data-i18n="g_female">👩 Kadın</option>
+          <option value="male" data-i18n="g_male">👨 Erkek</option>
+          <option value="other" data-i18n="g_other">🧑 Belirtmek İstemiyorum</option>
         </select>
-        <input type="number" id="profileAgeInput" min="13" max="99" placeholder="Yaş (13-99)" style="margin-bottom:8px;" />
+        <input type="number" id="profileAgeInput" min="13" max="99" data-i18n-ph="age_ph" placeholder="Yaş (13-99)" style="margin-bottom:8px;" />
       </div>
 
-      <input type="text" id="profileNameInput" placeholder="Benzersiz Kullanıcı Adın" style="margin-bottom:4px;" />
+      <input type="text" id="profileNameInput" data-i18n-ph="username_ph" placeholder="Benzersiz Kullanıcı Adın" style="margin-bottom:4px;" />
       <p id="usernameLockNote" style="font-size:11px; color:var(--muted); margin-bottom:12px;">🔒 Güvenlik kuralı: Kullanıcı adı 14 günde bir kez değiştirilebilir.</p>
-      <button class="btn-primary" style="margin-bottom:10px;" onclick="saveProfile()">💾 Profili Kaydet</button>
+      <button class="btn-primary" style="margin-bottom:10px;" onclick="saveProfile()" data-i18n="save_profile">💾 Profili Kaydet</button>
       <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:10px; border-color:var(--gold); color:#fde047;" onclick="openAdminTickets()">📬 Gelen Şikayet & Destek Mesajları (Kurucu)</button>
-      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()" data-i18n="logout_btn">Çıkış Yap</button>
     </div>
   </div>
 
@@ -357,12 +377,12 @@
         <button class="close-btn" onclick="closeFriendsModal()">✕</button>
       </div>
       <div class="wa-tabs">
-        <div class="wa-tab active" id="tabChats" onclick="switchWaTab('chats')">Sohbetler</div>
-        <div class="wa-tab" id="tabRequests" onclick="switchWaTab('requests')">İstekler <span id="reqCountBadge"></span></div>
-        <div class="wa-tab" id="tabBlocked" onclick="switchWaTab('blocked')">Engelliler</div>
+        <div class="wa-tab active" id="tabChats" onclick="switchWaTab('chats')" data-i18n="tab_chats">Sohbetler</div>
+        <div class="wa-tab" id="tabRequests" onclick="switchWaTab('requests')"><span data-i18n="tab_reqs">İstekler</span> <span id="reqCountBadge"></span></div>
+        <div class="wa-tab" id="tabBlocked" onclick="switchWaTab('blocked')" data-i18n="tab_blocked">Engelliler</div>
       </div>
       <div class="wa-search-wrap" id="waSearchWrap">
-        <input type="text" class="wa-search" id="waSearchInput" placeholder="🔍 Kişi veya sohbet ara..." oninput="renderWaChatList()" />
+        <input type="text" class="wa-search" id="waSearchInput" data-i18n-ph="search_chat_ph" placeholder="🔍 Kişi veya sohbet ara..." oninput="renderWaChatList()" />
       </div>
       <div class="wa-list" id="waListContainer"></div>
     </div>
@@ -384,14 +404,14 @@
       </div>
 
       <div class="wa-menu-drop" id="waChatMenu">
-        <div class="wa-menu-item" onclick="removeCurrentChatFriend()">🗑️ Arkadaşı Sil</div>
-        <div class="wa-menu-item" style="color:#f87171;" onclick="blockCurrentChatFriend()">🚫 Kullanıcıyı Engelle</div>
+        <div class="wa-menu-item" onclick="removeCurrentChatFriend()" data-i18n="remove_friend">🗑️ Arkadaşı Sil</div>
+        <div class="wa-menu-item" style="color:#f87171;" onclick="blockCurrentChatFriend()" data-i18n="block_user">🚫 Kullanıcıyı Engelle</div>
       </div>
 
       <div id="chatMessagesBox" class="wa-messages" onclick="document.getElementById('waChatMenu').style.display='none'"></div>
 
       <div class="wa-input-bar">
-        <input type="text" id="dmInput" class="wa-input" placeholder="Mesaj yazın..." oninput="handleDmTyping()" onkeydown="if(event.key==='Enter') sendDirectMessage()" />
+        <input type="text" id="dmInput" class="wa-input" data-i18n-ph="msg_ph" placeholder="Mesaj yazın..." oninput="handleDmTyping()" onkeydown="if(event.key==='Enter') sendDirectMessage()" />
         <button class="wa-send-btn" onclick="sendDirectMessage()">➤</button>
       </div>
     </div>
@@ -400,16 +420,16 @@
   <!-- Sorun Bildir & İletişim Modalı -->
   <div id="supportModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('supportModal')">
     <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🆘 Sorun Bildir & İletişim</div><button class="close-btn" onclick="closeModal('supportModal')">✕</button></div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Hata bildirimi, kullanıcı şikayeti veya mekan reklamı başvurusu için doğrudan bize yazabilirsin.</p>
+      <div class="sheet-header"><div class="sheet-title" data-i18n="support_title">🆘 Sorun Bildir & İletişim</div><button class="close-btn" onclick="closeModal('supportModal')">✕</button></div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;" data-i18n="support_desc">Hata bildirimi, kullanıcı şikayeti veya mekan reklamı başvurusu için doğrudan bize yazabilirsin.</p>
       <select id="supportCat">
-        <option value="bug">🐞 Teknik Sorun / Hata Bildirimi</option>
-        <option value="abuse">🚨 Kullanıcı / Yalan Paylaşım Şikayeti</option>
-        <option value="business">⭐ Mekan Reklamı / İşbirliği Talebi</option>
-        <option value="idea">💡 Öneri & Görüş</option>
+        <option value="bug">🐞 Technical Bug / Teknik Sorun</option>
+        <option value="abuse">🚨 User / Fake Report / Şikayet</option>
+        <option value="business">⭐ Sponsored Venue / Mekan Reklamı</option>
+        <option value="idea">💡 Feedback / Öneri</option>
       </select>
-      <textarea id="supportMsg" rows="3" placeholder="Mesajını detaylıca yaz..."></textarea>
-      <button class="btn-primary" onclick="submitSupportTicket()">📨 Mesajı Gönder</button>
+      <textarea id="supportMsg" rows="3" data-i18n-ph="support_ph" placeholder="Mesajını detaylıca yaz..."></textarea>
+      <button class="btn-primary" onclick="submitSupportTicket()" data-i18n="send_msg_btn">📨 Mesajı Gönder</button>
     </div>
   </div>
 
@@ -426,14 +446,152 @@
     <div class="sheet" style="text-align:center;">
       <div class="sheet-header"><div class="sheet-title" id="adModalTitle">🌍 15 km Dışı Uzak Alan Kilidi</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
       <p id="adModalDesc" style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumundan 15 km dışındaki bir konuma ışınlanmak ve paylaşım yapmak için kısa sponsorlu tanıtımı izle.</p>
-      <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ Sponsorlu Tanıtım: <span id="adSec">5</span> sn...</div>
-      <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
+      <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ <span id="adSec">5</span> s...</div>
+      <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()" data-i18n="watch_ad_btn">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
     </div>
   </div>
   <script>
     const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
+
+    /* Global Çoklu Dil Sözlüğü (TR, EN, DE, ES, AR) */
+    const I18N = {
+      tr: {
+        live_badge: '15 km Çevrende Canlı Keşif Ücretsiz', tagline: 'Şehrin Nabzını Anlık Fotoğraf & Sesle Yakala',
+        google_btn: 'Google ile Devam Et', apple_btn: 'Apple ile Devam Et', or_email: 'veya E-posta ile Hızlı Giriş',
+        email_ph: 'E-posta adresin', pass_ph: 'Şifren (en az 6 karakter)', login_btn: '🔐 Giriş Yap', signup_btn: '✨ Kayıt Ol',
+        terms_pre: 'Devam ederek', terms_link: 'Kullanım Koşulları, KVKK ve Kişisel Haklar', terms_post: 'metnini kabul etmiş olursunuz.',
+        free_radius: '📍 15 km Ücretsiz', remote_area: '🌍 Uzak Alan 🔒', remote_unlocked: '🌍 Uzak Alan 🔓',
+        cat_all: '🔥 Tümü', cat_sponsored: '⭐ Sponsorlu', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat',
+        fab_create: '＋ Fotoğraf / Ses / Vibe Bırak', new_pin_title: '📍 Yeni VibePin', pin_24h_note: '⏳ Paylaşımlar haritada 24 saat boyunca canlı kalır',
+        pin_text_ph: 'Yediğini, içtiğini, mekan fırsatını veya durumu paylaş...', cam_btn: '📸 Kamera ile Çek', gal_btn: '🖼️ Galeriden Seç', aud_btn: '🎙️ Canlı Ses Kaydı Ekle',
+        pub_btn: '🚀 Haritada Yayınla (24 Saat)', add_friend: '➕ Arkadaş Ekle', sponsored_banner: '⭐ SPONSORLU ÖNE ÇIKAN MEKAN',
+        like_lbl: 'Beğen', verify_lbl: 'Doğrula', fake_lbl: 'Yalan', del_pin: '🗑️ Bu Paylaşımı Sil', comment_ph: 'Yorum yaz...', send_btn: 'Gönder',
+        profile_title: '🎭 Profil, Cinsiyet & Yaş', upload_avatar: '📸 Galeriden Fotoğraf Yükle', avatar_col: 'Kadın & Erkek Özel Avatar Koleksiyonu:',
+        g_select: 'Cinsiyet Seçin', g_female: '👩 Kadın', g_male: '👨 Erkek', g_other: '🧑 Belirtmek İstemiyorum',
+        age_ph: 'Yaş (13-99)', username_ph: 'Benzersiz Kullanıcı Adın', save_profile: '💾 Profili Kaydet', logout_btn: 'Çıkış Yap',
+        tab_chats: 'Sohbetler', tab_reqs: 'İstekler', tab_blocked: 'Engelliler', search_chat_ph: '🔍 Kişi veya sohbet ara...',
+        remove_friend: '🗑️ Arkadaşı Sil', block_user: '🚫 Kullanıcıyı Engelle', msg_ph: 'Mesaj yazın...',
+        support_title: '🆘 Sorun Bildir & İletişim', support_desc: 'Hata bildirimi, kullanıcı şikayeti veya mekan reklamı başvurusu için doğrudan bize yazabilirsin.',
+        support_ph: 'Mesajını detaylıca yaz...', send_msg_btn: '📨 Mesajı Gönder', watch_ad_btn: '🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)',
+        online_sub: 'çevrimiçi • VibePin', typing_txt: 'yazıyor...', start_chat_hint: 'Sohbet başlatmak için dokun 👋',
+        req_sent: '⏳ İstek Gönderildi', friends_badge: '✅ Arkadaşsınız', legal_title: '🛡️ KVKK, Gizlilik & Kişisel Haklar', legal_ok: 'Okudum, Anladım',
+        legal_body: '<p><strong>1. Kişisel Verilerin Korunması (KVKK):</strong> VibeLabs Technologies olarak e-posta, konum ve profil verileriniz yalnızca canlı harita deneyimini sunmak amacıyla şifreli sunucularda işlenir.</p><p><strong>2. Paylaşım Süresi:</strong> Haritaya bırakılan standart paylaşımlar <strong>24 saat</strong> sonunda sistemden otomatik olarak kaldırılır.</p><p><strong>3. Kullanıcı Hakları:</strong> Dilediğiniz an paylaşımlarınızı silebilir veya rahatsız edici kullanıcıları engelleyebilirsiniz.</p>'
+      },
+      en: {
+        live_badge: 'Free Live Discovery Within 15 km', tagline: 'Capture the Pulse of Your City with Live Photos & Voice',
+        google_btn: 'Continue with Google', apple_btn: 'Continue with Apple', or_email: 'or Quick Sign In with Email',
+        email_ph: 'Your email address', pass_ph: 'Password (min 6 characters)', login_btn: '🔐 Sign In', signup_btn: '✨ Sign Up',
+        terms_pre: 'By continuing, you agree to our', terms_link: 'Terms of Service, GDPR & Privacy Policy', terms_post: '.',
+        free_radius: '📍 15 km Free', remote_area: '🌍 Remote Area 🔒', remote_unlocked: '🌍 Remote Area 🔓',
+        cat_all: '🔥 All', cat_sponsored: '⭐ Sponsored', cat_event: '🎉 Event', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals',
+        fab_create: '＋ Drop Photo / Voice / Vibe', new_pin_title: '📍 New VibePin', pin_24h_note: '⏳ Pins stay live on the map for 24 hours',
+        pin_text_ph: 'Share what you are eating, drinking, venue deals or status...', cam_btn: '📸 Take Photo', gal_btn: '🖼️ Choose Gallery', aud_btn: '🎙️ Add Voice Note',
+        pub_btn: '🚀 Publish on Map (24h)', add_friend: '➕ Add Friend', sponsored_banner: '⭐ SPONSORED FEATURED VENUE',
+        like_lbl: 'Like', verify_lbl: 'Verify', fake_lbl: 'Fake', del_pin: '🗑️ Delete This Pin', comment_ph: 'Write a comment...', send_btn: 'Send',
+        profile_title: '🎭 Profile, Gender & Age', upload_avatar: '📸 Upload Photo from Gallery', avatar_col: 'Exclusive Avatar Collection:',
+        g_select: 'Select Gender', g_female: '👩 Female', g_male: '👨 Male', g_other: '🧑 Prefer not to say',
+        age_ph: 'Age (13-99)', username_ph: 'Your Unique Username', save_profile: '💾 Save Profile', logout_btn: 'Log Out',
+        tab_chats: 'Chats', tab_reqs: 'Requests', tab_blocked: 'Blocked', search_chat_ph: '🔍 Search people or chats...',
+        remove_friend: '🗑️ Remove Friend', block_user: '🚫 Block User', msg_ph: 'Type a message...',
+        support_title: '🆘 Report Issue & Contact', support_desc: 'Contact us directly for bug reports, user abuse, or sponsored venue ads.',
+        support_ph: 'Write your message in detail...', send_msg_btn: '📨 Send Message', watch_ad_btn: '🎬 Watch Short Promo & Unlock (Free)',
+        online_sub: 'online • VibePin', typing_txt: 'typing...', start_chat_hint: 'Tap to start chatting 👋',
+        req_sent: '⏳ Request Sent', friends_badge: '✅ Friends', legal_title: '🛡️ GDPR, Privacy & User Rights', legal_ok: 'I Understand',
+        legal_body: '<p><strong>1. Data Protection (GDPR):</strong> VibeLabs Technologies processes email, location, and profile data strictly on encrypted servers to power the live map experience.</p><p><strong>2. 24-Hour Auto-Expiry:</strong> Standard photo, voice, and text pins are automatically deleted after <strong>24 hours</strong>.</p><p><strong>3. User Control:</strong> You can delete your pins or block abusive users at any time.</p>'
+      },
+      de: {
+        live_badge: 'Kostenlose Live-Entdeckung im 15-km-Umkreis', tagline: 'Erlebe den Puls deiner Stadt mit Live-Fotos & Sprache',
+        google_btn: 'Mit Google fortfahren', apple_btn: 'Mit Apple fortfahren', or_email: 'oder per E-Mail anmelden',
+        email_ph: 'Deine E-Mail-Adresse', pass_ph: 'Passwort (min. 6 Zeichen)', login_btn: '🔐 Anmelden', signup_btn: '✨ Registrieren',
+        terms_pre: 'Mit dem Fortfahren akzeptierst du unsere', terms_link: 'Nutzungsbedingungen & DSGVO-Datenschutz', terms_post: '.',
+        free_radius: '📍 15 km Frei', remote_area: '🌍 Fernbereich 🔒', remote_unlocked: '🌍 Fernbereich 🔓',
+        cat_all: '🔥 Alle', cat_sponsored: '⭐ Gesponsert', cat_event: '🎉 Event', cat_social: '☕ Essen & Trinken', cat_question: '❓ Status / Frage', cat_deal: '⚡ Angebote',
+        fab_create: '＋ Foto / Sprache / Vibe teilen', new_pin_title: '📍 Neuer VibePin', pin_24h_note: '⏳ Beiträge bleiben 24 Stunden auf der Karte',
+        pin_text_ph: 'Teile Essen, Trinken, Angebote oder deinen Status...', cam_btn: '📸 Kamera', gal_btn: '🖼️ Galerie', aud_btn: '🎙️ Sprachnotiz',
+        pub_btn: '🚀 Auf Karte veröffentlichen (24h)', add_friend: '➕ Freund hinzufügen', sponsored_banner: '⭐ GESPONSERTES LOKAL',
+        like_lbl: 'Gefällt mir', verify_lbl: 'Bestätigen', fake_lbl: 'Fake', del_pin: '🗑️ Beitrag löschen', comment_ph: 'Kommentar schreiben...', send_btn: 'Senden',
+        profile_title: '🎭 Profil, Geschlecht & Alter', upload_avatar: '📸 Foto aus Galerie hochladen', avatar_col: 'Avatar-Kollektion:',
+        g_select: 'Geschlecht wählen', g_female: '👩 Weiblich', g_male: '👨 Männlich', g_other: '🧑 Keine Angabe',
+        age_ph: 'Alter (13-99)', username_ph: 'Dein Benutzername', save_profile: '💾 Profil speichern', logout_btn: 'Abmelden',
+        tab_chats: 'Chats', tab_reqs: 'Anfragen', tab_blocked: 'Blockiert', search_chat_ph: '🔍 Personen suchen...',
+        remove_friend: '🗑️ Freund entfernen', block_user: '🚫 Blockieren', msg_ph: 'Nachricht schreiben...',
+        support_title: '🆘 Problem melden & Kontakt', support_desc: 'Schreibe uns bei Fehlern, Beschwerden oder Werbeanfragen.',
+        support_ph: 'Nachricht eingeben...', send_msg_btn: '📨 Senden', watch_ad_btn: '🎬 Promo ansehen & freischalten',
+        online_sub: 'online • VibePin', typing_txt: 'schreibt...', start_chat_hint: 'Tippen zum Chatten 👋',
+        req_sent: '⏳ Anfrage gesendet', friends_badge: '✅ Befreundet', legal_title: '🛡️ DSGVO & Datenschutz', legal_ok: 'Verstanden',
+        legal_body: '<p><strong>1. Datenschutz (DSGVO):</strong> Deine Daten werden verschlüsselt verarbeitet und niemals verkauft.</p><p><strong>2. 24-Stunden-Löschung:</strong> Standard-Pins werden nach <strong>24 Stunden</strong> automatisch gelöscht.</p>'
+      },
+      es: {
+        live_badge: 'Exploración en vivo gratis en 15 km', tagline: 'Captura el pulso de tu ciudad con fotos y voz en vivo',
+        google_btn: 'Continuar con Google', apple_btn: 'Continuar con Apple', or_email: 'o inicia sesión con correo',
+        email_ph: 'Tu correo electrónico', pass_ph: 'Contraseña (mín. 6 caracteres)', login_btn: '🔐 Entrar', signup_btn: '✨ Registrarse',
+        terms_pre: 'Al continuar aceptas nuestros', terms_link: 'Términos y Política de Privacidad', terms_post: '.',
+        free_radius: '📍 15 km Gratis', remote_area: '🌍 Zona Lejana 🔒', remote_unlocked: '🌍 Zona Lejana 🔓',
+        cat_all: '🔥 Todo', cat_sponsored: '⭐ Patrocinado', cat_event: '🎉 Eventos', cat_social: '☕ Comida y Bebida', cat_question: '❓ Estado / Pregunta', cat_deal: '⚡ Ofertas',
+        fab_create: '＋ Publicar Foto / Voz / Vibe', new_pin_title: '📍 Nuevo VibePin', pin_24h_note: '⏳ Las publicaciones duran 24 horas en el mapa',
+        pin_text_ph: 'Comparte comida, ofertas o lo que pasa...', cam_btn: '📸 Cámara', gal_btn: '🖼️ Galería', aud_btn: '🎙️ Nota de Voz',
+        pub_btn: '🚀 Publicar en el Mapa (24h)', add_friend: '➕ Añadir Amigo', sponsored_banner: '⭐ LUGAR PATROCINADO',
+        like_lbl: 'Me gusta', verify_lbl: 'Verificar', fake_lbl: 'Falso', del_pin: '🗑️ Eliminar', comment_ph: 'Escribe un comentario...', send_btn: 'Enviar',
+        profile_title: '🎭 Perfil, Género y Edad', upload_avatar: '📸 Subir foto de galería', avatar_col: 'Colección de Avatares:',
+        g_select: 'Seleccionar género', g_female: '👩 Mujer', g_male: '👨 Hombre', g_other: '🧑 Prefiero no decir',
+        age_ph: 'Edad (13-99)', username_ph: 'Tu nombre de usuario', save_profile: '💾 Guardar Perfil', logout_btn: 'Cerrar sesión',
+        tab_chats: 'Chats', tab_reqs: 'Solicitudes', tab_blocked: 'Bloqueados', search_chat_ph: '🔍 Buscar chats...',
+        remove_friend: '🗑️ Eliminar amigo', block_user: '🚫 Bloquear usuario', msg_ph: 'Escribe un mensaje...',
+        support_title: '🆘 Reportar problema', support_desc: 'Escríbenos para reportar errores o publicidad.',
+        support_ph: 'Escribe tu mensaje...', send_msg_btn: '📨 Enviar', watch_ad_btn: '🎬 Ver promo y desbloquear',
+        online_sub: 'en línea • VibePin', typing_txt: 'escribiendo...', start_chat_hint: 'Toca para chatear 👋',
+        req_sent: '⏳ Solicitud enviada', friends_badge: '✅ Amigos', legal_title: '🛡️ Privacidad y Derechos', legal_ok: 'Entendido',
+        legal_body: '<p><strong>1. Privacidad:</strong> Tus datos están cifrados y protegidos.</p><p><strong>2. Duración 24h:</strong> Los pines estándar se eliminan tras <strong>24 horas</strong>.</p>'
+      },
+      ar: {
+        live_badge: 'استكشاف مجاني مباشر ضمن 15 كم', tagline: 'شارك نبض مدينتك بالصور والصوت المباشر',
+        google_btn: 'المتابعة باستخدام Google', apple_btn: 'المتابعة باستخدام Apple', or_email: 'أو الدخول بالبريد الإلكتروني',
+        email_ph: 'البريد الإلكتروني', pass_ph: 'كلمة المرور (6 أحرف على الأقل)', login_btn: '🔐 تسجيل الدخول', signup_btn: '✨ إنشاء حساب',
+        terms_pre: 'بالمتابعة فإنك توافق على', terms_link: 'شروط الاستخدام وسياسة الخصوصية', terms_post: '.',
+        free_radius: '📍 15 كم مجاناً', remote_area: '🌍 منطقة بعيدة 🔒', remote_unlocked: '🌍 منطقة بعيدة 🔓',
+        cat_all: '🔥 الكل', cat_sponsored: '⭐ ممول', cat_event: '🎉 فعاليات', cat_social: '☕ طعام وشراب', cat_question: '❓ حالة / سؤال', cat_deal: '⚡ عروض',
+        fab_create: '＋ أضف صورة / صوت / Vibe', new_pin_title: '📍 VibePin جديد', pin_24h_note: '⏳ تبقى المنشورات على الخريطة لمدة 24 ساعة',
+        pin_text_ph: 'شارك ما تأكله أو تشربه أو عروض الأماكن...', cam_btn: '📸 الكاميرا', gal_btn: '🖼️ المعرض', aud_btn: '🎙️ تسجيل صوتي',
+        pub_btn: '🚀 نشر على الخريطة (24 ساعة)', add_friend: '➕ إضافة صديق', sponsored_banner: '⭐ مكان ممول ومميز',
+        like_lbl: 'إعجاب', verify_lbl: 'تأكيد', fake_lbl: 'كاذب', del_pin: '🗑️ حذف المنشور', comment_ph: 'اكتب تعليقاً...', send_btn: 'إرسال',
+        profile_title: '🎭 الملف الشخصي والجنس والعمر', upload_avatar: '📸 رفع صورة من المعرض', avatar_col: 'مجموعة الصور الرمزية:',
+        g_select: 'اختر الجنس', g_female: '👩 أنثى', g_male: '👨 ذكر', g_other: '🧑 أفضل عدم التحديد',
+        age_ph: 'العمر (13-99)', username_ph: 'اسم المستخدم الفريد', save_profile: '💾 حفظ الملف', logout_btn: 'تسجيل الخروج',
+        tab_chats: 'المحادثات', tab_reqs: 'الطلبات', tab_blocked: 'المحظورون', search_chat_ph: '🔍 بحث عن محادثة...',
+        remove_friend: '🗑️ إزالة صديق', block_user: '🚫 حظر المستخدم', msg_ph: 'اكتب رسالة...',
+        support_title: '🆘 الإبلاغ عن مشكلة', support_desc: 'تواصل معنا مباشرة للإبلاغ عن الأخطاء أو الإعلانات.',
+        support_ph: 'اكتب رسالتك بالتفصيل...', send_msg_btn: '📨 إرسال الرسالة', watch_ad_btn: '🎬 شاهد إعلاناً قصيراً للفتح مجاناً',
+        online_sub: 'متصل • VibePin', typing_txt: 'يكتب الآن...', start_chat_hint: 'اضغط لبدء المحادثة 👋',
+        req_sent: '⏳ تم إرسال الطلب', friends_badge: '✅ أصدقاء', legal_title: '🛡️ الخصوصية وحقوق المستخدم', legal_ok: 'فهمت',
+        legal_body: '<p><strong>1. حماية البيانات:</strong> يتم تشفير بياناتك بالكامل.</p><p><strong>2. الحذف التلقائي:</strong> تحذف المنشورات تلقائياً بعد <strong>24 ساعة</strong>.</p>'
+      }
+    };
+
+    let currentLang = localStorage.getItem('vibepin_lang') || ((navigator.language || '').toLowerCase().startsWith('tr') ? 'tr' : 'en');
+    function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.tr[key] || key; }
+
+    function applyLanguage() {
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+      const codeUpper = currentLang.toUpperCase();
+      const gBtn = document.getElementById('gateLangBtn'); if (gBtn) gBtn.textContent = '🌐 ' + codeUpper;
+      const tBtn = document.getElementById('topLangBtn'); if (tBtn) tBtn.textContent = codeUpper;
+      document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active'));
+      const activeOpt = document.getElementById('langOpt-' + currentLang);
+      if (activeOpt) activeOpt.classList.add('active');
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('vibepin_lang', lang);
+      applyLanguage();
+      closeModal('langModal');
+    }
+
     let sb = null, map = null, realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null };
@@ -447,7 +605,7 @@
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
-    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3600); }
+    function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
 
     function renderDemoBadge(profile) {
@@ -466,7 +624,7 @@
     function formatTime(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function avatarHtml(profile, fallbackEmoji = '🦊', isBlockedByThem = false) {
@@ -498,35 +656,32 @@
     }
 
     function getRemainingHoursText(expiresAt) {
-      if (!expiresAt) return '⏳ 24s Canlı';
+      if (!expiresAt) return '⏳ 24h';
       const diffMs = new Date(expiresAt) - new Date();
-      if (diffMs <= 0) return '⌛ Süresi Doldu';
+      if (diffMs <= 0) return '⌛ Expired';
       const hrs = Math.ceil(diffMs / (1000 * 60 * 60));
-      return hrs > 24 ? `⭐ ${Math.ceil(hrs/24)} Gün Kaldı` : `⏳ ${hrs} Saat Kaldı`;
+      return hrs > 24 ? `⭐ ${Math.ceil(hrs/24)}d` : `⏳ ${hrs}h`;
     }
 
     function updateMyLocationMarker(coords) {
       if (!map || !window.L) return;
       const myLocIcon = L.divIcon({
         className: '',
-        html: `<div class="my-loc-wrap" title="Senin Konumun"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`,
+        html: `<div class="my-loc-wrap"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13]
       });
-      if (myLocationMarker) {
-        myLocationMarker.setLatLng(coords);
-      } else {
-        myLocationMarker = L.marker(coords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
-        myLocationMarker.bindPopup('📍 Senin Canlı Konumun');
-      }
+      if (myLocationMarker) myLocationMarker.setLatLng(coords);
+      else myLocationMarker = L.marker(coords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
       if (rangeCircle) rangeCircle.setLatLng(coords);
     }
 
     function initApp() {
+      applyLanguage();
       const status = document.getElementById('loginStatus');
-      if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
+      if (!window.supabase) { status.textContent = 'Connection error, please refresh.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v14' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v15' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
@@ -546,7 +701,7 @@
             teleportPickMode = false;
             userCoords = [e.latlng.lat, e.latlng.lng];
             map.flyTo(userCoords, 14);
-            showToast('🌍 Seçtiğin uzak bölgeye ışınlandın!');
+            showToast('🌍 Teleported!');
             return;
           }
           if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
@@ -563,7 +718,7 @@
       if (myProfile.is_banned || (myProfile.trust_score !== null && myProfile.trust_score <= 30)) {
         await sb.auth.signOut();
         document.getElementById('authGate').style.display = 'flex';
-        document.getElementById('loginStatus').textContent = '🚫 Güven puanınız 30 altına düştüğü için hesabınız kısıtlandı.';
+        document.getElementById('loginStatus').textContent = '🚫 Account restricted due to low trust score.';
         return;
       }
       document.getElementById('authGate').style.display = 'none';
@@ -573,14 +728,15 @@
       locateUser();
       await loadBlockedUsers();
       loadPins();
-      setupRealtimeChat();
+      setupRealtimeChannel();
       checkNotifications();
       setInterval(checkNotifications, 5000);
     }
 
-    function setupRealtimeChat() {
+    /* Harita Pinleri + Mesajlar + "yazıyor..." Tek Canlı Realtime Kanalı */
+    function setupRealtimeChannel() {
       if (!sb || !currentUser || realtimeChatChannel) return;
-      realtimeChatChannel = sb.channel('vibechat-live-room')
+      realtimeChatChannel = sb.channel('vibepin-global-live')
         .on('broadcast', { event: 'typing' }, ({ payload }) => {
           if (!payload || payload.to !== currentUser.id) return;
           if (blockedIds.includes(payload.from) || blockedByIds.includes(payload.from)) return;
@@ -592,6 +748,12 @@
             delete typingUsersMap[senderId];
             updateTypingIndicators();
           }, 2600);
+        })
+        .on('broadcast', { event: 'pin_refresh' }, () => {
+          loadPins();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pins' }, () => {
+          loadPins();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_messages' }, (payload) => {
           const row = payload.new || payload.old;
@@ -632,10 +794,10 @@
         if (isBlockedByThem) {
           sub.textContent = '';
         } else if (typingUsersMap[activeChatFriend.id]) {
-          sub.textContent = 'yazıyor...';
+          sub.textContent = t('typing_txt');
           sub.style.color = 'var(--wa-green)';
         } else {
-          sub.textContent = 'çevrimiçi • VibePin';
+          sub.textContent = t('online_sub');
           sub.style.color = '#8696a0';
         }
       }
@@ -655,35 +817,35 @@
     async function signInWithProvider(provider) {
       const status = document.getElementById('loginStatus');
       status.style.color = '#38bdf8';
-      status.textContent = (provider === 'apple' ? 'Apple' : 'Google') + ' hesabına yönlendiriliyor...';
+      status.textContent = 'Redirecting...';
       const { error } = await sb.auth.signInWithOAuth({
         provider,
         options: { redirectTo: 'https://getvibepin.github.io/vibepin/' }
       });
-      if (error) { status.style.color = '#f87171'; status.textContent = 'Giriş hatası: ' + error.message; }
+      if (error) { status.style.color = '#f87171'; status.textContent = error.message; }
     }
 
     async function gateSignIn() {
       const btn = document.getElementById('loginBtn'), status = document.getElementById('loginStatus');
       const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
-      if (!email || !password) { status.textContent = 'Lütfen e-posta ve şifrenizi girin.'; return; }
-      btn.textContent = '⏳...'; btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = 'Giriş yapılıyor...';
+      if (!email || !password) { status.textContent = 'Please enter email and password.'; return; }
+      btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = '⏳...';
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      btn.textContent = '🔐 Giriş Yap'; btn.disabled = false;
-      if (error) { status.style.color = '#f87171'; status.textContent = 'Giriş hatası: ' + error.message; return; }
-      status.textContent = ''; showToast('✅ Hoş geldin!'); await enterApp(data.user);
+      btn.disabled = false;
+      if (error) { status.style.color = '#f87171'; status.textContent = error.message; return; }
+      status.textContent = ''; await enterApp(data.user);
     }
 
     async function gateSignUp() {
       const btn = document.getElementById('signupBtn'), status = document.getElementById('loginStatus');
       const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
-      if (!email || password.length < 6) { status.textContent = 'E-posta ve en az 6 haneli şifre girin.'; return; }
-      btn.textContent = '⏳...'; btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = 'Hesap oluşturuluyor...';
+      if (!email || password.length < 6) { status.textContent = 'Enter email & min 6-char password.'; return; }
+      btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = '⏳...';
       const { data, error } = await sb.auth.signUp({ email, password });
-      btn.textContent = '✨ Kayıt Ol'; btn.disabled = false;
-      if (error) { status.style.color = '#f87171'; status.textContent = 'Kayıt hatası: ' + error.message; return; }
-      if (data.session) { showToast('🎉 Kayıt tamamlandı!'); await enterApp(data.user); }
-      else { status.style.color = '#10b981'; status.textContent = '✅ Kayıt başarılı! Şimdi Giriş Yap butonuna basabilirsin.'; }
+      btn.disabled = false;
+      if (error) { status.style.color = '#f87171'; status.textContent = error.message; return; }
+      if (data.session) await enterApp(data.user);
+      else { status.style.color = '#10b981'; status.textContent = '✅ Account created! Now click Sign In.'; }
     }
 
     function updateAvatarUI() {
@@ -694,7 +856,7 @@
       } else { btn.textContent = myProfile.avatar_emoji || '🦊'; prev.textContent = myProfile.avatar_emoji || '🦊'; }
       const score = myProfile.trust_score ?? 100;
       const tEl = document.getElementById('myTrustScoreText');
-      tEl.textContent = `🛡️ Güven Puanın: ${score} / 100`;
+      tEl.textContent = `🛡️ Trust: ${score} / 100`;
       tEl.style.color = score >= 70 ? '#10b981' : (score >= 45 ? '#f59e0b' : '#ef4444');
     }
 
@@ -718,7 +880,7 @@
       nameInput.value = myProfile.username || '';
       if (isFounder()) {
         nameInput.disabled = false;
-        lockNote.textContent = '👑 Kurucu Hesabı: Kullanıcı adı kısıtlaması yok.';
+        lockNote.textContent = '👑 Founder Account: No username cooldown.';
         return;
       }
       if (myProfile.username_updated_at) {
@@ -727,13 +889,13 @@
           const daysLeft = Math.ceil(14 - daysPassed);
           nameInput.disabled = true;
           lockNote.style.color = '#f59e0b';
-          lockNote.textContent = `⏳ Trol koruması: Kullanıcı adını tekrar değiştirmek için ${daysLeft} gün kaldı.`;
+          lockNote.textContent = `⏳ Anti-troll lock: ${daysLeft} days left to change username.`;
           return;
         }
       }
       nameInput.disabled = false;
       lockNote.style.color = 'var(--muted)';
-      lockNote.textContent = '🔒 Güvenlik kuralı: Kullanıcı adı 14 günde bir kez değiştirilebilir.';
+      lockNote.textContent = '🔒 Username can be changed once every 14 days.';
     }
 
     function openProfileModal() {
@@ -748,7 +910,7 @@
     function handleAvatarFile(input) {
       if (input.files && input.files[0]) {
         selectedAvatarFile = input.files[0];
-        document.getElementById('avatarUploadLabel').textContent = '✅ Fotoğraf Seçildi';
+        document.getElementById('avatarUploadLabel').textContent = '✅ Selected';
         document.getElementById('profilePhotoPreview').innerHTML = `<img src="${URL.createObjectURL(selectedAvatarFile)}" style="width:100%;height:100%;object-fit:cover;" />`;
       }
     }
@@ -761,16 +923,15 @@
       const ageRaw = document.getElementById('profileAgeInput').value.trim();
       const ageVal = ageRaw ? parseInt(ageRaw, 10) : null;
 
-      /* Yaş sınırı 13–99 olarak güncellendi */
       if (ageVal !== null && (ageVal < 13 || ageVal > 99)) {
-        return showToast('⚠️ Yaş 13 ile 99 arasında olmalıdır.');
+        return showToast('⚠️ Age must be between 13 and 99.');
       }
 
       if (nameChanged && !isFounder()) {
-        if (newName.length < 3 || newName.length > 20) return showToast('Kullanıcı adı 3–20 karakter olmalıdır.');
+        if (newName.length < 3 || newName.length > 20) return showToast('Username must be 3–20 characters.');
         if (myProfile.username_updated_at) {
           const daysPassed = (Date.now() - new Date(myProfile.username_updated_at).getTime()) / (1000 * 3600 * 24);
-          if (daysPassed < 14) return showToast(`Kullanıcı adını değiştirmek için ${Math.ceil(14 - daysPassed)} gün beklemelisin.`);
+          if (daysPassed < 14) return showToast(`Wait ${Math.ceil(14 - daysPassed)} days to change username.`);
         }
       }
 
@@ -793,8 +954,8 @@
 
       const { error } = await sb.from('profiles').upsert(payload);
       if (error) {
-        if (error.message && error.message.includes('unique')) return showToast('⚠️ Bu kullanıcı adı başka bir üye tarafından kullanılıyor.');
-        return showToast('Hata: ' + error.message);
+        if (error.message && error.message.includes('unique')) return showToast('⚠️ Username already taken.');
+        return showToast(error.message);
       }
       myProfile.username = newName;
       myProfile.gender = genderVal || null;
@@ -803,7 +964,7 @@
       refreshProfileNameLock();
       updateAvatarUI();
       closeModal('profileModal');
-      showToast('✅ Profil güncellendi!');
+      showToast('✅ Saved!');
       loadPins();
     }
 
@@ -812,20 +973,13 @@
       document.getElementById('watchAdBtn').style.display = 'block';
       document.getElementById('adCountdownBox').style.display = 'none';
       document.getElementById('adSec').textContent = '5';
-      if (type === 'teleport') {
-        document.getElementById('adModalTitle').textContent = '🌍 15 km Dışı Uzak Alan Kilidi';
-        document.getElementById('adModalDesc').textContent = 'Canlı konumundan 15 km dışındaki bölgelere ışınlanmak ve paylaşım yapmak için kısa sponsorlu tanıtımı izle.';
-      } else {
-        document.getElementById('adModalTitle').textContent = '🤝 Ekstra Arkadaşlık İsteği Hakkı';
-        document.getElementById('adModalDesc').textContent = 'Ücretsiz 10 arkadaşlık isteği limitine ulaştın! Kısa tanıtımı izleyerek +5 yeni istek hakkı açabilirsin.';
-      }
       openModal('adModal');
     }
 
     function triggerTeleport() {
       if (!teleportUnlocked && !isFounder()) { openAdFor('teleport'); return; }
       teleportPickMode = true; if (map) map.setZoom(7);
-      showToast('🗺️ Haritada gitmek istediğin şehre veya bölgeye dokun!');
+      showToast('🗺️ Tap any location on the map!');
     }
 
     function startRewardAd() {
@@ -839,11 +993,11 @@
           closeModal('adModal');
           if (adRewardType === 'teleport') {
             teleportUnlocked = true;
-            document.getElementById('teleportBtn').innerHTML = '🌍 Uzak Alan 🔓';
+            document.getElementById('teleportBtn').textContent = t('remote_unlocked');
             triggerTeleport();
           } else {
             extraFriendQuota += 5;
-            showToast('🎉 +5 Arkadaşlık İsteği Hakkı Açıldı!');
+            showToast('🎉 +5 Friend Requests Unlocked!');
           }
         }
       }, 1000);
@@ -851,23 +1005,17 @@
 
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
 
-    /* Kullanıcının canlı konumunu alır ve haritadaki mavi radar işaretçisini günceller */
     function locateUser() {
-      if (!navigator.geolocation || !map) {
-        showToast('Konum izni tarayıcıda kapalı.');
-        return;
-      }
+      if (!navigator.geolocation || !map) return;
       navigator.geolocation.getCurrentPosition((pos) => {
         realGpsCoords = [pos.coords.latitude, pos.coords.longitude];
         userCoords = [...realGpsCoords];
         map.flyTo(userCoords, 15);
         updateMyLocationMarker(realGpsCoords);
-      }, () => {
-        showToast('📍 Konum alınamadı, lütfen cihaz konum iznini açın.');
-      }, { enableHighAccuracy: true });
+      }, () => {}, { enableHighAccuracy: true });
     }
 
-    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Kurucu Modu Açık: İsim belirleyip pin bırakabilirsin!' : 'Kurucu Modu kapatıldı'); }
+    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👻 Ghost Mode ON' : 'Ghost Mode OFF'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
@@ -883,8 +1031,8 @@
       selectedPhotoFile = null; recordedAudioBlob = null;
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('audioPreview').style.display = 'none';
-      document.getElementById('cameraLabel').textContent = '📸 Kamera ile Çek';
-      document.getElementById('galleryLabel').textContent = '🖼️ Galeriden Seç';
+      document.getElementById('cameraLabel').textContent = t('cam_btn');
+      document.getElementById('galleryLabel').textContent = t('gal_btn');
       openModal('createModal');
     }
 
@@ -892,11 +1040,11 @@
       if (input.files && input.files[0]) {
         selectedPhotoFile = input.files[0];
         if (source === 'camera') {
-          document.getElementById('cameraLabel').textContent = '✅ Fotoğraf Çekildi';
-          document.getElementById('galleryLabel').textContent = '🖼️ Galeriden Seç';
+          document.getElementById('cameraLabel').textContent = '✅ OK';
+          document.getElementById('galleryLabel').textContent = t('gal_btn');
         } else {
-          document.getElementById('galleryLabel').textContent = '✅ Galeriden Seçildi';
-          document.getElementById('cameraLabel').textContent = '📸 Kamera ile Çek';
+          document.getElementById('galleryLabel').textContent = '✅ OK';
+          document.getElementById('cameraLabel').textContent = t('cam_btn');
         }
         const img = document.getElementById('photoPreview');
         img.src = URL.createObjectURL(selectedPhotoFile); img.style.display = 'block';
@@ -905,7 +1053,7 @@
 
     async function toggleAudioRecord() {
       const btn = document.getElementById('audioBtn');
-      if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); btn.classList.remove('recording'); btn.textContent = '✅ Ses Kaydedildi'; return; }
+      if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); btn.classList.remove('recording'); btn.textContent = '✅ Audio Ready'; return; }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioChunks = []; mediaRecorder = new MediaRecorder(stream);
@@ -916,14 +1064,14 @@
           aud.src = URL.createObjectURL(recordedAudioBlob); aud.style.display = 'block';
           stream.getTracks().forEach(t => t.stop());
         };
-        mediaRecorder.start(); btn.classList.add('recording'); btn.textContent = '⏹️ Durdur (Kaydediyor)';
-      } catch (err) { showToast('Mikrofon izni verilmedi: ' + err.message); }
+        mediaRecorder.start(); btn.classList.add('recording'); btn.textContent = '⏹️ Stop';
+      } catch (err) { showToast(err.message); }
     }
 
     async function submitPin() {
       const text = document.getElementById('pinText').value.trim();
-      if (!text && !selectedPhotoFile && !recordedAudioBlob) return showToast('Yazı, fotoğraf veya ses ekleyin');
-      const btn = document.getElementById('publishBtn'); btn.textContent = '⏳ Yükleniyor...'; btn.disabled = true;
+      if (!text && !selectedPhotoFile && !recordedAudioBlob) return showToast('Add text, photo, or voice.');
+      const btn = document.getElementById('publishBtn'); btn.textContent = '⏳...'; btn.disabled = true;
       let image_url = null, audio_url = null;
       if (selectedPhotoFile) {
         const ext = selectedPhotoFile.name.split('.').pop() || 'jpg';
@@ -937,7 +1085,7 @@
         if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
       const isGhost = (ghostMode && isFounder());
-      const ghostName = isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Gezgin_' + Math.floor(Math.random()*99)) : null;
+      const ghostName = isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Vibe_' + Math.floor(Math.random()*99)) : null;
       const isSponsored = isGhost && document.getElementById('sponsorCheck').checked;
       const [lat, lng] = selectedCoords || userCoords;
       const expHours = isSponsored ? 168 : 24;
@@ -945,12 +1093,18 @@
 
       const { error } = await sb.from('pins').insert([{
         user_id: currentUser.id, ghost_author_name: ghostName, category: selectedCategory,
-        content_text: text || '📍 Canlı Paylaşım', latitude: lat, longitude: lng,
+        content_text: text || '📍 Live Vibe', latitude: lat, longitude: lng,
         image_url, audio_url, is_sponsored: isSponsored, sponsor_title: isSponsored ? ghostName : null, expires_at
       }]);
-      btn.textContent = '🚀 Haritada Yayınla (24 Saat)'; btn.disabled = false;
-      if (error) return showToast('Hata: ' + error.message);
-      document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin 24 saat boyunca haritada!'); loadPins();
+      btn.textContent = t('pub_btn'); btn.disabled = false;
+      if (error) return showToast(error.message);
+      document.getElementById('pinText').value = '';
+      closeModal('createModal');
+      showToast('🚀 Live on map!');
+      await loadPins();
+      if (realtimeChatChannel) {
+        realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} });
+      }
     }
 
     async function loadBlockedUsers() {
@@ -963,6 +1117,7 @@
     }
 
     async function loadPins() {
+      if (!currentUser) return;
       const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score, gender, age)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
       if (!error && data) {
         allPins = data.filter(p => !blockedIds.includes(p.user_id));
@@ -993,7 +1148,7 @@
     async function openPinDetail(pin) {
       activePin = pin;
       const isBlockedByThem = blockedByIds.includes(pin.user_id);
-      const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe Kullanıcısı';
+      const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe User';
       const demoHtml = pin.ghost_author_name ? '' : renderDemoBadge(pin.profiles);
       const avHtml = isBlockedByThem
         ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#2a3942;">${avatarHtml(null, '🦊', true)}</span>`
@@ -1003,7 +1158,7 @@
       document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>${demoHtml}`;
       const tScore = pin.profiles?.trust_score ?? 100;
       const remTime = getRemainingHoursText(pin.expires_at);
-      document.getElementById('detailTrustBadge').textContent = `🛡️ Güven: ${tScore} • ${remTime}`;
+      document.getElementById('detailTrustBadge').textContent = `🛡️ Trust: ${tScore} • ${remTime}`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
       document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
@@ -1025,15 +1180,15 @@
           .order('created_at', { ascending: false }).limit(1);
         const st = rels && rels[0] ? rels[0].status : null;
         if (st === 'pending') {
-          friendBtn.textContent = '⏳ İstek Gönderildi';
+          friendBtn.textContent = t('req_sent');
           friendBtn.style.background = '#475569';
           friendBtn.disabled = true;
         } else if (st === 'accepted') {
-          friendBtn.textContent = '✅ Arkadaşsınız';
+          friendBtn.textContent = t('friends_badge');
           friendBtn.style.background = '#059669';
           friendBtn.disabled = true;
         } else {
-          friendBtn.textContent = '➕ Arkadaş Ekle';
+          friendBtn.textContent = t('add_friend');
           friendBtn.style.background = 'var(--primary)';
           friendBtn.style.opacity = '1';
           friendBtn.disabled = false;
@@ -1056,9 +1211,9 @@
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activePin.user_id}),and(sender_id.eq.${activePin.user_id},receiver_id.eq.${currentUser.id})`)
         .in('status', ['pending', 'accepted']);
       if (existing && existing.length > 0) {
-        btn.textContent = existing[0].status === 'accepted' ? '✅ Arkadaşsınız' : '⏳ İstek Gönderildi';
+        btn.textContent = existing[0].status === 'accepted' ? t('friends_badge') : t('req_sent');
         btn.style.background = '#475569';
-        return showToast('Bu kullanıcıya zaten aktif bir isteğin veya arkadaşlığın var.');
+        return;
       }
 
       const sentCount = myProfile.friend_requests_sent || 0;
@@ -1068,44 +1223,42 @@
         openAdFor('friend');
         return;
       }
-      const targetName = activePin.ghost_author_name || activePin.profiles?.username || 'Üye';
+      const targetName = activePin.ghost_author_name || activePin.profiles?.username || 'User';
       const { error } = await sb.from('friendships').insert([{ sender_id: currentUser.id, receiver_id: activePin.user_id, sender_name: myProfile.username, receiver_name: targetName, status: 'pending' }]);
-      if (error) { btn.disabled = false; return showToast('Hata: ' + error.message); }
+      if (error) { btn.disabled = false; return showToast(error.message); }
 
-      btn.textContent = '⏳ İstek Gönderildi';
+      btn.textContent = t('req_sent');
       btn.style.background = '#475569';
       btn.style.opacity = '0.7';
       myProfile.friend_requests_sent = sentCount + 1;
       await sb.from('profiles').update({ friend_requests_sent: myProfile.friend_requests_sent }).eq('id', currentUser.id);
-      showToast(`📨 ${targetName} adlı kişiye istek gönderildi!`);
+      showToast(`📨 ${targetName}`);
     }
 
     async function likeCurrentPin() {
       if (!activePin || !currentUser) return;
       const { error } = await sb.from('pin_likes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]);
-      if (error) return showToast('Bu paylaşımı zaten beğendin ❤️');
+      if (error) return;
       const newLikes = (activePin.likes_count || 0) + 1;
       await sb.from('pins').update({ likes_count: newLikes }).eq('id', activePin.id);
       activePin.likes_count = newLikes;
       document.getElementById('detailLikes').textContent = newLikes;
-      showToast('❤️ Beğenildi!');
     }
 
     async function upvoteCurrentPin() {
       if (!activePin || !currentUser) return;
       const { error } = await sb.from('pin_upvotes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]);
-      if (error) return showToast('Zaten doğruladın ✅');
+      if (error) return;
       const newCount = (activePin.upvotes_count || 1) + 1;
       await sb.from('pins').update({ upvotes_count: newCount }).eq('id', activePin.id);
       activePin.upvotes_count = newCount; document.getElementById('detailUpvotes').textContent = newCount;
-      showToast('✅ Doğrulandı!');
     }
 
     async function reportFakePin() {
       if (!activePin || !currentUser) return;
-      if ((myProfile.trust_score ?? 100) < 50) return showToast('Güven puanınız düşük olduğu için raporlama yapamazsınız.');
+      if ((myProfile.trust_score ?? 100) < 50) return;
       const { error } = await sb.from('pin_fake_reports').insert([{ pin_id: activePin.id, reporter_id: currentUser.id }]);
-      if (error) return showToast('Bu paylaşımı zaten yalan olarak bildirdin ⚠️');
+      if (error) return;
 
       const newFakes = (activePin.fake_reports_count || 0) + 1;
       await sb.from('pins').update({ fake_reports_count: newFakes }).eq('id', activePin.id);
@@ -1120,18 +1273,18 @@
       if (newFakes >= 3) {
         await sb.from('pins').delete().eq('id', activePin.id);
         closeModal('detailModal');
-        showToast('🚨 Çoklu yalan bildirimi nedeniyle paylaşım kaldırıldı!');
-        loadPins();
-      } else {
-        showToast('⚠️ Yalan bildirimi işlendi, kullanıcının güven puanı düşürüldü.');
+        await loadPins();
+        if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} });
       }
     }
 
     async function deleteCurrentPin() {
       if (!activePin || !currentUser) return;
       const { error } = await sb.from('pins').delete().eq('id', activePin.id);
-      if (error) return showToast('Silme hatası: ' + error.message);
-      closeModal('detailModal'); showToast('🗑️ Paylaşım silindi!'); loadPins();
+      if (error) return showToast(error.message);
+      closeModal('detailModal');
+      await loadPins();
+      if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} });
     }
 
     async function blockAuthor() {
@@ -1141,7 +1294,6 @@
         blockedIds.push(activePin.user_id);
       }
       closeModal('detailModal');
-      showToast('🚫 Kullanıcı engellendi, paylaşımları gizlendi.');
       loadPins();
     }
 
@@ -1212,7 +1364,7 @@
       waBlockedCache = blockedIds.map(bid => ({
         blocked_id: bid,
         profile: profilesMap[bid] || null,
-        name: profilesMap[bid]?.username || `Kullanıcı (${bid.slice(0,6)})`
+        name: profilesMap[bid]?.username || `User (${bid.slice(0,6)})`
       }));
 
       waFriendsCache = accepted.map(f => {
@@ -1220,7 +1372,7 @@
         const friendId = isSender ? f.receiver_id : f.sender_id;
         const isBlockedByThem = blockedByIds.includes(friendId);
         const prof = profilesMap[friendId];
-        const liveName = prof?.username || (isSender ? f.receiver_name : f.sender_name) || 'Vibe Üyesi';
+        const liveName = prof?.username || (isSender ? f.receiver_name : f.sender_name) || 'Vibe User';
 
         const dbThread = (msgs || []).filter(m => (m.sender_id === friendId && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === friendId));
         const localThread = localUndeliveredMsgs.filter(m => m.receiver_id === friendId);
@@ -1244,7 +1396,7 @@
         const q = (document.getElementById('waSearchInput').value || '').toLowerCase();
         const list = waFriendsCache.filter(item => item.name.toLowerCase().includes(q));
         if (list.length === 0) {
-          box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">Henüz sohbet yok.<br>Haritadaki pinlere dokunup arkadaş ekleyebilirsin!</div>';
+          box.innerHTML = `<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">${t('start_chat_hint')}</div>`;
           return;
         }
         box.innerHTML = list.map(item => {
@@ -1253,10 +1405,10 @@
             ? (item.lastMsg.undelivered ? '✓ ' : '✓✓ ')
             : '';
           const preview = isTyping
-            ? '<span style="color:var(--wa-green); font-weight:700;">yazıyor...</span>'
+            ? `<span style="color:var(--wa-green); font-weight:700;">${t('typing_txt')}</span>`
             : (item.lastMsg
                 ? tickPrefix + esc(item.lastMsg.message_text)
-                : 'Sohbet başlatmak için dokun 👋');
+                : t('start_chat_hint'));
           const timeStr = item.lastMsg ? formatTime(item.lastMsg.created_at) : '';
           const badgeHtml = item.unreadCount > 0 ? `<span class="wa-badge">${item.unreadCount}</span>` : '';
           const demoHtml = item.isBlockedByThem ? '' : renderDemoBadge(item.profile);
@@ -1276,29 +1428,28 @@
         }).join('');
       } else if (waTab === 'requests') {
         if (waIncomingCache.length === 0 && waResponsesCache.length === 0) {
-          box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">Bekleyen arkadaşlık isteği yok.</div>';
+          box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">—</div>';
           return;
         }
         box.innerHTML = waIncomingCache.map(f => `
           <div class="wa-chat-row" style="cursor:default;">
             <div class="wa-avatar">👤</div>
             <div style="flex:1;">
-              <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(f.sender_name || 'Vibe Üyesi')}</div>
-              <div style="font-size:12px; color:#8696a0;">Arkadaşlık isteği gönderdi</div>
+              <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(f.sender_name || 'Vibe User')}</div>
             </div>
             <div style="display:flex; gap:6px;">
-              <button onclick="respondFriend('${f.id}','accepted')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Kabul</button>
-              <button onclick="respondFriend('${f.id}','rejected')" style="padding:7px 11px; border-radius:999px; border:none; background:#2a3942; color:#f87171; font-weight:700; font-size:12px; cursor:pointer;">Red</button>
+              <button onclick="respondFriend('${f.id}','accepted')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">✓</button>
+              <button onclick="respondFriend('${f.id}','rejected')" style="padding:7px 11px; border-radius:999px; border:none; background:#2a3942; color:#f87171; font-weight:700; font-size:12px; cursor:pointer;">✕</button>
             </div>
           </div>`).join('') +
           waResponsesCache.slice(0, 5).map(f => `
           <div class="wa-chat-row" style="cursor:default; opacity:0.8;">
             <div class="wa-avatar" style="width:38px; height:38px; font-size:16px;">🔔</div>
-            <div style="font-size:13px; color:#cbd5e1;"><strong>${esc(f.receiver_name || 'Üye')}</strong> isteğini ${f.status === 'accepted' ? '<span style="color:var(--wa-green);">kabul etti</span>' : '<span style="color:#f87171;">reddetti</span>'}</div>
+            <div style="font-size:13px; color:#cbd5e1;"><strong>${esc(f.receiver_name || 'User')}</strong> → ${f.status === 'accepted' ? '<span style="color:var(--wa-green);">✓</span>' : '<span style="color:#f87171;">✕</span>'}</div>
           </div>`).join('');
       } else {
         if (waBlockedCache.length === 0) {
-          box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">Engellenen kullanıcı yok.</div>';
+          box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">—</div>';
           return;
         }
         box.innerHTML = waBlockedCache.map(b => `
@@ -1306,19 +1457,17 @@
             <div class="wa-avatar">${avatarHtml(b.profile, '🚫', false)}</div>
             <div style="flex:1;">
               <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(b.name)}${renderDemoBadge(b.profile)}</div>
-              <div style="font-size:11.5px; color:#f87171;">Engellendi • Sohbet gizli</div>
             </div>
-            <button onclick="unblockUser('${b.blocked_id}')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Engeli Kaldır</button>
+            <button onclick="unblockUser('${b.blocked_id}')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Unblock</button>
           </div>`).join('');
       }
     }
 
-    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); refreshFriendsData(); }
+    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); checkNotifications(); refreshFriendsData(); }
 
     async function unblockUser(targetUserId) {
       await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
       blockedIds = blockedIds.filter(id => id !== targetUserId);
-      showToast('✅ Engel kaldırıldı, sohbet geri yüklendi.');
       loadPins();
       await refreshFriendsData();
       switchWaTab('chats');
@@ -1333,7 +1482,6 @@
       document.getElementById('waChatMenu').style.display = 'none';
       if (!activeChatFriend || !activeChatFriend.friendshipId) return;
       await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId);
-      showToast('Arkadaş listesinden çıkarıldı.');
       backToChats();
     }
 
@@ -1344,7 +1492,6 @@
         await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]);
         blockedIds.push(activeChatFriend.id);
       }
-      showToast('🚫 Kullanıcı engellendi. Engeli kaldırdığında sohbet geri gelir.');
       loadPins();
       backToChats();
     }
@@ -1363,7 +1510,7 @@
         prof = data;
       }
       const isBlockedByThem = blockedByIds.includes(friendId);
-      const liveName = prof?.username || cached?.name || 'Vibe Üyesi';
+      const liveName = prof?.username || cached?.name || 'Vibe User';
       activeChatFriend = { id: friendId, name: liveName, profile: prof, friendshipId: cached?.friendshipId || null };
 
       document.getElementById('chatFriendTitle').innerHTML = `<span>${esc(liveName)}</span>${isBlockedByThem ? '' : renderDemoBadge(prof)}`;
@@ -1402,7 +1549,7 @@
       const allThread = [...(data || []), ...localMsgs].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
       box.innerHTML = allThread.length === 0
-        ? '<div style="background:rgba(32,44,51,0.85); color:#8696a0; font-size:12px; padding:8px 14px; border-radius:10px; text-align:center; margin:auto;">🔒 Mesajlarınız uçtan uca korunur. İlk mesajı gönderin!</div>'
+        ? '<div style="background:rgba(32,44,51,0.85); color:#8696a0; font-size:12px; padding:8px 14px; border-radius:10px; text-align:center; margin:auto;">🔒 End-to-end protected chat</div>'
         : allThread.map(m => {
             const isMine = (m.sender_id === currentUser.id);
             let ticks = '';
@@ -1426,9 +1573,7 @@
       if (!text || !activeChatFriend || !currentUser) return;
 
       await loadBlockedUsers();
-      if (blockedIds.includes(activeChatFriend.id)) {
-        return showToast('🚫 Bu kullanıcıyı engelledin. Mesaj atmak için önce engelini kaldır.');
-      }
+      if (blockedIds.includes(activeChatFriend.id)) return;
 
       input.value = '';
 
@@ -1446,25 +1591,25 @@
       }
 
       const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
-      if (error) return showToast('Mesaj gönderilemedi: ' + error.message);
+      if (error) return showToast(error.message);
       loadDirectMessages();
     }
 
     async function submitSupportTicket() {
       const category = document.getElementById('supportCat').value, message = document.getElementById('supportMsg').value.trim();
-      if (!message) return showToast('Lütfen mesajınızı yazın.');
+      if (!message) return;
       const { error } = await sb.from('support_tickets').insert([{ user_id: currentUser?.id, user_email: currentUser?.email, category, message }]);
-      if (error) return showToast('Hata: ' + error.message);
-      document.getElementById('supportMsg').value = ''; closeModal('supportModal'); showToast('📨 Mesajınız ekibimize iletildi, teşekkürler!');
+      if (error) return showToast(error.message);
+      document.getElementById('supportMsg').value = ''; closeModal('supportModal'); showToast('📨 Sent!');
     }
 
     async function openAdminTickets() {
       closeModal('profileModal'); openModal('adminTicketsModal');
       const { data } = await sb.from('support_tickets').select('*').order('created_at', { ascending: false });
       const box = document.getElementById('ticketsContainer');
-      box.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:13px;">Henüz destek mesajı yok.</div>' :
+      box.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:13px;">No tickets yet.</div>' :
         data.map(t => `<div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.05); margin-bottom:10px; border:1px solid var(--border);">
-          <div style="font-size:11px; color:var(--accent); font-weight:700; margin-bottom:4px;">[${esc(t.category.toUpperCase())}] ${esc(t.user_email || 'Anonim')}</div>
+          <div style="font-size:11px; color:var(--accent); font-weight:700; margin-bottom:4px;">[${esc(t.category.toUpperCase())}] ${esc(t.user_email || 'Anon')}</div>
           <div style="font-size:13px; line-height:1.4;">${esc(t.message)}</div>
         </div>`).join('');
     }
@@ -1472,7 +1617,7 @@
     async function loadComments(pinId) {
       const list = document.getElementById('commentsList');
       const { data } = await sb.from('pin_comments').select('*, profiles(username, gender, age)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Henüz yorum yok.</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'Üye')}</strong>${renderDemoBadge(c.profiles)}: ${esc(c.comment_text)}</div>`).join('');
+      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">—</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'User')}</strong>${renderDemoBadge(c.profiles)}: ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
