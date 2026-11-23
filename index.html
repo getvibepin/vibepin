@@ -51,18 +51,25 @@
     .vibe-marker.sponsored { border:3px solid #facc15; box-shadow:0 0 20px rgba(250,204,21,0.85); width:50px; height:50px; }
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
 
+    /* Cinsiyet & Yaş Rozetleri */
+    .demo-badge { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:999px; font-size:10.5px; font-weight:800; vertical-align:middle; margin-left:4px; }
+    .demo-female { background:rgba(236,72,153,0.18); border:1px solid rgba(236,72,153,0.45); color:#f472b6; }
+    .demo-male { background:rgba(6,182,212,0.18); border:1px solid rgba(6,182,212,0.45); color:#38bdf8; }
+    .demo-other { background:rgba(168,85,247,0.18); border:1px solid rgba(168,85,247,0.45); color:#c084fc; }
+
     /* Modallar ve Formlar */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:10005; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
     .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
     .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .sheet-title { font-size:16.5px; font-weight:800; display:flex; align-items:center; gap:8px; }
-    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
+    .sheet-title { font-size:16.5px; font-weight:800; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
     .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
     .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
-    textarea, input[type="email"], input[type="password"], input[type="text"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px 14px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
-    textarea:focus, input:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
+    textarea, input[type="email"], input[type="password"], input[type="text"], input[type="number"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:12px 14px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
+    select option { background:#111622; color:#fff; }
+    textarea:focus, input:focus, select:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
     input:disabled { opacity:0.55; cursor:not-allowed; }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
     .media-btn { padding:11px 8px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer; text-align:center; display:block; }
@@ -72,7 +79,7 @@
     .btn-danger { width:100%; padding:11px; border-radius:14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
     .action-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
     .act-pill { padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
-    .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:12px; max-height:165px; overflow-y:auto; padding:4px; }
+    .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:12px; max-height:150px; overflow-y:auto; padding:4px; }
     .av-opt { height:42px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:21px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
     .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
     .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
@@ -272,12 +279,12 @@
     </div>
   </div>
 
-  <!-- Profil & 14 Gün İsim Kilidi Modalı -->
+  <!-- Profil, Cinsiyet & Yaş Modalı -->
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title">🎭 Profil & Avatar</div>
+          <div class="sheet-title">🎭 Profil, Cinsiyet & Yaş</div>
           <div id="myTrustScoreText" style="font-size:12px; color:var(--green); font-weight:700;">🛡️ Güven Puanın: 100 / 100</div>
         </div>
         <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
@@ -314,6 +321,18 @@
         <div class="av-opt" onclick="pickAvatar('🚀', this)">🚀</div>
         <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
       </div>
+
+      <!-- Cinsiyet & Yaş Seçim Alanı -->
+      <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:8px; margin-bottom:2px;">
+        <select id="profileGenderInput" style="margin-bottom:8px;">
+          <option value="">Cinsiyet Seçin</option>
+          <option value="female">👩 Kadın</option>
+          <option value="male">👨 Erkek</option>
+          <option value="other">🧑 Belirtmek İstemiyorum</option>
+        </select>
+        <input type="number" id="profileAgeInput" min="18" max="99" placeholder="Yaş (18-99)" style="margin-bottom:8px;" />
+      </div>
+
       <input type="text" id="profileNameInput" placeholder="Benzersiz Kullanıcı Adın" style="margin-bottom:4px;" />
       <p id="usernameLockNote" style="font-size:11px; color:var(--muted); margin-bottom:12px;">🔒 Güvenlik kuralı: Kullanıcı adı 14 günde bir kez değiştirilebilir.</p>
       <button class="btn-primary" style="margin-bottom:10px;" onclick="saveProfile()">💾 Profili Kaydet</button>
@@ -351,7 +370,7 @@
           <button onclick="backToChats()" style="background:none; border:none; color:#e9edef; font-size:20px; cursor:pointer; padding:2px 6px;">←</button>
           <div class="wa-avatar" id="chatHeaderAvatar" style="width:40px; height:40px; font-size:19px;">🦊</div>
           <div>
-            <div id="chatFriendTitle" style="font-size:15.5px; font-weight:700; color:#e9edef;">Arkadaş</div>
+            <div id="chatFriendTitle" style="font-size:15.5px; font-weight:700; color:#e9edef; display:flex; align-items:center; flex-wrap:wrap;">Arkadaş</div>
             <div id="chatStatusSub" style="font-size:11.5px; color:#8696a0; font-weight:600;">çevrimiçi • VibePin</div>
           </div>
         </div>
@@ -411,18 +430,33 @@
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
     let sb = null, map = null, realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
-    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null };
+    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null };
     let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, rangeCircle = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let teleportUnlocked = false, teleportPickMode = false, extraFriendQuota = 0, adRewardType = 'teleport';
     let activeChatFriend = null, chatPollTimer = null, listPollTimer = null, lastUnreadCount = 0;
     let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waResponsesCache = [], waBlockedCache = [];
     let realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
+    let localUndeliveredMsgs = [];
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
     function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
+
+    /* Kullanıcının hemen yanında görünecek Cinsiyet & Yaş rozeti üretici */
+    function renderDemoBadge(profile) {
+      if (!profile) return '';
+      const g = profile.gender || '';
+      const age = profile.age ? parseInt(profile.age, 10) : null;
+      if (!g && !age) return '';
+      let icon = '', cls = 'demo-other';
+      if (g === 'female') { icon = '👩'; cls = 'demo-female'; }
+      else if (g === 'male') { icon = '👨'; cls = 'demo-male'; }
+      else if (g === 'other') { icon = '🧑'; cls = 'demo-other'; }
+      const text = [icon, age ? age : ''].filter(Boolean).join(' ');
+      return `<span class="demo-badge ${cls}">${text}</span>`;
+    }
 
     function formatTime(iso) {
       if (!iso) return '';
@@ -430,7 +464,10 @@
       return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
     }
 
-    function avatarHtml(profile, fallbackEmoji = '🦊') {
+    function avatarHtml(profile, fallbackEmoji = '🦊', isBlockedByThem = false) {
+      if (isBlockedByThem) {
+        return `<svg width="26" height="26" viewBox="0 0 24 24" fill="#8696a0"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`;
+      }
       if (profile && profile.avatar_url) return `<img src="${esc(profile.avatar_url)}" />`;
       return esc((profile && profile.avatar_emoji) || fallbackEmoji);
     }
@@ -467,7 +504,7 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v11' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v13' }
       });
 
       document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
@@ -568,7 +605,10 @@
     function updateTypingIndicators() {
       if (activeChatFriend) {
         const sub = document.getElementById('chatStatusSub');
-        if (typingUsersMap[activeChatFriend.id]) {
+        const isBlockedByThem = blockedByIds.includes(activeChatFriend.id);
+        if (isBlockedByThem) {
+          sub.textContent = '';
+        } else if (typingUsersMap[activeChatFriend.id]) {
           sub.textContent = 'yazıyor...';
           sub.style.color = 'var(--wa-green)';
         } else {
@@ -640,9 +680,11 @@
       if (data) { myProfile = data; }
       else {
         const defaultName = (currentUser.user_metadata?.full_name || currentUser.email.split('@')[0]) + '_' + Math.floor(100 + Math.random()*899);
-        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null };
+        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null };
         await sb.from('profiles').upsert({ id: currentUser.id, ...myProfile });
       }
+      document.getElementById('profileGenderInput').value = myProfile.gender || '';
+      document.getElementById('profileAgeInput').value = myProfile.age || '';
       refreshProfileNameLock();
       updateAvatarUI();
     }
@@ -671,7 +713,14 @@
       lockNote.textContent = '🔒 Güvenlik kuralı: Kullanıcı adı 14 günde bir kez değiştirilebilir.';
     }
 
-    function openProfileModal() { selectedAvatarFile = null; refreshProfileNameLock(); openModal('profileModal'); }
+    function openProfileModal() {
+      selectedAvatarFile = null;
+      document.getElementById('profileGenderInput').value = myProfile.gender || '';
+      document.getElementById('profileAgeInput').value = myProfile.age || '';
+      refreshProfileNameLock();
+      openModal('profileModal');
+    }
+
     function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; selectedAvatarFile = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); updateAvatarUI(); }
     function handleAvatarFile(input) {
       if (input.files && input.files[0]) {
@@ -685,6 +734,13 @@
       const nameInput = document.getElementById('profileNameInput');
       const newName = nameInput.value.trim() || myProfile.username;
       const nameChanged = (newName !== myProfile.username);
+      const genderVal = document.getElementById('profileGenderInput').value;
+      const ageRaw = document.getElementById('profileAgeInput').value.trim();
+      const ageVal = ageRaw ? parseInt(ageRaw, 10) : null;
+
+      if (ageVal !== null && (ageVal < 18 || ageVal > 99)) {
+        return showToast('⚠️ Yaş 18 ile 99 arasında olmalıdır.');
+      }
 
       if (nameChanged && !isFounder()) {
         if (newName.length < 3 || newName.length > 20) return showToast('Kullanıcı adı 3–20 karakter olmalıdır.');
@@ -701,7 +757,14 @@
         if (!upErr) myProfile.avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
 
-      const payload = { id: currentUser.id, username: newName, avatar_emoji: myProfile.avatar_emoji, avatar_url: myProfile.avatar_url };
+      const payload = {
+        id: currentUser.id,
+        username: newName,
+        avatar_emoji: myProfile.avatar_emoji,
+        avatar_url: myProfile.avatar_url,
+        gender: genderVal || null,
+        age: ageVal
+      };
       if (nameChanged) payload.username_updated_at = new Date().toISOString();
 
       const { error } = await sb.from('profiles').upsert(payload);
@@ -710,6 +773,8 @@
         return showToast('Hata: ' + error.message);
       }
       myProfile.username = newName;
+      myProfile.gender = genderVal || null;
+      myProfile.age = ageVal;
       if (nameChanged) myProfile.username_updated_at = payload.username_updated_at;
       refreshProfileNameLock();
       updateAvatarUI();
@@ -857,7 +922,6 @@
       document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 VibePin 24 saat boyunca haritada!'); loadPins();
     }
 
-    /* İki yönlü engelleme listesini yükle */
     async function loadBlockedUsers() {
       const [{ data: myBlocks }, { data: theirBlocks }] = await Promise.all([
         sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id),
@@ -868,7 +932,7 @@
     }
 
     async function loadPins() {
-      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
+      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score, gender, age)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
       if (!error && data) {
         allPins = data.filter(p => !blockedIds.includes(p.user_id));
         renderPins();
@@ -895,13 +959,18 @@
       });
     }
 
+    /* Pin detayında profilin hemen yanında Cinsiyet ve Yaş rozeti */
     async function openPinDetail(pin) {
       activePin = pin;
+      const isBlockedByThem = blockedByIds.includes(pin.user_id);
       const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe Kullanıcısı';
-      const avHtml = (!pin.ghost_author_name && pin.profiles?.avatar_url)
-        ? `<img src="${esc(pin.profiles.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />`
-        : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`;
-      document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>`;
+      const demoHtml = pin.ghost_author_name ? '' : renderDemoBadge(pin.profiles);
+      const avHtml = isBlockedByThem
+        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#2a3942;">${avatarHtml(null, '🦊', true)}</span>`
+        : ((!pin.ghost_author_name && pin.profiles?.avatar_url)
+            ? `<img src="${esc(pin.profiles.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />`
+            : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`);
+      document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>${demoHtml}`;
       const tScore = pin.profiles?.trust_score ?? 100;
       const remTime = getRemainingHoursText(pin.expires_at);
       document.getElementById('detailTrustBadge').textContent = `🛡️ Güven: ${tScore} • ${remTime}`;
@@ -1046,7 +1115,6 @@
       loadPins();
     }
 
-    /* Bildirim sayacında engellenen kişileri tamamen yoksay */
     async function checkNotifications() {
       if (!currentUser) return;
       await loadBlockedUsers();
@@ -1062,7 +1130,6 @@
       document.getElementById('notifDot').style.display = totalUnread > 0 ? 'block' : 'none';
     }
 
-    /* VibeChat Canlı Sohbet Listesi Yönetimi */
     function switchWaTab(tab) {
       waTab = tab;
       document.getElementById('tabChats').classList.toggle('active', tab === 'chats');
@@ -1092,7 +1159,6 @@
         sb.from('direct_messages').select('*').or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order('created_at', { ascending: false })
       ]);
 
-      // Engellenenleri sohbet listesinden gizle ama arkadaşlık kaydını koru
       const accepted = (fShips || []).filter(f => {
         if (f.status !== 'accepted') return false;
         const otherId = f.sender_id === currentUser.id ? f.receiver_id : f.sender_id;
@@ -1105,12 +1171,11 @@
       const reqTotal = waIncomingCache.length;
       document.getElementById('reqCountBadge').textContent = reqTotal > 0 ? `(${reqTotal})` : '';
 
-      // Hem aktif arkadaşların hem de engellenen kullanıcıların güncel profillerini çek
       const friendIds = accepted.map(f => f.sender_id === currentUser.id ? f.receiver_id : f.sender_id);
       const allProfileIds = [...new Set([...friendIds, ...blockedIds])];
       let profilesMap = {};
       if (allProfileIds.length > 0) {
-        const { data: profs } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url').in('id', allProfileIds);
+        const { data: profs } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url, gender, age').in('id', allProfileIds);
         (profs || []).forEach(p => { profilesMap[p.id] = p; });
       }
 
@@ -1123,12 +1188,17 @@
       waFriendsCache = accepted.map(f => {
         const isSender = (f.sender_id === currentUser.id);
         const friendId = isSender ? f.receiver_id : f.sender_id;
+        const isBlockedByThem = blockedByIds.includes(friendId);
         const prof = profilesMap[friendId];
         const liveName = prof?.username || (isSender ? f.receiver_name : f.sender_name) || 'Vibe Üyesi';
-        const threadMsgs = (msgs || []).filter(m => (m.sender_id === friendId && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === friendId));
-        const lastMsg = threadMsgs[0] || null;
-        const unreadCount = threadMsgs.filter(m => m.sender_id === friendId && !m.is_read).length;
-        return { friendshipId: f.id, friendId, name: liveName, profile: prof, lastMsg, unreadCount };
+
+        const dbThread = (msgs || []).filter(m => (m.sender_id === friendId && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === friendId));
+        const localThread = localUndeliveredMsgs.filter(m => m.receiver_id === friendId);
+        const merged = [...localThread, ...dbThread].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const lastMsg = merged[0] || null;
+        const unreadCount = dbThread.filter(m => m.sender_id === friendId && !m.is_read).length;
+
+        return { friendshipId: f.id, friendId, name: liveName, profile: prof, lastMsg, unreadCount, isBlockedByThem };
       }).sort((a, b) => {
         const tA = a.lastMsg ? new Date(a.lastMsg.created_at).getTime() : 0;
         const tB = b.lastMsg ? new Date(b.lastMsg.created_at).getTime() : 0;
@@ -1148,19 +1218,23 @@
           return;
         }
         box.innerHTML = list.map(item => {
-          const isTyping = !!typingUsersMap[item.friendId];
+          const isTyping = !item.isBlockedByThem && !!typingUsersMap[item.friendId];
+          const tickPrefix = item.lastMsg && item.lastMsg.sender_id === currentUser.id
+            ? (item.lastMsg.undelivered ? '✓ ' : '✓✓ ')
+            : '';
           const preview = isTyping
             ? '<span style="color:var(--wa-green); font-weight:700;">yazıyor...</span>'
             : (item.lastMsg
-                ? (item.lastMsg.sender_id === currentUser.id ? '✓ ' + esc(item.lastMsg.message_text) : esc(item.lastMsg.message_text))
+                ? tickPrefix + esc(item.lastMsg.message_text)
                 : 'Sohbet başlatmak için dokun 👋');
           const timeStr = item.lastMsg ? formatTime(item.lastMsg.created_at) : '';
           const badgeHtml = item.unreadCount > 0 ? `<span class="wa-badge">${item.unreadCount}</span>` : '';
+          const demoHtml = item.isBlockedByThem ? '' : renderDemoBadge(item.profile);
           return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')">
-            <div class="wa-avatar">${avatarHtml(item.profile, '🦊')}</div>
+            <div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.isBlockedByThem)}</div>
             <div style="flex:1; min-width:0;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                <span style="font-size:15.5px; font-weight:700; color:#e9edef; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(item.name)}</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; gap:6px;">
+                <span style="font-size:15.5px; font-weight:700; color:#e9edef; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(item.name)}${demoHtml}</span>
                 <span style="font-size:11px; color:${item.unreadCount > 0 ? 'var(--wa-green)' : '#8696a0'}; flex-shrink:0;">${timeStr}</span>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
@@ -1199,9 +1273,9 @@
         }
         box.innerHTML = waBlockedCache.map(b => `
           <div class="wa-chat-row" style="cursor:default;">
-            <div class="wa-avatar">${avatarHtml(b.profile, '🚫')}</div>
+            <div class="wa-avatar">${avatarHtml(b.profile, '🚫', false)}</div>
             <div style="flex:1;">
-              <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(b.name)}</div>
+              <div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(b.name)}${renderDemoBadge(b.profile)}</div>
               <div style="font-size:11.5px; color:#f87171;">Engellendi • Sohbet gizli</div>
             </div>
             <button onclick="unblockUser('${b.blocked_id}')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Engeli Kaldır</button>
@@ -1211,7 +1285,6 @@
 
     async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi'); checkNotifications(); refreshFriendsData(); }
 
-    /* Engeli kaldırınca arkadaşlık kaydı korunduğu için kişi geçmiş mesajlarıyla sohbet listesine geri döner */
     async function unblockUser(targetUserId) {
       await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
       blockedIds = blockedIds.filter(id => id !== targetUserId);
@@ -1234,7 +1307,6 @@
       backToChats();
     }
 
-    /* Engellemede arkadaşlık kaydını SİLME, sadece blocked_users tablosuna ekle */
     async function blockCurrentChatFriend() {
       document.getElementById('waChatMenu').style.display = 'none';
       if (!activeChatFriend) return;
@@ -1253,17 +1325,19 @@
     }
 
     async function openDirectChat(friendId) {
+      await loadBlockedUsers();
       const cached = waFriendsCache.find(x => x.friendId === friendId);
       let prof = cached?.profile;
       if (!prof) {
-        const { data } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url').eq('id', friendId).single();
+        const { data } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url, gender, age').eq('id', friendId).single();
         prof = data;
       }
+      const isBlockedByThem = blockedByIds.includes(friendId);
       const liveName = prof?.username || cached?.name || 'Vibe Üyesi';
       activeChatFriend = { id: friendId, name: liveName, profile: prof, friendshipId: cached?.friendshipId || null };
 
-      document.getElementById('chatFriendTitle').textContent = liveName;
-      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(prof, '🦊');
+      document.getElementById('chatFriendTitle').innerHTML = `<span>${esc(liveName)}</span>${isBlockedByThem ? '' : renderDemoBadge(prof)}`;
+      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(prof, '🦊', isBlockedByThem);
       document.getElementById('waChatMenu').style.display = 'none';
       updateTypingIndicators();
 
@@ -1278,20 +1352,37 @@
 
     async function loadDirectMessages() {
       if (!activeChatFriend || !currentUser) return;
+      await loadBlockedUsers();
+      const isBlockedByThem = blockedByIds.includes(activeChatFriend.id);
+      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(activeChatFriend.profile, '🦊', isBlockedByThem);
+      document.getElementById('chatFriendTitle').innerHTML = `<span>${esc(activeChatFriend.name)}</span>${isBlockedByThem ? '' : renderDemoBadge(activeChatFriend.profile)}`;
+      updateTypingIndicators();
+
       const box = document.getElementById('chatMessagesBox');
       const { data } = await sb.from('direct_messages').select('*')
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
-      const hasUnreadFromFriend = (data || []).some(m => m.sender_id === activeChatFriend.id && !m.is_read);
+      const hasUnreadFromFriend = !isBlockedByThem && (data || []).some(m => m.sender_id === activeChatFriend.id && !m.is_read);
       if (hasUnreadFromFriend) {
         playNotifSound();
         await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
       }
-      box.innerHTML = (!data || data.length === 0)
+
+      const localMsgs = localUndeliveredMsgs.filter(m => m.receiver_id === activeChatFriend.id);
+      const allThread = [...(data || []), ...localMsgs].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+      box.innerHTML = allThread.length === 0
         ? '<div style="background:rgba(32,44,51,0.85); color:#8696a0; font-size:12px; padding:8px 14px; border-radius:10px; text-align:center; margin:auto;">🔒 Mesajlarınız uçtan uca korunur. İlk mesajı gönderin!</div>'
-        : data.map(m => {
+        : allThread.map(m => {
             const isMine = (m.sender_id === currentUser.id);
-            const ticks = isMine ? `<span style="color:${m.is_read ? '#53bdeb' : 'rgba(233,237,239,0.65)'}; font-weight:800;">✓✓</span>` : '';
+            let ticks = '';
+            if (isMine) {
+              if (m.undelivered) {
+                ticks = `<span style="color:rgba(233,237,239,0.65); font-weight:800;">✓</span>`;
+              } else {
+                ticks = `<span style="color:${m.is_read ? '#53bdeb' : 'rgba(233,237,239,0.65)'}; font-weight:800;">✓✓</span>`;
+              }
+            }
             return `<div class="wa-bubble ${isMine ? 'wa-mine' : 'wa-theirs'}">
               <div>${esc(m.message_text)}</div>
               <div class="wa-meta"><span>${formatTime(m.created_at)}</span>${ticks}</div>
@@ -1300,7 +1391,6 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    /* Engellenen veya seni engelleyen kişiye mesaj gönderimini durdur */
     async function sendDirectMessage() {
       const input = document.getElementById('dmInput'), text = input.value.trim();
       if (!text || !activeChatFriend || !currentUser) return;
@@ -1309,11 +1399,22 @@
       if (blockedIds.includes(activeChatFriend.id)) {
         return showToast('🚫 Bu kullanıcıyı engelledin. Mesaj atmak için önce engelini kaldır.');
       }
-      if (blockedByIds.includes(activeChatFriend.id)) {
-        return showToast('🚫 Bu kullanıcı tarafından engellendiğiniz için mesaj gönderemezsiniz.');
-      }
 
       input.value = '';
+
+      if (blockedByIds.includes(activeChatFriend.id)) {
+        localUndeliveredMsgs.push({
+          sender_id: currentUser.id,
+          receiver_id: activeChatFriend.id,
+          message_text: text,
+          created_at: new Date().toISOString(),
+          is_read: false,
+          undelivered: true
+        });
+        loadDirectMessages();
+        return;
+      }
+
       const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
       if (error) return showToast('Mesaj gönderilemedi: ' + error.message);
       loadDirectMessages();
@@ -1340,8 +1441,8 @@
 
     async function loadComments(pinId) {
       const list = document.getElementById('commentsList');
-      const { data } = await sb.from('pin_comments').select('*, profiles(username)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Henüz yorum yok.</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'Üye')}:</strong> ${esc(c.comment_text)}</div>`).join('');
+      const { data } = await sb.from('pin_comments').select('*, profiles(username, gender, age)').eq('pin_id', pinId).order('created_at', { ascending: true });
+      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Henüz yorum yok.</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'Üye')}</strong>${renderDemoBadge(c.profiles)}: ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
