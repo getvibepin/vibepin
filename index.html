@@ -17,7 +17,7 @@
     #map { width:100%; height:100%; z-index:1; background:#090c12; }
     .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
     .leaflet-control-attribution { display:none !important; }
-    #authGate { position:fixed; inset:0; z-index:5000; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 72%); display:flex; flex-direction:column; justify-content:space-between; padding:42px 24px 24px; overflow-y:auto; }
+    #authGate { position:fixed; inset:0; z-index:5000; background:radial-gradient(circle at top,#1e1b4b 0%,#090c12 72%); display:flex; flex-direction:column; justify-content:space-between; padding:36px 24px 24px; overflow-y:auto; }
     .top-bar { position:fixed; top:14px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
     .pill { background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--border); border-radius:999px; padding:8px 13px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; cursor:pointer; }
@@ -33,159 +33,15 @@
     .fab-main { flex:1; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--primary),var(--pink)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(124,58,237,0.4); }
     .vibe-marker { width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.5); }
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:2000; display:none; align-items:flex-end; justify-content:center; }
-    .modal-backdrop.open { display:flex; }
-    .sheet { width:100%; max-width:480px; background:#111621; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:20px 20px 32px; max-height:90vh; overflow-y:auto; }
-    .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .sheet-title { font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; }
-    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; }
-    .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
-    .cat-opt { padding:10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
-    .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
-    textarea, input[type="email"], input[type="password"], input[type="text"] { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:13px; color:#fff; font-size:14px; outline:none; margin-bottom:10px; }
-    .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-    .media-btn { padding:11px; border-radius:14px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
-    .media-btn.recording { border-color:var(--danger); background:rgba(239,68,68,0.2); color:#fca5a5; }
-    .btn-primary { width:100%; padding:13px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
-    .btn-secondary { width:100%; padding:11px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
-    .btn-danger { width:100%; padding:11px; border-radius:14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
-    .avatar-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-    .av-opt { width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); }
-    .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:6000; background:#1e293b; border:1px solid var(--accent); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; }
-    .card-row { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:8px; font-size:13px; }
-  </style>
-</head>
-<body>
-  <div id="toast" class="toast"></div>
-  <div id="authGate">
-    <div>
-      <img src="icon.svg" alt="VibePin" style="width:72px; height:72px; border-radius:20px; margin-bottom:14px; box-shadow:0 12px 32px rgba(124,58,237,0.5);" />
-      <h1 style="font-size:28px; font-weight:900; margin-bottom:6px;">VibePin</h1>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:22px;">Kurucu & Yönetici Erişimi</p>
-      <input type="email" id="gateEmail" value="getvibepin@gmail.com" placeholder="Kurucu e-posta adresin" />
-      <input type="password" id="gatePass" placeholder="Şifren" />
-      <button type="button" class="btn-primary" id="loginBtn">🔐 Giriş Yap</button>
-      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:12px; text-align:center; min-height:18px;"></p>
-    </div>
-    <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:14px;">VibePin Özel Yönetim Paneli v2</p>
-  </div>
-
-  <div id="map"></div>
-  <div class="top-bar">
-    <div style="display:flex; gap:6px;">
-      <div class="pill" onclick="locateUser()">📍 Canlı Konum</div>
-      <div class="pill" id="teleportBtn" style="border-color:var(--accent);" onclick="triggerTeleport()">🌍 Haritadan Seç 🔒</div>
-    </div>
-    <div style="display:flex; gap:6px;">
-      <button class="icon-btn" onclick="openFriendsModal()">🔔<span id="notifDot" class="notif-dot"></span></button>
-      <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👻</button>
-      <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
-    </div>
-  </div>
-  <div class="filter-row">
-    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
-    <div class="chip" onclick="setFilter('social', this)">☕ Yeme & İçme</div>
-    <div class="chip" onclick="setFilter('question', this)">❓ Durum / Soru</div>
-    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat</div>
-  </div>
-  <div class="bottom-bar">
-    <button class="icon-btn" onclick="locateUser()">⊕</button>
-    <button class="fab-main" onclick="openCreatePin()">＋ Fotoğraf / Ses / Vibe Bırak</button>
-    <button class="icon-btn" onclick="loadPins()">↻</button>
-  </div>
-
-  <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="createTitle">📍 Yeni VibePin</div><button class="close-btn" onclick="closeModal('createModal')">✕</button></div>
-      <div class="cat-grid">
-        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
-        <button class="cat-opt" onclick="selectCat('social', this)">☕ Yeme & İçme</button>
-        <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
-        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
-      </div>
-      <div id="ghostFields" style="display:none;"><input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Emir_34)" /></div>
-      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini veya buradaki durumu paylaş..."></textarea>
-      <div class="media-row">
-        <label class="media-btn" for="photoInput" id="photoLabel">📷 Fotoğraf Çek / Seç</label>
-        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)" />
-        <button type="button" class="media-btn" id="audioBtn" onclick="toggleAudioRecord()">🎙️ Ses Kaydet</button>
-      </div>
-      <img id="photoPreview" style="display:none; width:100%; max-height:170px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
-      <audio id="audioPreview" controls style="display:none; width:100%; margin-bottom:10px;"></audio>
-      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla</button>
-    </div>
-  </div>
-
-  <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
-    <div class="sheet">
-      <div class="sheet-header">
-        <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <button id="addFriendBtn" style="padding:6px 12px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:12px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
-          <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
-        </div>
-      </div>
-      <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
-      <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
-      <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
-      <button class="btn-primary" style="margin-bottom:8px;" onclick="upvoteCurrentPin()">🔥 Doğrula (<span id="detailUpvotes">1</span>)</button>
-      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:14px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
-      <div id="commentsList" style="max-height:130px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
-    </div>
-  </div>
-
-  <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">🎭 Profil & Fotoğraf</div><button class="close-btn" onclick="closeModal('profileModal')">✕</button></div>
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-        <div id="profilePhotoPreview" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
-        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Profil Fotoğrafı Yükle</label>
-        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
-      </div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Veya Hızlı Avatar Seç:</p>
-      <div class="avatar-grid" id="avatarGrid">
-        <div class="av-opt selected" onclick="pickAvatar('🦊', this)">🦊</div>
-        <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
-        <div class="av-opt" onclick="pickAvatar('🐼', this)">🐼</div>
-        <div class="av-opt" onclick="pickAvatar('🚀', this)">🚀</div>
-        <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
-        <div class="av-opt" onclick="pickAvatar('🎧', this)">🎧</div>
-      </div>
-      <input type="text" id="profileNameInput" placeholder="Görünen Kullanıcı Adın (örn: Davut_34)" />
-      <button class="btn-primary" style="margin-bottom:12px;" onclick="saveProfile()">💾 Profili Kaydet</button>
-      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
-    </div>
-  </div>
-
-  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('friendsModal')">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title">👥 Arkadaşlar & Bildirimler</div><button class="close-btn" onclick="closeModal('friendsModal')">✕</button></div>
-      <p style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px;">Gelen İstekler & Bildirimler</p>
-      <div id="pendingList" style="margin-bottom:16px;"></div>
-      <p style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px;">Arkadaş Listem</p>
-      <div id="acceptedList"></div>
-    </div>
-  </div>
-
-  <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
-    <div class="sheet" style="text-align:center;">
-      <div class="sheet-header"><div class="sheet-title">🌍 Başka Konuma Işınlan</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
-      <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">Canlı konumun dışındaki herhangi bir mahalleye veya şehre haritadan dokunarak gitmek için kısa sponsorlu tanıtımı izle.</p>
-      <div id="adCountdownBox" style="display:none; padding:18px; border-radius:16px; background:rgba(124,58,237,0.18); border:1px solid var(--primary); margin-bottom:14px; font-weight:800; font-size:16px;">⏳ Sponsorlu Tanıtım: <span id="adSec">5</span> sn...</div>
-      <button class="btn-primary" id="watchAdBtn" onclick="startRewardAd()">🎬 Tanıtımı İzle & Kilidi Aç (Ücretsiz)</button>
-    </div>
-  </div>
-
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,
   <script>
     const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
     let sb = null, map = null, userCoords = [41.0082, 28.9784], selectedCoords = null, currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null;
-    let myProfile = { username: 'Kurucu', avatar_emoji: '🦊', avatar_url: null }, activePin = null, allPins = [], markersLayer = null;
+    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null }, activePin = null, allPins = [], markersLayer = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null, teleportUnlocked = false, teleportPickMode = false;
+    let activeChatFriend = null, chatPollTimer = null;
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
@@ -196,10 +52,12 @@
       const status = document.getElementById('loginStatus');
       if (!window.supabase) { status.textContent = 'Bağlantı kütüphanesi yüklenemedi, sayfayı yenileyin.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'vibepin_auth_v2' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v4' }
       });
 
+      document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
+      document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
       if (window.L) {
         map = L.map('map', { zoomControl: false }).setView(userCoords, 15);
@@ -216,78 +74,80 @@
           if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
         });
       }
+
+      sb.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) { enterApp(session.user); }
+      });
       checkSession();
+    }
+
+    async function enterApp(user) {
+      currentUser = user;
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('ghostBtn').style.display = isFounder() ? 'flex' : 'none';
+      if (map) setTimeout(() => map.invalidateSize(), 200);
+      await loadMyProfile();
+      locateUser(); loadPins(); checkNotifications();
     }
 
     async function checkSession() {
       try {
         const { data: { session } } = await sb.auth.getSession();
-        currentUser = session?.user || null;
-        if (currentUser && isFounder()) {
-          document.getElementById('authGate').style.display = 'none';
-          document.getElementById('ghostBtn').style.display = 'flex';
-          if (map) setTimeout(() => map.invalidateSize(), 200);
-          await loadMyProfile();
-          locateUser(); loadPins(); checkFriendNotifications();
-        } else {
-          document.getElementById('authGate').style.display = 'flex';
-        }
-      } catch (e) {
-        document.getElementById('authGate').style.display = 'flex';
-      }
+        if (session?.user) { await enterApp(session.user); }
+        else { document.getElementById('authGate').style.display = 'flex'; }
+      } catch (e) { document.getElementById('authGate').style.display = 'flex'; }
+    }
+
+    async function signInWithGoogle() {
+      const status = document.getElementById('loginStatus');
+      status.style.color = '#38bdf8';
+      status.textContent = 'Google hesabına yönlendiriliyor...';
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) { status.style.color = '#f87171'; status.textContent = 'Google giriş hatası: ' + error.message; }
     }
 
     async function gateSignIn() {
-      const btn = document.getElementById('loginBtn');
-      const status = document.getElementById('loginStatus');
-      const email = document.getElementById('gateEmail').value.trim();
-      const password = document.getElementById('gatePass').value.trim();
+      const btn = document.getElementById('loginBtn'), status = document.getElementById('loginStatus');
+      const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
       if (!email || !password) { status.textContent = 'Lütfen e-posta ve şifrenizi girin.'; return; }
-      if (email.toLowerCase() !== FOUNDER_EMAIL.toLowerCase()) { status.textContent = '⛔ Sadece kurucu hesabı giriş yapabilir.'; return; }
-      btn.textContent = '⏳ Giriş yapılıyor...';
-      btn.disabled = true;
-      status.style.color = '#38bdf8';
-      status.textContent = 'Sunucuya bağlanılıyor...';
-      try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        btn.textContent = '🔐 Giriş Yap';
-        btn.disabled = false;
-        if (error) {
-          status.style.color = '#f87171';
-          status.textContent = 'Giriş hatası: ' + error.message;
-          return;
-        }
-        currentUser = data.user;
-        status.textContent = '';
-        showToast('✅ Hoş geldin Kurucu!');
-        document.getElementById('authGate').style.display = 'none';
-        document.getElementById('ghostBtn').style.display = 'flex';
-        if (map) setTimeout(() => map.invalidateSize(), 200);
-        await loadMyProfile();
-        locateUser(); loadPins(); checkFriendNotifications();
-      } catch (err) {
-        btn.textContent = '🔐 Giriş Yap';
-        btn.disabled = false;
-        status.style.color = '#f87171';
-        status.textContent = 'Bağlantı hatası: ' + (err.message || err);
-      }
+      btn.textContent = '⏳...'; btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = 'Giriş yapılıyor...';
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      btn.textContent = '🔐 Giriş Yap'; btn.disabled = false;
+      if (error) { status.style.color = '#f87171'; status.textContent = 'Giriş hatası: ' + error.message; return; }
+      status.textContent = ''; showToast('✅ Hoş geldin!'); await enterApp(data.user);
+    }
+
+    async function gateSignUp() {
+      const btn = document.getElementById('signupBtn'), status = document.getElementById('loginStatus');
+      const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
+      if (!email || password.length < 6) { status.textContent = 'E-posta ve en az 6 haneli şifre girin.'; return; }
+      btn.textContent = '⏳...'; btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = 'Hesap oluşturuluyor...';
+      const { data, error } = await sb.auth.signUp({ email, password });
+      btn.textContent = '✨ Kayıt Ol'; btn.disabled = false;
+      if (error) { status.style.color = '#f87171'; status.textContent = 'Kayıt hatası: ' + error.message; return; }
+      if (data.session) { showToast('🎉 Kayıt tamamlandı!'); await enterApp(data.user); }
+      else { status.style.color = '#10b981'; status.textContent = '✅ Kayıt başarılı! Şimdi Giriş Yap butonuna basabilirsin.'; }
     }
 
     function updateAvatarUI() {
-      const btn = document.getElementById('myAvatarBtn');
-      const prev = document.getElementById('profilePhotoPreview');
+      const btn = document.getElementById('myAvatarBtn'), prev = document.getElementById('profilePhotoPreview');
       if (myProfile.avatar_url) {
         btn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
         prev.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
-      } else {
-        btn.textContent = myProfile.avatar_emoji || '🦊';
-        prev.textContent = myProfile.avatar_emoji || '🦊';
-      }
+      } else { btn.textContent = myProfile.avatar_emoji || '🦊'; prev.textContent = myProfile.avatar_emoji || '🦊'; }
     }
 
     async function loadMyProfile() {
       const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-      if (data) { myProfile = data; } else { myProfile = { username: 'Kurucu', avatar_emoji: '🦊', avatar_url: null }; }
+      if (data) { myProfile = data; }
+      else {
+        const defaultName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null };
+        await sb.from('profiles').upsert({ id: currentUser.id, username: myProfile.username, avatar_emoji: '🦊', avatar_url: myProfile.avatar_url });
+      }
       document.getElementById('profileNameInput').value = myProfile.username || '';
       updateAvatarUI();
     }
@@ -303,7 +163,7 @@
     }
 
     async function saveProfile() {
-      const name = document.getElementById('profileNameInput').value.trim() || 'Vibe_Kurucu';
+      const name = document.getElementById('profileNameInput').value.trim() || 'Vibe_Üyesi';
       myProfile.username = name;
       if (selectedAvatarFile) {
         const ext = selectedAvatarFile.name.split('.').pop() || 'jpg';
@@ -313,7 +173,7 @@
       }
       const { error } = await sb.from('profiles').upsert({ id: currentUser.id, username: name, avatar_emoji: myProfile.avatar_emoji, avatar_url: myProfile.avatar_url });
       if (error) return showToast('Hata: ' + error.message);
-      updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil & Fotoğraf kaydedildi!');
+      updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil kaydedildi!');
     }
 
     function triggerTeleport() {
@@ -321,7 +181,8 @@
       teleportPickMode = true; if (map) map.setZoom(6);
       showToast('🗺️ Haritada gitmek istediğin şehre veya sokağa dokun!');
     }
-        function startRewardAd() {
+
+    function startRewardAd() {
       document.getElementById('watchAdBtn').style.display = 'none';
       document.getElementById('adCountdownBox').style.display = 'block';
       let sec = 5;
@@ -451,10 +312,13 @@
       showToast(`📨 ${targetName} adlı kişiye arkadaşlık isteği gönderildi!`);
     }
 
-    async function checkFriendNotifications() {
-      const { data } = await sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`);
-      const hasPending = (data || []).some(f => f.receiver_id === currentUser.id && f.status === 'pending');
-      document.getElementById('notifDot').style.display = hasPending ? 'block' : 'none';
+    async function checkNotifications() {
+      const [{ data: fData }, { data: mData }] = await Promise.all([
+        sb.from('friendships').select('id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
+        sb.from('direct_messages').select('id').eq('receiver_id', currentUser.id).eq('is_read', false)
+      ]);
+      const hasNotif = ((fData && fData.length > 0) || (mData && mData.length > 0));
+      document.getElementById('notifDot').style.display = hasNotif ? 'block' : 'none';
     }
 
     async function openFriendsModal() {
@@ -464,20 +328,67 @@
       const incoming = (data || []).filter(f => f.receiver_id === currentUser.id && f.status === 'pending');
       const responses = (data || []).filter(f => f.sender_id === currentUser.id && f.status !== 'pending');
       const friends = (data || []).filter(f => f.status === 'accepted');
+
       pList.innerHTML = (incoming.length === 0 && responses.length === 0) ? '<div style="color:var(--muted); font-size:12px;">Yeni bildirim yok.</div>' :
         incoming.map(f => `<div class="card-row"><span><strong>${esc(f.sender_name || 'Üye')}</strong> arkadaş olmak istiyor</span><div style="display:flex; gap:6px;"><button onclick="respondFriend('${f.id}','accepted')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--green); color:#fff; font-weight:700;">Kabul</button><button onclick="respondFriend('${f.id}','rejected')" style="padding:5px 10px; border-radius:8px; border:none; background:var(--danger); color:#fff; font-weight:700;">Red</button></div></div>`).join('') +
         responses.map(f => `<div class="card-row"><span><strong>${esc(f.receiver_name || 'Üye')}</strong> isteğini ${f.status === 'accepted' ? '✅ kabul etti' : '❌ reddetti'}</span></div>`).join('');
+
       aList.innerHTML = friends.length === 0 ? '<div style="color:var(--muted); font-size:12px;">Henüz arkadaşın yok.</div>' :
         friends.map(f => {
-          const fname = f.sender_id === currentUser.id ? f.receiver_name : f.sender_name;
-          return `<div class="card-row"><span>🦊 <strong>${esc(fname || 'Vibe Arkadaşı')}</strong></span><span style="color:var(--green); font-size:11px;">● Arkadaş</span></div>`;
+          const isSender = (f.sender_id === currentUser.id);
+          const friendId = isSender ? f.receiver_id : f.sender_id;
+          const fname = isSender ? f.receiver_name : f.sender_name;
+          return `<div class="card-row" style="cursor:pointer;" onclick="openDirectChat('${friendId}', '${esc(fname || 'Arkadaş')}')"><span>🦊 <strong>${esc(fname || 'Vibe Arkadaşı')}</strong></span><span style="padding:5px 11px; border-radius:999px; background:var(--primary); color:#fff; font-size:11px; font-weight:700;">💬 Mesaj Yaz</span></div>`;
         }).join('');
     }
 
     async function respondFriend(id, status) {
       await sb.from('friendships').update({ status }).eq('id', id);
       showToast(status === 'accepted' ? '🎉 Arkadaşlık kabul edildi!' : 'İstek reddedildi');
-      checkFriendNotifications(); openFriendsModal();
+      checkNotifications(); openFriendsModal();
+    }
+
+    function openDirectChat(friendId, friendName) {
+      activeChatFriend = { id: friendId, name: friendName };
+      document.getElementById('chatFriendTitle').textContent = '💬 ' + friendName;
+      closeModal('friendsModal');
+      openModal('chatModal');
+      loadDirectMessages();
+      if (chatPollTimer) clearInterval(chatPollTimer);
+      chatPollTimer = setInterval(loadDirectMessages, 3500);
+    }
+
+    function closeChatModal() {
+      if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
+      activeChatFriend = null;
+      closeModal('chatModal');
+      checkNotifications();
+    }
+
+    async function loadDirectMessages() {
+      if (!activeChatFriend || !currentUser) return;
+      const box = document.getElementById('chatMessagesBox');
+      const { data } = await sb.from('direct_messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: true });
+
+      await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
+
+      box.innerHTML = (!data || data.length === 0)
+        ? '<div style="color:var(--muted); font-size:12px; text-align:center; margin:auto;">Henüz mesaj yok. İlk mesajı sen gönder! 👋</div>'
+        : data.map(m => `<div class="msg-bubble ${m.sender_id === currentUser.id ? 'msg-mine' : 'msg-theirs'}">${esc(m.message_text)}</div>`).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendDirectMessage() {
+      const input = document.getElementById('dmInput');
+      const text = input.value.trim();
+      if (!text || !activeChatFriend || !currentUser) return;
+      input.value = '';
+      const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
+      if (error) return showToast('Mesaj gönderilemedi: ' + error.message);
+      loadDirectMessages();
     }
 
     async function upvoteCurrentPin() {
