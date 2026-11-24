@@ -3,18 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>VibePin — Global Live Social Map</title>
+  <title>VibePin — Şehrin Dijital Yaşam Katmanı</title>
   <link rel="manifest" href="manifest.json" />
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    :root { --bg:#070a10; --panel:rgba(15,20,32,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --coral:#ff5e3a; --magenta:#d946ef; --green:#10b981; --wa-green:#00a884; --wa-bg:#0b141a; --wa-header:#202c33; --wa-mine:#005c4b; --wa-theirs:#202c33; --gold:#f59e0b; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
-    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-tap-highlight-color:transparent; }
+    :root {
+      --bg:#090b10;
+      --panel:rgba(17,22,34,0.92);
+      --border:rgba(255,255,255,0.14);
+      --ig-grad:linear-gradient(135deg,#f58529 0%,#dd2a7b 52%,#8134af 100%);
+      --snap-yellow:#fffc00;
+      --wa-green:#00a884;
+      --wa-light-bg:#efeae2;
+      --wa-light-header:#f0f2f5;
+      --wa-light-mine:#d9fdd3;
+      --wa-light-theirs:#ffffff;
+      --gold:#fbbf24;
+      --danger:#ef4444;
+      --green:#10b981;
+      --accent:#38bdf8;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-tap-highlight-color:transparent; }
     body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
     #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:var(--bg); }
-    .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
+    .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(84%) contrast(88%) saturate(38%); }
     .leaflet-control-attribution { display:none !important; }
 
     .my-loc-wrap { position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
@@ -23,74 +40,135 @@
     @keyframes locPulse { 0% { transform:scale(0.6); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
 
     #returnLocBtn { position:fixed; bottom:84px; right:14px; z-index:1001; display:none; align-items:center; gap:6px; padding:10px 15px; border-radius:999px; border:1px solid var(--accent); background:rgba(15,23,42,0.94); color:#38bdf8; font-size:12.5px; font-weight:800; box-shadow:0 10px 25px rgba(0,0,0,0.6); cursor:pointer; }
-    #flagPlaceBar { position:fixed; bottom:84px; left:14px; right:14px; z-index:1002; display:none; align-items:center; justify-content:space-between; gap:8px; background:rgba(15,20,32,0.96); border:1.5px solid #ffd700; border-radius:18px; padding:10px 12px; box-shadow:0 12px 32px rgba(0,0,0,0.75); }
+    #flagPlaceBar { position:fixed; bottom:84px; left:14px; right:14px; z-index:1002; display:none; align-items:center; justify-content:space-between; gap:8px; background:rgba(15,20,32,0.97); border:1.5px solid var(--snap-yellow); border-radius:18px; padding:10px 12px; box-shadow:0 12px 32px rgba(0,0,0,0.75); }
 
-    #authGate { position:fixed; inset:0; z-index:9999; background:#090814; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto; }
-    .hero-city-bg { position:relative; width:100%; min-height:235px; padding:14px 16px 24px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:
-      radial-gradient(circle at 50% 78%, rgba(255,115,64,0.34) 0%, rgba(217,70,239,0.22) 32%, rgba(15,12,41,0.92) 75%),
-      linear-gradient(180deg, rgba(11,10,28,0.55) 0%, rgba(9,8,20,0.98) 100%),
-      url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=70') center/cover no-repeat;
+    /* 🌟 7. Instagram + Snapchat Hissi Veren Ana Giriş Ekranı */
+    #authGate {
+      position:fixed; inset:0; z-index:9999;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(245,133,41,0.35) 0%, transparent 42%),
+        radial-gradient(circle at 86% 18%, rgba(221,42,123,0.34) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(129,52,175,0.32) 0%, transparent 50%),
+        #09090d;
+      display:flex; flex-direction:column; justify-content:center; align-items:center; padding:18px 16px; overflow-y:auto;
     }
-    .hero-grid-overlay { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size:32px 32px; transform:perspective(360px) rotateX(48deg); transform-origin:bottom; opacity:0.55; pointer-events:none; }
-    .hero-top-row { position:relative; z-index:2; width:100%; max-width:430px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-    .live-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; background:rgba(16,185,129,0.16); border:1px solid rgba(16,185,129,0.38); color:#6ee7b7; font-size:10.5px; font-weight:700; backdrop-filter:blur(8px); }
-    .live-dot { width:7px; height:7px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
-    .lang-pill { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:800; cursor:pointer; backdrop-filter:blur(8px); }
+    .social-auth-shell {
+      width:100%; max-width:410px;
+      background:rgba(18,18,24,0.88);
+      backdrop-filter:blur(22px);
+      border:1px solid rgba(255,255,255,0.13);
+      border-radius:28px;
+      padding:20px 18px 18px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.72);
+    }
+    .auth-top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .snap-live-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      background:var(--snap-yellow); color:#111111;
+      font-size:11px; font-weight:900; padding:5px 11px; border-radius:999px;
+      box-shadow:0 4px 16px rgba(255,252,0,0.28);
+    }
+    .lang-pill { background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.18); color:#fff; border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:800; cursor:pointer; }
 
-    .glow-pin-hero { position:relative; z-index:2; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle, rgba(255,140,66,0.35) 0%, rgba(217,70,239,0.12) 60%, transparent 75%); display:flex; align-items:center; justify-content:center; margin-bottom:2px; animation:heroPulse 3s infinite ease-in-out; }
-    @keyframes heroPulse { 0%,100% { transform:scale(0.96); } 50% { transform:scale(1.05); } }
-    .hero-title { position:relative; z-index:2; font-size:35px; font-weight:900; letter-spacing:-0.8px; color:#ffffff; text-shadow:0 4px 24px rgba(0,0,0,0.6); }
-    .hero-title span { background:linear-gradient(90deg,#ff8a3d,#f43f5e,#d946ef); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .hero-sub { position:relative; z-index:2; font-size:13px; color:#e2e8f0; font-weight:500; margin-top:2px; opacity:0.92; }
+    .ig-story-brand { display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:16px; }
+    .ig-story-ring {
+      width:78px; height:78px; border-radius:26px; padding:3px;
+      background:var(--ig-grad);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 10px 30px rgba(221,42,123,0.42);
+      margin-bottom:8px;
+    }
+    .ig-story-inner {
+      width:100%; height:100%; border-radius:23px; background:#0f1117;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .brand-logo-text { font-size:30px; font-weight:900; letter-spacing:-0.8px; color:#fff; }
+    .brand-logo-text span { background:var(--ig-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .brand-sub-text { font-size:12.5px; color:#cbd5e1; margin-top:3px; font-weight:500; }
 
-    .gate-sheet-card { position:relative; z-index:3; width:100%; max-width:430px; margin:-18px auto 0; flex:1; background:rgba(19,18,38,0.94); backdrop-filter:blur(24px); border-top:1px solid rgba(255,255,255,0.18); border-left:1px solid rgba(255,255,255,0.1); border-right:1px solid rgba(255,255,255,0.1); border-radius:30px 30px 0 0; padding:18px 20px 16px; box-shadow:0 -12px 45px rgba(0,0,0,0.75); display:flex; flex-direction:column; justify-content:space-between; }
-    .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:14px; margin-bottom:12px; }
-    .auth-tab-btn { padding:9px; border-radius:11px; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; }
-    .auth-tab-btn.active { background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; }
+    .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:15px; margin-bottom:14px; }
+    .auth-tab-btn { padding:9px; border-radius:12px; border:none; background:transparent; color:#94a3b8; font-size:13px; font-weight:800; cursor:pointer; }
+    .auth-tab-btn.active { background:#ffffff; color:#09090d; box-shadow:0 4px 14px rgba(255,255,255,0.18); }
 
-    .btn-google-hero { width:100%; padding:12.5px 16px; border-radius:15px; background:#ffffff; color:#0f172a; border:none; font-weight:800; font-size:14.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 24px rgba(255,255,255,0.14); }
-    .divider { display:flex; align-items:center; gap:10px; margin:11px 0; color:#cbd5e1; font-size:11.5px; font-weight:500; }
-    .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.14); }
+    .btn-google-social {
+      width:100%; padding:12px 14px; border-radius:14px;
+      background:#ffffff; color:#0f172a; border:none;
+      font-weight:800; font-size:14px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      box-shadow:0 6px 20px rgba(255,255,255,0.12);
+    }
+    .divider { display:flex; align-items:center; gap:10px; margin:12px 0; color:#94a3b8; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; }
+    .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.12); }
 
-    .icon-input-wrap { position:relative; margin-bottom:9px; }
-    .icon-input-wrap svg.left-ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none; }
-    .icon-input-wrap input { padding-left:42px !important; margin-bottom:0 !important; background:rgba(255,255,255,0.07) !important; border:1px solid rgba(255,255,255,0.14) !important; border-radius:14px !important; height:45px; }
+    .ig-input {
+      width:100%; background:rgba(255,255,255,0.06) !important;
+      border:1px solid rgba(255,255,255,0.14) !important;
+      border-radius:14px !important; padding:12px 14px !important;
+      color:#fff !important; font-size:13.5px !important; outline:none; margin-bottom:9px !important;
+    }
+    .ig-input:focus { border-color:#dd2a7b !important; background:rgba(255,255,255,0.1) !important; }
 
-    .btn-gradient-cta { width:100%; padding:13px; border-radius:15px; border:none; background:linear-gradient(90deg,#ff8c37 0%,#f43f5e 52%,#c026d3 100%); color:#fff; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 10px 28px rgba(244,63,94,0.38); }
+    .btn-ig-snap {
+      width:100%; padding:13px; border-radius:15px; border:none;
+      background:var(--ig-grad); color:#fff; font-weight:900; font-size:14.5px;
+      cursor:pointer; box-shadow:0 10px 26px rgba(221,42,123,0.4);
+    }
+    .btn-snap-yellow {
+      width:100%; padding:11px; border-radius:14px; border:none;
+      background:var(--snap-yellow); color:#111111; font-weight:900; font-size:13px;
+      cursor:pointer; box-shadow:0 6px 20px rgba(255,252,0,0.25);
+    }
 
     .interest-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
     .int-chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#cbd5e1; font-size:11.5px; font-weight:600; cursor:pointer; }
-    .int-chip.selected { border-color:#ff7b39; background:rgba(255,123,57,0.22); color:#fff; }
+    .int-chip.selected { border-color:#dd2a7b; background:rgba(221,42,123,0.24); color:#fff; }
 
+    /* Üst & Alt Harita Barları */
     .top-bar { position:fixed; top:12px; left:8px; right:8px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:4px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
-    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 8px; display:flex; align-items:center; gap:3px; font-size:10.5px; font-weight:800; cursor:pointer; white-space:nowrap; }
+    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 9px; display:flex; align-items:center; gap:3px; font-size:11px; font-weight:800; cursor:pointer; white-space:nowrap; }
     .icon-btn { position:relative; width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; overflow:hidden; flex-shrink:0; }
     .icon-btn img { width:100%; height:100%; object-fit:cover; }
     .notif-dot { position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:1.5px solid #090c12; display:none; }
-    .ghost-active { border-color:#facc15; background:rgba(250,204,21,0.24); }
+    .ghost-active { border-color:var(--snap-yellow); background:rgba(255,252,0,0.22); }
 
     .filter-row { position:fixed; top:54px; left:8px; right:8px; z-index:999; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
-    .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 11px; font-size:11.5px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; }
-    .chip.active { background:linear-gradient(90deg,#ff7b39,#e11d48); color:#fff; border-color:transparent; }
+    .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 11px; font-size:11.5px; font-weight:700; white-space:nowrap; color:var(--muted); cursor:pointer; }
+    .chip.active { background:var(--ig-grad); color:#fff; border-color:transparent; }
 
     .map-mode-swipe { position:fixed; top:92px; left:50%; transform:translateX(-50%); z-index:999; display:flex; align-items:center; gap:3px; background:rgba(15,20,32,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.16); border-radius:999px; padding:3px; box-shadow:0 6px 20px rgba(0,0,0,0.45); touch-action:pan-y; user-select:none; }
     .mm-tab { padding:5px 11px; border-radius:999px; font-size:11px; font-weight:800; color:#94a3b8; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-    .mm-tab.active { background:linear-gradient(90deg,#ff7b39,#d946ef); color:#fff; box-shadow:0 2px 10px rgba(217,70,239,0.4); }
+    .mm-tab.active { background:var(--ig-grad); color:#fff; }
 
     .bottom-bar { position:fixed; bottom:18px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:10px; pointer-events:none; }
     .bottom-bar > * { pointer-events:auto; }
-    .fab-main { flex:1; height:50px; border-radius:999px; border:none; background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(225,29,72,0.45); }
+    .fab-main { flex:1; height:50px; border-radius:999px; border:none; background:var(--ig-grad); color:#fff; font-size:13.5px; font-weight:900; cursor:pointer; box-shadow:0 8px 26px rgba(221,42,123,0.45); }
 
+    /* Pinler & 4. Belirgin İşletme Bayrakları */
     .vibe-marker { position:relative; width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.55); }
     .vibe-marker span { transform:rotate(45deg); font-size:19px; }
 
     .venue-flag-pin { position:relative; display:flex; flex-direction:column; align-items:center; }
-    .venue-flag-banner { background:linear-gradient(135deg,#fff078 0%,#ffd700 45%,#f59e0b 100%); color:#0f172a; border:2.5px solid #ffffff; border-radius:12px 12px 12px 2px; padding:4px 9px; font-size:11px; font-weight:900; white-space:nowrap; box-shadow:0 6px 20px rgba(255,215,0,0.75); }
-    .venue-flag-pole { width:3.5px; height:14px; background:#ffd700; border-radius:0 0 3px 3px; border:1px solid #fff; }
+    .venue-flag-card {
+      background:linear-gradient(135deg,#fffc00 0%,#ffd000 55%,#f59e0b 100%);
+      color:#0f172a;
+      border:2.5px solid #ffffff;
+      border-radius:14px;
+      padding:6px 11px;
+      font-size:11.5px;
+      font-weight:900;
+      white-space:nowrap;
+      max-width:165px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      box-shadow:0 8px 22px rgba(251,191,36,0.65);
+      display:flex; align-items:center; gap:5px;
+    }
+    .venue-flag-pole { width:4px; height:12px; background:#ffffff; border-radius:0 0 4px 4px; box-shadow:0 3px 8px rgba(0,0,0,0.45); }
 
-    .cluster-pin { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#ff7b39,#d946ef); border:3px solid #fff; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(217,70,239,0.6); font-weight:900; }
+    .cluster-pin { width:48px; height:48px; border-radius:50%; background:var(--ig-grad); border:3px solid #fff; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(221,42,123,0.55); font-weight:900; }
 
+    /* Modallar & Form Elemanları */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:10005; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
     .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:18px 18px 28px; max-height:90vh; overflow-y:auto; }
@@ -99,22 +177,22 @@
     .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
     .cat-opt { padding:9px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; text-align:left; }
-    .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
+    .cat-opt.selected { border-color:var(--accent); background:rgba(56,189,248,0.16); }
     textarea, input[type="email"], input[type="password"], input[type="text"], input[type="number"], input[type="date"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:13px; padding:11px 13px; color:#fff; font-size:13.5px; outline:none; margin-bottom:9px; }
     select option { background:#111622; color:#fff; }
     textarea:focus, input:focus, select:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
     .media-btn { padding:10px 8px; border-radius:13px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:12px; font-weight:600; cursor:pointer; text-align:center; display:block; }
-    .btn-primary { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
-    .btn-gold { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(135deg,#ffd700,#f59e0b); color:#111827; font-weight:900; font-size:14px; cursor:pointer; }
+    .btn-primary { width:100%; padding:12px; border-radius:13px; border:none; background:var(--ig-grad); color:#fff; font-weight:800; font-size:14px; cursor:pointer; }
+    .btn-gold { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(135deg,#fffc00,#f59e0b); color:#111827; font-weight:900; font-size:14px; cursor:pointer; }
     .btn-secondary { width:100%; padding:11px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
-    .btn-danger { width:100%; padding:11px; border-radius:13px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
+    .btn-danger { width:100%; padding:11px; border-radius:13px; border:1px solid rgba(239,68,68,0.45); background:rgba(239,68,68,0.16); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
     .action-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
     .act-pill { padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
     .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:10px; max-height:135px; overflow-y:auto; padding:4px; }
     .av-opt { height:40px; border-radius:11px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
-    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid #ff7b39; color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .av-opt.selected { border-color:var(--accent); background:rgba(56,189,248,0.25); transform:scale(1.06); }
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid #dd2a7b; color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:700; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
 
     #imageLightboxModal { position:fixed; inset:0; background:rgba(0,0,0,0.94); z-index:10050; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
     #imageLightboxModal.open { display:flex; }
@@ -122,40 +200,54 @@
 
     .lang-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .lang-opt { display:flex; align-items:center; justify-content:space-between; padding:11px 13px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.04); cursor:pointer; font-size:13.5px; font-weight:700; }
-    .lang-opt.active { border-color:#ff7b39; background:rgba(255,123,57,0.2); }
+    .lang-opt.active { border-color:#dd2a7b; background:rgba(221,42,123,0.2); }
 
     .perm-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:7px; font-size:13px; font-weight:600; cursor:pointer; }
-    .perm-row input { width:18px; height:18px; margin:0; accent-color:#ff7b39; }
+    .perm-row input { width:18px; height:18px; margin:0; accent-color:#dd2a7b; }
 
-    .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-bg); border-top:1px solid var(--border); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
-    .wa-top { background:var(--wa-header); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); }
-    .wa-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--wa-header); border-bottom:1px solid rgba(255,255,255,0.08); }
-    .wa-tab { padding:10px 4px; text-align:center; font-size:12.5px; font-weight:700; color:#8696a0; cursor:pointer; border-bottom:2.5px solid transparent; }
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+    .stat-card { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:16px; padding:12px; }
+    .stat-val { font-size:21px; font-weight:900; color:#38bdf8; margin-top:4px; }
+    .stat-lbl { font-size:11.5px; color:#cbd5e1; font-weight:700; }
+
+    /* 💬 6. Ferah WhatsApp Tarzı Mesajlaşma Ekranı */
+    .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-light-bg); color:#111b21; border-top:1px solid rgba(0,0,0,0.12); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
+    .wa-top { background:var(--wa-light-header); color:#111b21; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.08); }
+    .wa-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--wa-light-header); border-bottom:1px solid rgba(0,0,0,0.08); }
+    .wa-tab { padding:10px 4px; text-align:center; font-size:12.5px; font-weight:800; color:#54656f; cursor:pointer; border-bottom:3px solid transparent; }
     .wa-tab.active { color:var(--wa-green); border-bottom-color:var(--wa-green); }
-    .wa-search-wrap { padding:10px 14px 6px; background:var(--wa-bg); }
-    .wa-search { width:100%; background:var(--wa-header); border:none; border-radius:12px; padding:9px 14px; color:#e9edef; font-size:13.5px; outline:none; margin-bottom:0; }
-    .wa-list { flex:1; overflow-y:auto; padding:4px 0; }
-    .wa-chat-row { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.04); }
-    .wa-avatar { width:48px; height:48px; border-radius:50%; background:#2a3942; display:flex; align-items:center; justify-content:center; font-size:23px; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(255,255,255,0.1); }
+    .wa-search-wrap { padding:8px 12px; background:#ffffff; border-bottom:1px solid rgba(0,0,0,0.06); }
+    .wa-search { width:100%; background:#f0f2f5 !important; color:#111b21 !important; border:none !important; border-radius:12px !important; padding:9px 14px !important; font-size:13.5px; outline:none; margin-bottom:0 !important; }
+    .wa-list { flex:1; overflow-y:auto; padding:4px 0; background:#ffffff; color:#111b21; }
+    .wa-chat-row { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(0,0,0,0.05); }
+    .wa-chat-row:active { background:#f0f2f5; }
+    .wa-avatar { width:46px; height:46px; border-radius:50%; background:#e2e8f0; color:#111b21; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(0,0,0,0.1); }
     .wa-avatar img { width:100%; height:100%; object-fit:cover; }
-    .wa-badge { background:var(--wa-green); color:#111b21; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; }
-    .wa-messages { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:6px; background-color:#0b141a; background-image:radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0); background-size:20px 20px; }
-    .wa-bubble { max-width:80%; padding:8px 11px 6px; border-radius:12px; font-size:14px; line-height:1.4; word-break:break-word; box-shadow:0 1px 2px rgba(0,0,0,0.35); }
+    .wa-badge { background:var(--wa-green); color:#ffffff; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; }
+    .wa-messages {
+      flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:7px;
+      background-color:#efeae2;
+      background-image:radial-gradient(rgba(17,27,33,0.08) 1px, transparent 0);
+      background-size:18px 18px;
+    }
+    .wa-bubble { max-width:80%; padding:8px 11px 6px; border-radius:12px; font-size:14px; line-height:1.4; word-break:break-word; box-shadow:0 1px 2px rgba(0,0,0,0.14); }
     .wa-bubble img.dm-photo { display:block; max-width:220px; max-height:220px; border-radius:10px; object-fit:cover; margin-bottom:5px; cursor:pointer; }
-    .wa-mine { align-self:flex-end; background:var(--wa-mine); color:#e9edef; border-top-right-radius:2px; }
-    .wa-theirs { align-self:flex-start; background:var(--wa-theirs); color:#e9edef; border-top-left-radius:2px; }
-    .wa-meta { display:flex; align-items:center; justify-content:flex-end; gap:4px; font-size:10px; color:rgba(233,237,239,0.65); margin-top:3px; }
-    .wa-input-bar { background:var(--wa-header); padding:8px 10px 14px; display:flex; align-items:center; gap:6px; }
-    .wa-img-btn { width:38px; height:38px; border-radius:50%; border:none; background:#2a3942; color:#e9edef; font-size:17px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
-    .wa-input { flex:1; background:#2a3942; border:none; border-radius:22px; padding:11px 14px; color:#e9edef; font-size:14px; outline:none; margin-bottom:0; }
-    .wa-send-btn { width:44px; height:44px; border-radius:50%; border:none; background:var(--wa-green); color:#111b21; font-size:18px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
-    .wa-menu-drop { position:absolute; right:14px; top:54px; background:#233138; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:50; display:none; overflow:hidden; min-width:175px; }
-    .wa-menu-item { padding:12px 16px; font-size:13.5px; color:#e9edef; cursor:pointer; display:flex; align-items:center; gap:8px; }
+    .wa-mine { align-self:flex-end; background:var(--wa-light-mine); color:#111b21; border-top-right-radius:3px; }
+    .wa-theirs { align-self:flex-start; background:var(--wa-light-theirs); color:#111b21; border-top-left-radius:3px; }
+    .wa-meta { display:flex; align-items:center; justify-content:flex-end; gap:4px; font-size:10.5px; color:#667781; margin-top:3px; }
+    .wa-input-bar { background:var(--wa-light-header); padding:8px 8px 14px; display:flex; align-items:center; gap:5px; border-top:1px solid rgba(0,0,0,0.08); }
+    .wa-tool-btn { width:36px; height:36px; border-radius:50%; border:none; background:#ffffff; color:#111b21; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+    .wa-tool-btn.recording { background:#ef4444; color:#ffffff; }
+    .wa-input { flex:1; background:#ffffff !important; color:#111b21 !important; border:none !important; border-radius:22px !important; padding:10px 13px !important; font-size:14px !important; outline:none; margin-bottom:0 !important; box-shadow:0 1px 2px rgba(0,0,0,0.08); }
+    .wa-send-btn { width:42px; height:42px; border-radius:50%; border:none; background:var(--wa-green); color:#ffffff; font-size:17px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .wa-menu-drop { position:absolute; right:14px; top:54px; background:#ffffff; color:#111b21; border:1px solid rgba(0,0,0,0.12); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.22); z-index:50; display:none; overflow:hidden; min-width:175px; }
+    .wa-menu-item { padding:12px 16px; font-size:13.5px; font-weight:600; color:#111b21; cursor:pointer; display:flex; align-items:center; gap:8px; }
   </style>
 </head>
 <body>
   <div id="toast" class="toast"></div>
 
+  <!-- 🔍 Büyük Resim Görüntüleyici -->
   <div id="imageLightboxModal" onclick="closeLightbox()">
     <div style="width:100%; max-width:480px; display:flex; justify-content:flex-end; margin-bottom:10px;">
       <button class="close-btn" onclick="event.stopPropagation(); closeLightbox();" style="width:38px; height:38px; font-size:18px; background:rgba(255,255,255,0.16);">✕</button>
@@ -164,100 +256,92 @@
     <div id="lightboxCaption" style="margin-top:10px; font-size:13px; color:#e2e8f0; font-weight:700;"></div>
   </div>
 
+  <!-- 🌟 Ana Giriş Ekranı (Instagram + Snapchat Hissi) -->
   <div id="authGate">
-    <div class="hero-city-bg">
-      <div class="hero-grid-overlay"></div>
-      <div class="hero-top-row">
-        <div class="live-badge"><span class="live-dot"></span> <span data-i18n="live_badge">Global Live Social Map</span></div>
+    <div class="social-auth-shell">
+      <div class="auth-top-bar">
+        <div class="snap-live-pill">⚡ <span data-i18n="live_badge">Şehrin Canlı Haritası</span></div>
         <button type="button" class="lang-pill" id="gateLangBtn" onclick="openModal('langModal')">🌐 TR</button>
       </div>
-      <div class="glow-pin-hero">
-        <svg width="54" height="54" viewBox="0 0 24 24" fill="none">
-          <defs>
-            <linearGradient id="vibePinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ff9a3c" />
-              <stop offset="50%" stop-color="#f43f5e" />
-              <stop offset="100%" stop-color="#c026d3" />
-            </linearGradient>
-          </defs>
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#vibePinGrad)"/>
-        </svg>
-      </div>
-      <h1 class="hero-title">Vibe<span>Pin</span></h1>
-      <p class="hero-sub" data-i18n="tagline">Şehrin Nabzını Yakala</p>
-    </div>
 
-    <div class="gate-sheet-card">
-      <div>
-        <div class="auth-tabs">
-          <button type="button" class="auth-tab-btn active" id="tabLoginMode" onclick="switchAuthMode('login')" data-i18n="login_tab">🔐 Giriş Yap</button>
-          <button type="button" class="auth-tab-btn" id="tabSignupMode" onclick="switchAuthMode('signup')" data-i18n="signup_tab">✨ Yeni Kayıt Ol</button>
+      <div class="ig-story-brand">
+        <div class="ig-story-ring">
+          <div class="ig-story-inner">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <defs>
+                <linearGradient id="igPinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f58529" />
+                  <stop offset="52%" stop-color="#dd2a7b" />
+                  <stop offset="100%" stop-color="#8134af" />
+                </linearGradient>
+              </defs>
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#igPinGrad)"/>
+            </svg>
+          </div>
         </div>
-
-        <div id="loginSection">
-          <button type="button" class="btn-google-hero" id="googleLoginBtn">
-            <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            <span data-i18n="google_btn">Google ile Devam Et</span>
-          </button>
-
-          <div class="divider" data-i18n="or_email">veya E-posta ile Giriş</div>
-
-          <div class="icon-input-wrap">
-            <svg class="left-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            <input type="email" id="gateEmail" placeholder="E-posta adresin" />
-          </div>
-
-          <div class="icon-input-wrap" style="margin-bottom:6px;">
-            <svg class="left-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" style="padding-right:42px;" />
-            <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);">👁️</button>
-          </div>
-
-          <div style="text-align:right; margin-bottom:12px;">
-            <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:12px; color:#38bdf8; text-decoration:none; font-weight:700;">🔑 Şifremi Unuttum</a>
-          </div>
-
-          <button type="button" class="btn-gradient-cta" id="loginBtn"><span>🔒</span> <span data-i18n="login_btn">Giriş Yap</span></button>
-        </div>
-
-        <div id="signupSection" style="display:none;">
-          <input type="text" id="regUsername" placeholder="Benzersiz Kullanıcı Adın (örn: ahmet_34)" />
-          <input type="email" id="regEmail" placeholder="E-posta adresin" />
-          <input type="password" id="regPass" placeholder="Şifre oluştur (en az 6 karakter)" />
-          <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
-            <select id="regGender" style="margin-bottom:8px;"><option value="">Cinsiyet Seç</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
-            <input type="date" id="regBirthDate" style="margin-bottom:8px;" />
-          </div>
-          <div class="interest-grid" id="regInterestsGrid">
-            <div class="int-chip" data-val="food" onclick="this.classList.toggle('selected')">☕ Yeme & İçme</div>
-            <div class="int-chip" data-val="travel" onclick="this.classList.toggle('selected')">✈️ Gezme & Keşif</div>
-            <div class="int-chip" data-val="sport" onclick="this.classList.toggle('selected')">⚽ Spor</div>
-            <div class="int-chip" data-val="party" onclick="this.classList.toggle('selected')">🎉 Etkinlik & Eğlence</div>
-            <div class="int-chip" data-val="friends" onclick="this.classList.toggle('selected')">🤝 Arkadaşlık</div>
-            <div class="int-chip" data-val="music" onclick="this.classList.toggle('selected')">🎵 Müzik & Sanat</div>
-          </div>
-          <button type="button" class="btn-gradient-cta" id="signupBtn">🚀 Hesabı Oluştur ve Başla</button>
-        </div>
-
-        <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
+        <div class="brand-logo-text">Vibe<span>Pin</span></div>
+        <div class="brand-sub-text" data-i18n="tagline">Şehrindeki anlık hikayeleri, mekanları ve vibe'ı gör</div>
       </div>
 
-      <div style="margin-top:8px; text-align:center;">
-        <p style="font-size:11px; color:var(--muted); line-height:1.4; margin-bottom:10px;">
-          Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:#38bdf8; text-decoration:underline; font-weight:600;">Kullanım Koşulları & KVKK</a> metnini kabul edersiniz.
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabLoginMode" onclick="switchAuthMode('login')" data-i18n="login_tab">Giriş Yap</button>
+        <button type="button" class="auth-tab-btn" id="tabSignupMode" onclick="switchAuthMode('signup')" data-i18n="signup_tab">Kayıt Ol</button>
+      </div>
+
+      <div id="loginSection">
+        <button type="button" class="btn-google-social" id="googleLoginBtn">
+          <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          <span data-i18n="google_btn">Google ile Devam Et</span>
+        </button>
+
+        <div class="divider" data-i18n="or_email">veya e-posta</div>
+
+        <input type="email" id="gateEmail" class="ig-input" placeholder="E-posta veya kullanıcı adı" />
+        <div style="position:relative; margin-bottom:6px;">
+          <input type="password" id="gatePass" class="ig-input" placeholder="Şifre" style="padding-right:42px !important; margin-bottom:0 !important;" />
+          <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:15px; cursor:pointer; color:#94a3b8;">👁️</button>
+        </div>
+
+        <div style="text-align:right; margin-bottom:12px;">
+          <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:12px; color:#38bdf8; text-decoration:none; font-weight:700;">Şifreni mi unuttun?</a>
+        </div>
+
+        <button type="button" class="btn-ig-snap" id="loginBtn" data-i18n="login_btn">Giriş Yap</button>
+      </div>
+
+      <div id="signupSection" style="display:none;">
+        <input type="text" id="regUsername" class="ig-input" placeholder="Kullanıcı adı (örn: istanbul_vibe)" />
+        <input type="email" id="regEmail" class="ig-input" placeholder="E-posta adresin" />
+        <input type="password" id="regPass" class="ig-input" placeholder="Şifre (en az 6 karakter)" />
+        <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
+          <select id="regGender" class="ig-input"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
+          <input type="date" id="regBirthDate" class="ig-input" />
+        </div>
+        <div class="interest-grid" id="regInterestsGrid">
+          <div class="int-chip" data-val="food" onclick="this.classList.toggle('selected')">☕ Yeme & İçme</div>
+          <div class="int-chip" data-val="travel" onclick="this.classList.toggle('selected')">✈️ Gezme & Keşif</div>
+          <div class="int-chip" data-val="sport" onclick="this.classList.toggle('selected')">⚽ Spor</div>
+          <div class="int-chip" data-val="party" onclick="this.classList.toggle('selected')">🎉 Etkinlik</div>
+          <div class="int-chip" data-val="friends" onclick="this.classList.toggle('selected')">🤝 Arkadaşlık</div>
+          <div class="int-chip" data-val="music" onclick="this.classList.toggle('selected')">🎵 Müzik</div>
+        </div>
+        <button type="button" class="btn-ig-snap" id="signupBtn">Hesabı Oluştur ve Haritaya Gir</button>
+      </div>
+
+      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
+
+      <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:6px;">
+          Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:#e2e8f0; text-decoration:underline; font-weight:600;">Koşullar ve Gizlilik</a> metnini kabul edersin.
         </p>
-        <div style="padding-top:10px; border-top:1px solid rgba(255,255,255,0.08);">
-          <div style="font-size:10px; letter-spacing:1.3px; text-transform:uppercase; color:#94a3b8; font-weight:700;">
-            POWERED BY <span style="background:linear-gradient(90deg,#ff8a3d,#f43f5e,#d946ef); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:900;">VIBELABS TECHNOLOGIES</span>
-          </div>
-          <div style="font-size:10.5px; color:#cbd5e1; margin-top:3px;">
-            📩 <a href="mailto:getvibepin@gmail.com" style="color:#38bdf8; text-decoration:none; font-weight:700;">getvibepin@gmail.com</a>
-          </div>
+        <div style="font-size:10px; letter-spacing:1.1px; color:#94a3b8; font-weight:800;">
+          VIBELABS TECHNOLOGIES • <a href="mailto:getvibepin@gmail.com" style="color:#38bdf8; text-decoration:none;">getvibepin@gmail.com</a>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Dil Seçimi -->
   <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🌍 Select Language / Tüm Diller</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
@@ -298,35 +382,39 @@
     </div>
   </div>
 
+  <!-- Harita & Kontroller -->
   <div id="map"></div>
   <button id="returnLocBtn" onclick="locateUser()">🧭 <span data-i18n="return_loc">Konumuma Dön</span></button>
 
   <div id="flagPlaceBar">
-    <div style="font-size:12px; font-weight:700; color:#fde047; line-height:1.3;">🚩 Altın bayrağı mekanın tam üzerine sürükle</div>
+    <div style="font-size:12px; font-weight:700; color:#fef08a; line-height:1.3;">🚩 İşletme bayrağını konumun tam üzerine sürükle</div>
     <div style="display:flex; gap:6px; flex-shrink:0;">
       <button onclick="cancelFlagPlacement()" style="padding:8px 11px; border-radius:11px; border:1px solid var(--border); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">İptal</button>
-      <button onclick="confirmFlagPlacement()" style="padding:8px 13px; border-radius:11px; border:none; background:linear-gradient(135deg,#ffd700,#f59e0b); color:#111827; font-size:12px; font-weight:900; cursor:pointer;">✅ Onayla</button>
+      <button onclick="confirmFlagPlacement()" style="padding:8px 13px; border-radius:11px; border:none; background:var(--snap-yellow); color:#111827; font-size:12px; font-weight:900; cursor:pointer;">✅ Onayla</button>
     </div>
   </div>
 
   <div class="top-bar">
     <div style="display:flex; gap:4px; align-items:center;">
       <div class="pill" onclick="locateUser()">📍</div>
-      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:#ffd700; color:#fde047;" onclick="startFlagPlacement()">🚩 Bayrak</div>
-      <div class="pill" id="trEventsBtn" style="display:none; border-color:var(--accent); color:#38bdf8;" onclick="openGlobalEventsStudio()">🌍 Etkinlik</div>
+      <div class="pill" id="heatmapToggleBtn" onclick="toggleHeatmap()" style="border-color:rgba(239,68,68,0.5); color:#fca5a5;">🌡️ Yoğunluk</div>
+      <div class="pill" onclick="openBusinessSetupModal()" style="border-color:var(--snap-yellow); color:#fef08a;">🏪 İşletme</div>
+      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:var(--snap-yellow); color:#fef08a;" onclick="startFlagPlacement()">🚩 Bayrak</div>
+      <div class="pill" id="trEventsBtn" style="display:none; border-color:var(--accent); color:#38bdf8;" onclick="openGlobalEventsStudio()">🌍</div>
     </div>
     <div style="display:flex; gap:4px; align-items:center;">
+      <button class="icon-btn" id="founderStatsBtn" style="display:none; border-color:#38bdf8; color:#38bdf8;" onclick="openFounderStatsModal()" title="Kurucu Sayacı">📊</button>
       <button class="icon-btn" onclick="openModal('langModal')" id="topLangBtn" style="font-size:10px; font-weight:800;">TR</button>
       <button class="icon-btn" onclick="openNotificationsModal()">🔔<span id="bellDot" class="notif-dot"></span></button>
       <button class="icon-btn" onclick="openFriendsModal()">💬<span id="notifDot" class="notif-dot"></span></button>
       <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👑</button>
-      <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()" style="border:1.5px solid #ff7b39;">🦊</button>
+      <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()" style="border:1.5px solid #dd2a7b;">🦊</button>
     </div>
   </div>
 
   <div class="filter-row">
     <div class="chip active" onclick="setFilter('all', this)" data-i18n="cat_all">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('sponsored', this)" data-i18n="cat_sponsored">🚩 Sponsorlu</div>
+    <div class="chip" onclick="setFilter('sponsored', this)" data-i18n="cat_sponsored">🚩 İşletmeler</div>
     <div class="chip" onclick="setFilter('event', this)" data-i18n="cat_event">🎉 Etkinlik</div>
     <div class="chip" onclick="setFilter('social', this)" data-i18n="cat_social">☕ Yeme & İçme</div>
     <div class="chip" onclick="setFilter('question', this)" data-i18n="cat_question">❓ Durum / Soru</div>
@@ -345,79 +433,120 @@
     <button class="icon-btn" onclick="loadPins()">↻</button>
   </div>
 
+  <!-- 📊 1. Sadece Kurucuya Özel Sayaç & Metrik Paneli -->
+  <div id="founderStatsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('founderStatsModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#38bdf8;">📊 Kurucu Canlı Sayaç & Analitik</div>
+          <div style="font-size:11.5px; color:var(--muted);">Yalnızca kurucu hesabına özel platform metrikleri</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('founderStatsModal')">✕</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">👥 Giren Kullanıcı</div><div class="stat-val" id="statUniqueUsers">-</div></div>
+        <div class="stat-card"><div class="stat-lbl">⏱️ Ort. Kalma Süresi</div><div class="stat-val" id="statAvgDuration">-</div></div>
+        <div class="stat-card"><div class="stat-lbl">📍 Paylaşım & Etkinlik</div><div class="stat-val" id="statTotalPins">-</div></div>
+        <div class="stat-card"><div class="stat-lbl">💬 Toplam Yorum</div><div class="stat-val" id="statTotalComments">-</div></div>
+      </div>
+      <button class="btn-secondary" onclick="loadFounderStats()">↻ İstatistikleri Yenile</button>
+    </div>
+  </div>
+
+  <!-- 🏪 2. İşletme Kayıt, Tam Adres ve Kampanya Kurulumu -->
+  <div id="businessSetupModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('businessSetupModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#fef08a;">🏪 İşletme Kurulum & Kampanya</div>
+          <div style="font-size:11.5px; color:var(--muted);">Tam adresini ve ne sattığını/paylaşacağını belirle</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('businessSetupModal')">✕</button>
+      </div>
+      <input type="text" id="bizNameInput" placeholder="İşletme Adı (örn: Moda Sahil Kahve)" />
+      <select id="bizCategorySelect">
+        <option value="cafe_food">☕ Kafe / Restoran / Yeme-İçme</option>
+        <option value="event_venue">🎉 Etkinlik / Sahne / Eğlence Mekanı</option>
+        <option value="retail_shop">🛍️ Mağaza / Butik / Perakende</option>
+        <option value="service_spot">⚡ Hizmet / Diğer İşletme</option>
+      </select>
+      <input type="text" id="bizAddressInput" placeholder="Tam Adres (örn: Caferağa Mah. Moda Cad. No:42 Kadıköy)" />
+      <textarea id="bizSellingInput" rows="2" placeholder="Ne satıyorsunuz? (örn: Özel kahve, tatlı, akşam yemekleri, el yapımı ürünler)"></textarea>
+      <select id="bizCampaignTypeSelect">
+        <option value="flash_offer">⚡ Anlık Fırsat / Günün Kampanyası</option>
+        <option value="daily_menu">🍽️ Günün Menüsü / Özel Seçki</option>
+        <option value="live_event">🎶 Canlı Etkinlik / Özel Buluşma</option>
+        <option value="new_arrival">✨ Yeni Ürün / Sezon Duyurusu</option>
+      </select>
+      <textarea id="bizCampaignDetailInput" rows="2" placeholder="Kampanya veya duyuru metni..."></textarea>
+      <button class="btn-gold" id="saveBizBtn" onclick="saveBusinessProfile()">💾 İşletme Profilini Kaydet & Haritada Göster</button>
+    </div>
+  </div>
+
+  <!-- Global Etkinlik Stüdyosu -->
   <div id="globalEventsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('globalEventsModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
           <div class="sheet-title" style="color:#38bdf8;">🌍 Global Etkinlik Rehberi Stüdyosu</div>
-          <div style="font-size:11.5px; color:var(--muted);">Türkiye ve dünya metropollerindeki etkinlikleri üst üste binmeden yayar</div>
+          <div style="font-size:11.5px; color:var(--muted);">Türkiye ve dünya metropollerindeki etkinlikleri yayar</div>
         </div>
         <button class="close-btn" onclick="closeModal('globalEventsModal')">✕</button>
       </div>
-
-      <div style="padding:12px; border-radius:15px; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); margin-bottom:12px;">
-        <div style="font-size:12.5px; font-weight:800; color:#67e8f9; margin-bottom:4px;">⚡ Tek Tıkla Bugünün Global Etkinlik Paketini Yay</div>
-        <div id="dailyPackStatusNote" style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px;">Aynı paket haritada aktifken ikinci kez üst üste eklenmesine izin verilmez.</div>
+      <div style="padding:12px; border-radius:15px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); margin-bottom:12px;">
+        <div id="dailyPackStatusNote" style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px;">Aynı paket haritada aktifken ikinci kez üst üste eklenmez.</div>
         <button class="btn-primary" id="publishDailyPackBtn" onclick="publishDailyGlobalPack()" style="margin-bottom:8px;">🌍 Bugünün Dünya Etkinliklerini Haritaya Yay</button>
         <button class="btn-danger" id="clearGuidePinsBtn" onclick="clearExistingGuidePins()" style="margin-top:0;">🧹 Mevcut Rehber Etkinliklerini Temizle</button>
       </div>
-
-      <div style="font-size:12px; font-weight:800; color:#fde047; margin-bottom:6px;">📍 Dünyanın Herhangi Bir Yerine Tekil Etkinlik Ekle:</div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <input type="text" id="glCountryInput" placeholder="Ülke (örn: Türkiye, UK, USA)" value="Türkiye" />
-        <input type="text" id="glCityInput" placeholder="Şehir (örn: İstanbul, London)" />
+        <input type="text" id="glCountryInput" placeholder="Ülke" value="Türkiye" />
+        <input type="text" id="glCityInput" placeholder="Şehir" />
       </div>
-      <input type="text" id="glVenueAddressInput" placeholder="Tam Mekan / Adres (örn: Zorlu PSM veya O2 Arena)" />
-      <textarea id="glEventDescInput" rows="2" placeholder="Etkinlik adı, saati ve detayı..."></textarea>
+      <input type="text" id="glVenueAddressInput" placeholder="Tam Mekan / Adres" />
+      <textarea id="glEventDescInput" rows="2" placeholder="Etkinlik adı ve detayı..."></textarea>
       <button class="btn-gold" id="publishSingleGlBtn" onclick="publishSingleGlobalEvent()">📌 Tam Adresini Bul & Haritaya Ekle</button>
     </div>
   </div>
 
+  <!-- Admin Yetki Yönetimi -->
   <div id="adminRolesModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adminRolesModal')">
     <div class="sheet">
       <div class="sheet-header">
-        <div>
-          <div class="sheet-title" style="color:#fde047;">👑 Admin & Yetki Yönetimi</div>
-          <div style="font-size:11.5px; color:var(--muted);">Yeni admin ekle ve hangi alanlara müdahale edebileceğini seç</div>
-        </div>
+        <div><div class="sheet-title" style="color:#fef08a;">👑 Admin & Yetki Yönetimi</div></div>
         <button class="close-btn" onclick="closeModal('adminRolesModal')">✕</button>
       </div>
-
       <input type="email" id="newAdminEmailInput" placeholder="Admin yapılacak kullanıcının e-postası" />
-
       <label class="perm-row"><span>📬 Gelen İstek & Şikayetleri Değerlendirme</span><input type="checkbox" id="permTickets" checked /></label>
       <label class="perm-row"><span>🌍 Global Etkinlik Yayınlama</span><input type="checkbox" id="permEvents" /></label>
       <label class="perm-row"><span>🚩 Sponsorlu Mekan Bayrağı Dikme</span><input type="checkbox" id="permFlags" /></label>
       <label class="perm-row"><span>🗑️ Zararlı / Yalan Paylaşımları Silme</span><input type="checkbox" id="permDeletePins" /></label>
-
-      <button class="btn-gold" style="margin-top:6px; margin-bottom:14px;" onclick="saveAdminPermissions()">💾 Admin Yetkisini Kaydet / Güncelle</button>
-
-      <div style="font-size:12px; font-weight:800; color:var(--accent); margin-bottom:8px;">Mevcut Yetkili Adminler:</div>
+      <button class="btn-gold" style="margin-top:6px; margin-bottom:14px;" onclick="saveAdminPermissions()">💾 Admin Yetkisini Kaydet</button>
       <div id="adminsListContainer"></div>
     </div>
   </div>
 
+  <!-- Sponsorlu Bayrak Modalı -->
   <div id="venueFlagModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('venueFlagModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title" style="color:#ffd700;">🚩 Sponsorlu Mekan Bayrağı & Kampanya</div>
+          <div class="sheet-title" style="color:#fef08a;">🚩 İşletme Bayrağı & Kampanya</div>
           <div id="venueSelectedCoordsText" style="font-size:11.5px; color:#6ee7b7;">📍 Seçilen mekan koordinatı hazır</div>
         </div>
         <button class="close-btn" onclick="closeModal('venueFlagModal')">✕</button>
       </div>
       <input type="text" id="venueNameInput" placeholder="Mekan / İşletme Adı" />
-      <input type="text" id="venueOfferBadgeInput" placeholder="Kısa Etiket / Fiyat (örn: Günün Menüsü 240₺)" />
-      <textarea id="venueCampaignDescInput" rows="3" placeholder="Kampanya, menü veya etkinlik detaylarını yazın..."></textarea>
+      <input type="text" id="venueOfferBadgeInput" placeholder="Kısa Kampanya Etiketi (örn: 2 Kahve 1 Arada)" />
+      <textarea id="venueCampaignDescInput" rows="3" placeholder="Kampanya veya menü detaylarını yazın..."></textarea>
       <select id="venueDurationSelect">
         <option value="24">⏳ 1 Gün (24 Saat)</option>
         <option value="72">🔥 3 Gün</option>
-        <option value="168" selected>🚩 7 Gün (Sponsorlu Bayrak)</option>
+        <option value="168" selected>🚩 7 Gün (Öne Çıkan Bayrak)</option>
       </select>
-      <label class="media-btn" for="venuePhotoInput" id="venuePhotoLabel" style="margin-bottom:10px; border-color:#ffd700; color:#fde047;">📸 Mekan / Menü Fotoğrafı Ekle</label>
+      <label class="media-btn" for="venuePhotoInput" id="venuePhotoLabel" style="margin-bottom:10px; border-color:var(--snap-yellow); color:#fef08a;">📸 Mekan / Menü Fotoğrafı Ekle</label>
       <input type="file" id="venuePhotoInput" accept="image/*" style="display:none;" onchange="handleVenuePhoto(this)" />
       <img id="venuePhotoPreview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
-      <button class="btn-gold" id="publishVenueBtn" onclick="submitVenueFlag()">🚩 Haritaya Sponsorlu Bayrak Dik</button>
+      <button class="btn-gold" id="publishVenueBtn" onclick="submitVenueFlag()">🚩 Haritaya İşletme Bayrağı Dik</button>
     </div>
   </div>
 
@@ -444,9 +573,9 @@
         <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
       </div>
 
-      <div id="ghostFields" style="display:none; padding:11px; border-radius:15px; background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.38); margin-bottom:10px;">
+      <div id="ghostFields" style="display:none; padding:11px; border-radius:15px; background:rgba(221,42,123,0.12); border:1px solid rgba(221,42,123,0.38); margin-bottom:10px;">
         <div style="font-size:11.5px; color:#f472b6; font-weight:800; margin-bottom:8px;">👻 Kurucu Hayalet Karakter</div>
-        <input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Selin_24)" />
+        <input type="text" id="ghostNameInput" placeholder="Hayalet İsim" />
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
           <select id="ghostGenderInput" style="margin-bottom:0; padding:9px;"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
           <input type="number" id="ghostAgeInput" min="13" max="99" placeholder="Yaş" style="margin-bottom:0; padding:9px;" />
@@ -456,7 +585,7 @@
         <input type="file" id="ghostAvatarFileInput" accept="image/*" style="display:none;" onchange="handleGhostAvatarFile(this)" />
       </div>
 
-      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, önemli bir olayı veya durumu paylaş..."></textarea>
+      <textarea id="pinText" rows="2" placeholder="Şu an tam burada ne oluyor? Paylaş..."></textarea>
       <div class="media-row">
         <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent);">📸 Kamera</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
@@ -478,12 +607,12 @@
           <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven: 100 • ⏳ 24s</div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
-          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:#dd2a7b; color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
           <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
           <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
         </div>
       </div>
-      <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(255,215,0,0.16); border:1px solid #ffd700; color:#fde047; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
+      <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(255,252,0,0.14); border:1px solid var(--snap-yellow); color:#fef08a; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
       <img id="detailImg" onclick="openLightbox(this.src, document.getElementById('detailAuthor').textContent)" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px; cursor:pointer;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:12px;"></p>
@@ -496,17 +625,18 @@
         <button class="act-pill" style="color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
       </div>
       <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
-      <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">💬 Gidecek Olanlar & Yorumlar:</div>
+      <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">💬 Yorumlar:</div>
       <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Ben de geliyorum, saat kaçta buluşuyoruz?..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
   </div>
 
+  <!-- Profil & 3. Uygulama İçi Hesap Silme -->
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title">🎭 Profil, Cinsiyet & Yaş</div>
+          <div class="sheet-title">🎭 Profil Ayarları</div>
           <div id="myTrustScoreText" style="font-size:12px; color:var(--green); font-weight:700;">🛡️ Güven: 100 / 100</div>
         </div>
         <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
@@ -537,8 +667,22 @@
       <input type="text" id="profileNameInput" placeholder="Kullanıcı Adın" style="margin-bottom:8px;" />
       <button class="btn-primary" style="margin-bottom:8px;" onclick="saveProfile()">💾 Profili Kaydet</button>
       <button id="manageAdminsBtn" class="btn-gold" style="display:none; margin-bottom:8px;" onclick="openAdminRolesModal()">👑 Admin & Yetki Yönetimi (Kurucu)</button>
-      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:8px; border-color:var(--gold); color:#fde047;" onclick="openAdminTickets()">📬 Gelen Destek & Şikayet Talepleri</button>
-      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:8px; border-color:var(--gold); color:#fef08a;" onclick="openAdminTickets()">📬 Gelen Destek & Şikayet Talepleri</button>
+      <button class="btn-secondary" style="margin-bottom:8px; color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+      <button class="btn-danger" onclick="openDeleteAccountModal()">🗑️ Hesabımı Kalıcı Olarak Sil</button>
+    </div>
+  </div>
+
+  <!-- Hesap Silme Onay Modalı -->
+  <div id="deleteAccountModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('deleteAccountModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" style="color:#fca5a5;">🗑️ Hesap Silme</div><button class="close-btn" onclick="closeModal('deleteAccountModal')">✕</button></div>
+      <p style="font-size:13px; color:#cbd5e1; line-height:1.5; margin-bottom:10px;">
+        Hesabın silindiğinde paylaşımların, mesajların ve profil verilerin kaldırılır. Devam etmek için <strong>SIL</strong> yaz.
+      </p>
+      <input type="text" id="deleteConfirmInput" placeholder="Onaylamak için SIL yazın" />
+      <input type="text" id="deleteReasonInput" placeholder="Ayrılma sebebin (isteğe bağlı)" />
+      <button class="btn-danger" id="confirmDeleteAccBtn" onclick="deleteMyAccount()">🔥 Hesabımı Şimdi Sil</button>
     </div>
   </div>
 
@@ -549,11 +693,12 @@
     </div>
   </div>
 
+  <!-- 💬 Sohbetler Listesi (WhatsApp Tarzı Ferah Tema) -->
   <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeFriendsModal()">
     <div class="wa-sheet">
       <div class="wa-top">
-        <div style="font-size:18px; font-weight:800; color:#e9edef;"><span style="color:var(--wa-green);">●</span> VibeChat</div>
-        <button class="close-btn" onclick="closeFriendsModal()">✕</button>
+        <div style="font-size:18px; font-weight:900; color:#111b21;"><span style="color:var(--wa-green);">●</span> VibeChat</div>
+        <button class="close-btn" style="background:rgba(0,0,0,0.08); color:#111b21;" onclick="closeFriendsModal()">✕</button>
       </div>
       <div class="wa-tabs">
         <div class="wa-tab active" id="tabChats" onclick="switchWaTab('chats')">Sohbetler</div>
@@ -565,37 +710,37 @@
     </div>
   </div>
 
+  <!-- 💬 Sohbet Penceresi (Resim + Ses Kaydı + Sesten Metne) -->
   <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
     <div class="wa-sheet" style="position:relative;">
       <div class="wa-top">
         <div style="display:flex; align-items:center; gap:10px;">
-          <button type="button" onclick="closeChatModal()" style="background:rgba(255,255,255,0.08); border:none; color:#e9edef; font-size:19px; cursor:pointer; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;">←</button>
+          <button type="button" onclick="closeChatModal()" style="background:rgba(0,0,0,0.08); border:none; color:#111b21; font-size:19px; cursor:pointer; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;">←</button>
           <div class="wa-avatar" id="chatHeaderAvatar" onclick="viewChatPartnerPhoto()" style="width:42px; height:42px; font-size:19px; cursor:pointer;" title="Profil resmini büyüt">🦊</div>
           <div>
-            <div id="chatFriendTitle" style="font-size:15.5px; font-weight:700; color:#e9edef;">Arkadaş</div>
-            <div id="chatStatusSub" style="font-size:11.5px; color:#8696a0; font-weight:600;">çevrimiçi • VibePin</div>
+            <div id="chatFriendTitle" style="font-size:15.5px; font-weight:800; color:#111b21;">Arkadaş</div>
+            <div id="chatStatusSub" style="font-size:11.5px; color:#54656f; font-weight:600;">çevrimiçi • VibePin</div>
           </div>
         </div>
-        <button type="button" onclick="toggleWaMenu()" style="background:none; border:none; color:#aebac1; font-size:20px; cursor:pointer; padding:4px 8px;">⋮</button>
+        <button type="button" onclick="toggleWaMenu()" style="background:none; border:none; color:#54656f; font-size:20px; cursor:pointer; padding:4px 8px;">⋮</button>
       </div>
       <div class="wa-menu-drop" id="waChatMenu">
         <div class="wa-menu-item" onclick="removeCurrentChatFriend()">🗑️ Arkadaşı Sil</div>
-        <div class="wa-menu-item" style="color:#f87171;" onclick="blockCurrentChatFriend()">🚫 Kullanıcıyı Engelle</div>
+        <div class="wa-menu-item" style="color:#dc2626;" onclick="blockCurrentChatFriend()">🚫 Kullanıcıyı Engelle</div>
       </div>
 
       <div id="chatMessagesBox" class="wa-messages" onclick="document.getElementById('waChatMenu').style.display='none'"></div>
 
-      <div id="dmPendingPhotoBar" style="display:none; padding:6px 12px; background:#182229; border-top:1px solid rgba(255,255,255,0.08); align-items:center; justify-content:space-between; gap:8px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <img id="dmPendingPhotoThumb" style="width:42px; height:42px; border-radius:8px; object-fit:cover;" />
-          <span style="font-size:12px; color:#6ee7b7; font-weight:700;">📷 Resim seçildi</span>
-        </div>
-        <button type="button" onclick="clearPendingDmPhoto()" style="background:none; border:none; color:#f87171; font-size:14px; font-weight:800; cursor:pointer;">✕</button>
+      <div id="dmPendingMediaBar" style="display:none; padding:6px 12px; background:#ffffff; border-top:1px solid rgba(0,0,0,0.08); align-items:center; justify-content:space-between; gap:8px;">
+        <div id="dmPendingMediaLabel" style="display:flex; align-items:center; gap:8px; font-size:12px; color:#065f46; font-weight:700;"></div>
+        <button type="button" onclick="clearPendingDmMedia()" style="background:none; border:none; color:#dc2626; font-size:14px; font-weight:800; cursor:pointer;">✕</button>
       </div>
 
       <div class="wa-input-bar">
-        <label for="dmPhotoInput" class="wa-img-btn" title="Resim gönder">🖼️</label>
+        <label for="dmPhotoInput" class="wa-tool-btn" title="Resim gönder">🖼️</label>
         <input type="file" id="dmPhotoInput" accept="image/*" style="display:none;" onchange="handleDmPhotoSelect(this)" />
+        <button type="button" id="dmVoiceRecBtn" class="wa-tool-btn" title="Ses kaydı gönder" onclick="toggleDmVoiceRecord()">🎙️</button>
+        <button type="button" id="dmSttBtn" class="wa-tool-btn" title="Sesi metne çevir" onclick="toggleSpeechToText()">🎤</button>
         <input type="text" id="dmInput" class="wa-input" placeholder="Mesaj yazın..." oninput="handleDmTyping()" onkeydown="if(event.key==='Enter') sendDirectMessage()" />
         <button type="button" id="dmSendBtn" class="wa-send-btn" onclick="sendDirectMessage()">➤</button>
       </div>
@@ -622,7 +767,7 @@
   <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
     <div class="sheet" style="text-align:center;">
       <div class="sheet-header"><div class="sheet-title">🚩 Sponsorlu Mekan Tanıtımı</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
-      <div id="sponsorAdCardText" style="padding:14px; border-radius:14px; background:rgba(255,215,0,0.14); border:1px solid #ffd700; margin-bottom:12px; font-size:13.5px;">Semtindeki öne çıkan mekan kampanyalarını incele!</div>
+      <div id="sponsorAdCardText" style="padding:14px; border-radius:14px; background:rgba(255,252,0,0.12); border:1px solid var(--snap-yellow); margin-bottom:12px; font-size:13.5px;">Semtindeki öne çıkan mekan kampanyalarını incele!</div>
       <p id="adModalDesc" style="font-size:13px; color:var(--muted); margin-bottom:14px;">10 istek hakkın doldu. +1 ek istek hakkı için sponsorlu tanıtımı izle.</p>
       <div id="adCountdownBox" style="display:none; padding:14px; font-weight:800; font-size:16px;">⏳ <span id="adSec">5</span> s...</div>
       <button class="btn-gold" id="watchAdBtn" onclick="startRewardAd()">🚩 Tanıtımı İzle (+1 İstek Aç)</button>
@@ -633,43 +778,35 @@
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
     const IMPORTANT_KEYWORDS = ['kaza', 'yangın', 'yangin', 'acil', 'önemli', 'onemli', 'ünlü', 'unlu', 'görüldü', 'goruldu', 'konser', 'olay', 'yardım', 'yardim', 'ambulans', 'polis', 'trafik', 'accident', 'fire', 'emergency', 'concert'];
-    const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
+    const CAT_META = { event: { emoji: '🎉', color: '#dd2a7b' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     const LANG_DICT = {
-      tr: { live_badge: 'Canlı Sosyal Harita', tagline: 'Şehrin Nabzını Yakala', login_tab: '🔐 Giriş Yap', signup_tab: '✨ Yeni Kayıt Ol', google_btn: 'Google ile Devam Et', or_email: 'veya E-posta ile Giriş', login_btn: 'Giriş Yap', return_loc: 'Konumuma Dön', cat_all: '🔥 Tümü', cat_sponsored: '🚩 Sponsorlu', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat', fab_create: '＋ Fotoğraf / Ses / Vibe Bırak' },
-      en: { live_badge: 'Global Live Social Map', tagline: 'Capture the Pulse of Your City', login_tab: '🔐 Sign In', signup_tab: '✨ Sign Up', google_btn: 'Continue with Google', or_email: 'or Sign In with Email', login_btn: 'Sign In', return_loc: 'Back to My Location', cat_all: '🔥 All', cat_sponsored: '🚩 Sponsored', cat_event: '🎉 Events', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals', fab_create: '＋ Drop Photo / Voice / Vibe' },
-      de: { live_badge: 'Globale Live-Karte', tagline: 'Erlebe den Puls deiner Stadt', login_tab: '🔐 Anmelden', signup_tab: '✨ Registrieren', google_btn: 'Mit Google fortfahren', or_email: 'oder per E-Mail', login_btn: 'Anmelden', return_loc: 'Zu meinem Standort', cat_all: '🔥 Alle', cat_sponsored: '🚩 Gesponsert', cat_event: '🎉 Events', cat_social: '☕ Essen & Trinken', cat_question: '❓ Frage', cat_deal: '⚡ Deals', fab_create: '＋ Vibe teilen' },
-      es: { live_badge: 'Mapa Social Global', tagline: 'Captura el pulso de tu ciudad', login_tab: '🔐 Entrar', signup_tab: '✨ Registrarse', google_btn: 'Continuar con Google', or_email: 'o con correo', login_btn: 'Entrar', return_loc: 'Volver a mi ubicación', cat_all: '🔥 Todo', cat_sponsored: '🚩 Patrocinado', cat_event: '🎉 Eventos', cat_social: '☕ Comida', cat_question: '❓ Pregunta', cat_deal: '⚡ Ofertas', fab_create: '＋ Publicar Vibe' },
-      fr: { live_badge: 'Carte Sociale Mondiale', tagline: 'Captez le pouls de votre ville', login_tab: '🔐 Connexion', signup_tab: '✨ Inscription', google_btn: 'Continuer avec Google', or_email: 'ou par e-mail', login_btn: 'Connexion', return_loc: 'Ma position', cat_all: '🔥 Tout', cat_sponsored: '🚩 Sponsorisé', cat_event: '🎉 Événements', cat_social: '☕ Café & Resto', cat_question: '❓ Question', cat_deal: '⚡ Bons plans', fab_create: '＋ Partager un Vibe' },
-      ar: { live_badge: 'خريطة اجتماعية عالمية', tagline: 'شارك نبض مدينتك', login_tab: '🔐 دخول', signup_tab: '✨ تسجيل جديد', google_btn: 'المتابعة مع Google', or_email: 'أو بالبريد الإلكتروني', login_btn: 'دخول', return_loc: 'العودة لموقعي', cat_all: '🔥 الكل', cat_sponsored: '🚩 ممول', cat_event: '🎉 فعاليات', cat_social: '☕ طعام', cat_question: '❓ سؤال', cat_deal: '⚡ عروض', fab_create: '＋ أضف Vibe' },
-      ru: { live_badge: 'Глобальная живая карта', tagline: 'Поймай пульс своего города', login_tab: '🔐 Войти', signup_tab: '✨ Регистрация', google_btn: 'Войти через Google', or_email: 'или по эл. почте', login_btn: 'Войти', return_loc: 'Мое местоположение', cat_all: '🔥 Все', cat_sponsored: '🚩 Реклама', cat_event: '🎉 События', cat_social: '☕ Еда и напитки', cat_question: '❓ Вопрос', cat_deal: '⚡ Скидки', fab_create: '＋ Добавить Vibe' },
-      it: { live_badge: 'Mappa Sociale Globale', tagline: 'Cattura il polso della tua città', login_tab: '🔐 Accedi', signup_tab: '✨ Registrati', google_btn: 'Continua con Google', or_email: 'o con email', login_btn: 'Accedi', return_loc: 'La mia posizione', cat_all: '🔥 Tutto', cat_sponsored: '🚩 Sponsorizzati', cat_event: '🎉 Eventi', cat_social: '☕ Cibo & Drink', cat_question: '❓ Domande', cat_deal: '⚡ Offerte', fab_create: '＋ Pubblica Vibe' },
-      pt: { live_badge: 'Mapa Social Global', tagline: 'Capture o pulso da sua cidade', login_tab: '🔐 Entrar', signup_tab: '✨ Cadastrar', google_btn: 'Continuar com Google', or_email: 'ou com e-mail', login_btn: 'Entrar', return_loc: 'Minha localização', cat_all: '🔥 Tudo', cat_sponsored: '🚩 Patrocinado', cat_event: '🎉 Eventos', cat_social: '☕ Comida', cat_question: '❓ Pergunta', cat_deal: '⚡ Ofertas', fab_create: '＋ Postar Vibe' },
-      ja: { live_badge: 'グローバルライブマップ', tagline: '街の鼓動をキャッチしよう', login_tab: '🔐 ログイン', signup_tab: '✨ 新規登録', google_btn: 'Googleで続行', or_email: 'またはメールでログイン', login_btn: 'ログイン', return_loc: '現在地に戻る', cat_all: '🔥 すべて', cat_sponsored: '🚩 スポンサー', cat_event: '🎉 イベント', cat_social: '☕ グルメ', cat_question: '❓ 質問', cat_deal: '⚡ お得情報', fab_create: '＋ Vibeを投稿' },
-      ko: { live_badge: '글로벌 라이브 소셜 맵', tagline: '도시의 맥박을 느껴보세요', login_tab: '🔐 로그인', signup_tab: '✨ 회원가입', google_btn: 'Google로 계속하기', or_email: '또는 이메일 로그인', login_btn: '로그인', return_loc: '내 위치로', cat_all: '🔥 전체', cat_sponsored: '🚩 스폰서', cat_event: '🎉 이벤트', cat_social: '☕ 맛집/카페', cat_question: '❓ 질문', cat_deal: '⚡ 혜택', fab_create: '＋ Vibe 남기기' },
-      zh: { live_badge: '全球实时社交地图', tagline: '捕捉城市的脉搏', login_tab: '🔐 登录', signup_tab: '✨ 注册', google_btn: '使用 Google 继续', or_email: '或使用邮箱登录', login_btn: '登录', return_loc: '回到我的位置', cat_all: '🔥 全部', cat_sponsored: '🚩 推广', cat_event: '🎉 活动', cat_social: '☕ 美食', cat_question: '❓ 问答', cat_deal: '⚡ 优惠', fab_create: '＋ 发布 Vibe' }
+      tr: { live_badge: 'Şehrin Canlı Haritası', tagline: 'Şehrindeki anlık hikayeleri, mekanları ve vibe\'ı gör', login_tab: 'Giriş Yap', signup_tab: 'Kayıt Ol', google_btn: 'Google ile Devam Et', or_email: 'veya e-posta', login_btn: 'Giriş Yap', return_loc: 'Konumuma Dön', cat_all: '🔥 Tümü', cat_sponsored: '🚩 İşletmeler', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat', fab_create: '＋ Fotoğraf / Ses / Vibe Bırak' },
+      en: { live_badge: 'Live City Map', tagline: 'See live moments, spots & vibes around your city', login_tab: 'Sign In', signup_tab: 'Sign Up', google_btn: 'Continue with Google', or_email: 'or email', login_btn: 'Sign In', return_loc: 'My Location', cat_all: '🔥 All', cat_sponsored: '🚩 Venues', cat_event: '🎉 Events', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals', fab_create: '＋ Drop Photo / Voice / Vibe' },
+      de: { live_badge: 'Live-Stadtkarte', tagline: 'Entdecke Live-Momente, Spots & Vibes in deiner Stadt', login_tab: 'Anmelden', signup_tab: 'Registrieren', google_btn: 'Mit Google fortfahren', or_email: 'oder per E-Mail', login_btn: 'Anmelden', return_loc: 'Mein Standort', cat_all: '🔥 Alle', cat_sponsored: '🚩 Orte', cat_event: '🎉 Events', cat_social: '☕ Essen & Trinken', cat_question: '❓ Frage', cat_deal: '⚡ Deals', fab_create: '＋ Vibe teilen' },
+      es: { live_badge: 'Mapa de Ciudad en Vivo', tagline: 'Mira momentos en vivo, lugares y vibras cerca de ti', login_tab: 'Entrar', signup_tab: 'Registrarse', google_btn: 'Continuar con Google', or_email: 'o correo', login_btn: 'Entrar', return_loc: 'Mi ubicación', cat_all: '🔥 Todo', cat_sponsored: '🚩 Locales', cat_event: '🎉 Eventos', cat_social: '☕ Comida', cat_question: '❓ Pregunta', cat_deal: '⚡ Ofertas', fab_create: '＋ Publicar Vibe' },
+      fr: { live_badge: 'Carte de Ville en Direct', tagline: 'Vivez les moments et lieux autour de vous en direct', login_tab: 'Connexion', signup_tab: 'Inscription', google_btn: 'Continuer avec Google', or_email: 'ou e-mail', login_btn: 'Connexion', return_loc: 'Ma position', cat_all: '🔥 Tout', cat_sponsored: '🚩 Lieux', cat_event: '🎉 Événements', cat_social: '☕ Café & Resto', cat_question: '❓ Question', cat_deal: '⚡ Bons plans', fab_create: '＋ Partager un Vibe' },
+      ar: { live_badge: 'خريطة المدينة المباشرة', tagline: 'اكتشف اللحظات والأماكن الحية حول مدينتك', login_tab: 'دخول', signup_tab: 'تسجيل', google_btn: 'المتابعة مع Google', or_email: 'أو بالبريد', login_btn: 'دخول', return_loc: 'موقعي', cat_all: '🔥 الكل', cat_sponsored: '🚩 الأماكن', cat_event: '🎉 فعاليات', cat_social: '☕ طعام', cat_question: '❓ سؤال', cat_deal: '⚡ عروض', fab_create: '＋ أضف Vibe' },
+      ru: { live_badge: 'Живая карта города', tagline: 'Смотрите живые события и места рядом с вами', login_tab: 'Войти', signup_tab: 'Регистрация', google_btn: 'Войти через Google', or_email: 'или по почте', login_btn: 'Войти', return_loc: 'Мое место', cat_all: '🔥 Все', cat_sponsored: '🚩 Места', cat_event: '🎉 События', cat_social: '☕ Еда и напитки', cat_question: '❓ Вопрос', cat_deal: '⚡ Скидки', fab_create: '＋ Добавить Vibe' },
+      it: { live_badge: 'Mappa Città Live', tagline: 'Scopri momenti dal vivo, locali e vibe intorno a te', login_tab: 'Accedi', signup_tab: 'Registrati', google_btn: 'Continua con Google', or_email: 'o email', login_btn: 'Accedi', return_loc: 'La mia posizione', cat_all: '🔥 Tutto', cat_sponsored: '🚩 Locali', cat_event: '🎉 Eventi', cat_social: '☕ Cibo & Drink', cat_question: '❓ Domande', cat_deal: '⚡ Offerte', fab_create: '＋ Pubblica Vibe' },
+      pt: { live_badge: 'Mapa da Cidade ao Vivo', tagline: 'Veja momentos ao vivo, lugares e vibes perto de você', login_tab: 'Entrar', signup_tab: 'Cadastrar', google_btn: 'Continuar com Google', or_email: 'ou e-mail', login_btn: 'Entrar', return_loc: 'Minha localização', cat_all: '🔥 Tudo', cat_sponsored: '🚩 Locais', cat_event: '🎉 Eventos', cat_social: '☕ Comida', cat_question: '❓ Pergunta', cat_deal: '⚡ Ofertas', fab_create: '＋ Postar Vibe' },
+      ja: { live_badge: 'ライブシティマップ', tagline: '街のリアルタイムな瞬間やスポットをチェック', login_tab: 'ログイン', signup_tab: '新規登録', google_btn: 'Googleで続行', or_email: 'またはメール', login_btn: 'ログイン', return_loc: '現在地', cat_all: '🔥 すべて', cat_sponsored: '🚩 スポット', cat_event: '🎉 イベント', cat_social: '☕ グルメ', cat_question: '❓ 質問', cat_deal: '⚡ お得情報', fab_create: '＋ Vibeを投稿' },
+      ko: { live_badge: '실시간 시티 맵', tagline: '내 주변의 실시간 순간과 핫플레이스를 확인하세요', login_tab: '로그인', signup_tab: '회원가입', google_btn: 'Google로 계속하기', or_email: '또는 이메일', login_btn: '로그인', return_loc: '내 위치', cat_all: '🔥 전체', cat_sponsored: '🚩 매장', cat_event: '🎉 이벤트', cat_social: '☕ 맛집/카페', cat_question: '❓ 질문', cat_deal: '⚡ 혜택', fab_create: '＋ Vibe 남기기' },
+      zh: { live_badge: '城市实时地图', tagline: '探索身边的实时动态、热门地点与氛围', login_tab: '登录', signup_tab: '注册', google_btn: '使用 Google 继续', or_email: '或使用邮箱', login_btn: '登录', return_loc: '我的位置', cat_all: '🔥 全部', cat_sponsored: '🚩 商家', cat_event: '🎉 活动', cat_social: '☕ 美食', cat_question: '❓ 问答', cat_deal: '⚡ 优惠', fab_create: '＋ 发布 Vibe' }
     };
 
     const GLOBAL_DAILY_VENUES = [
-      { city: "İstanbul, Türkiye", venue: "Zorlu PSM — Beşiktaş", lat: 41.0664, lng: 29.0172, text: "🎭 Zorlu PSM Sahne Etkinliği & Akşam Konseri — Gidecekler yorumda buluşsun!" },
-      { city: "İstanbul, Türkiye", venue: "Moda Sahnesi — Kadıköy", lat: 40.9856, lng: 29.0268, text: "🎬 Kadıköy Moda Sahnesi Tiyatro & Akustik Gece — Katılacak olanlar?" },
+      { city: "İstanbul, Türkiye", venue: "Zorlu PSM — Beşiktaş", lat: 41.0664, lng: 29.0172, text: "🎭 Zorlu PSM Sahne Etkinliği & Akşam Konseri" },
+      { city: "İstanbul, Türkiye", venue: "Moda Sahnesi — Kadıköy", lat: 40.9856, lng: 29.0268, text: "🎬 Kadıköy Moda Sahnesi Tiyatro & Akustik Gece" },
       { city: "Ankara, Türkiye", venue: "CSO Ada Ankara", lat: 39.9365, lng: 32.8510, text: "🎻 CSO Ada Ankara Senfoni & Kültür Sanat Etkinliği" },
       { city: "İzmir, Türkiye", venue: "Alsancak Kordon", lat: 38.4278, lng: 27.1436, text: "🌊 İzmir Kordon Gün Batımı Müzik & Sosyal Buluşma" },
       { city: "Antalya, Türkiye", venue: "Antalya Kültür Merkezi (AKM)", lat: 36.8856, lng: 30.6778, text: "🎭 AKM Kültür Sanat Gösterisi & Akşam Etkinliği" },
       { city: "Bursa, Türkiye", venue: "Merinos Kültür Merkezi", lat: 40.1958, lng: 29.0487, text: "🎪 Merinos AKKM Konser & Gençlik Etkinliği" },
-      { city: "Malatya, Türkiye", venue: "Malatya Kongre Kültür Merkezi", lat: 38.3489, lng: 38.3186, text: "🏛️ Malatya Kültür Merkezi Akşam Etkinliği & Söyleşi" },
-      { city: "Gaziantep, Türkiye", venue: "Şahinbey Kültür Merkezi", lat: 37.0428, lng: 37.3612, text: "🎶 Gaziantep Kültür Sanat Gecesi & Yerel Etkinlik" },
-      { city: "Adana, Türkiye", venue: "Çukurova Kültür Merkezi", lat: 37.0561, lng: 35.3547, text: "🎉 Adana Kampüs & Şehir Konser Etkinliği" },
-      { city: "Eskişehir, Türkiye", venue: "Odunpazarı OMM Meydanı", lat: 39.7647, lng: 30.5250, text: "🎨 Odunpazarı Sanat Buluşması & Akşam Etkinliği" },
-      { city: "London, UK", venue: "Southbank Centre & O2", lat: 51.5058, lng: -0.1168, text: "🇬🇧 London Southbank Live Music & Cultural Evening" },
-      { city: "Paris, France", venue: "Place de la République", lat: 48.8675, lng: 2.3638, text: "🇫🇷 Paris Evening Street Art & Live Acoustic Session" },
-      { city: "Berlin, Germany", venue: "Alexanderplatz & Kulturforum", lat: 52.5219, lng: 13.4132, text: "🇩🇪 Berlin Night Culture & Electronic Music Gathering" },
-      { city: "New York, USA", venue: "Times Square & Bryant Park", lat: 40.7536, lng: -73.9832, text: "🇺🇸 NYC Bryant Park Live Evening Event & Social Meetup" },
-      { city: "Madrid, Spain", venue: "Gran Vía & Plaza Mayor", lat: 40.4155, lng: -3.7074, text: "🇪🇸 Madrid Evening Tapas & Live Flamenco Night" },
-      { city: "Rome, Italy", venue: "Piazza Navona", lat: 41.8992, lng: 12.4731, text: "🇮🇹 Roma Piazza Navona Evening Art & Music Walk" },
-      { city: "Dubai, UAE", venue: "Dubai Marina & Downtown", lat: 25.1972, lng: 55.2744, text: "🇦🇪 Dubai Downtown Evening Fountain Show & Meetup" },
-      { city: "Tokyo, Japan", venue: "Shibuya Crossing & Yoyogi", lat: 35.6595, lng: 139.7004, text: "🇯🇵 Tokyo Shibuya Night City Vibes & Live Event" },
-      { city: "Seoul, South Korea", venue: "Hongdae Festival Street", lat: 37.5563, lng: 126.9237, text: "🇰🇷 Seoul Hongdae Indie Music & Street Performance" }
+      { city: "Malatya, Türkiye", venue: "Malatya Kongre Kültür Merkezi", lat: 38.3489, lng: 38.3186, text: "🏛️ Malatya Kültür Merkezi Akşam Etkinliği" },
+      { city: "London, UK", venue: "Southbank Centre", lat: 51.5058, lng: -0.1168, text: "🇬🇧 London Southbank Live Music & Cultural Evening" },
+      { city: "Paris, France", venue: "Place de la République", lat: 48.8675, lng: 2.3638, text: "🇫🇷 Paris Evening Street Art & Live Session" },
+      { city: "Berlin, Germany", venue: "Alexanderplatz", lat: 52.5219, lng: 13.4132, text: "🇩🇪 Berlin Night Culture & Music Gathering" },
+      { city: "New York, USA", venue: "Times Square & Bryant Park", lat: 40.7536, lng: -73.9832, text: "🇺🇸 NYC Bryant Park Live Evening Event" }
     ];
 
     let currentLang = localStorage.getItem('vibepin_lang') || ((navigator.language || '').toLowerCase().slice(0, 2));
@@ -724,17 +861,130 @@
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, isBirthdayToday = false;
     let adminPerms = { isFounder: false, can_tickets: false, can_events: false, can_flags: false, can_delete_pins: false };
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0 };
-    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, myLocationMarker = null;
+    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, heatmapLayer = null, heatmapVisible = false, myLocationMarker = null;
     let draggableFlagMarker = null, pendingFlagCoords = null;
-    let selectedPhotoFile = null, selectedAvatarFile = null, selectedGhostAvatarFile = null, selectedVenuePhotoFile = null, selectedDmPhotoFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
+    let selectedPhotoFile = null, selectedAvatarFile = null, selectedGhostAvatarFile = null, selectedVenuePhotoFile = null;
+    let selectedDmPhotoFile = null, dmAudioBlob = null, dmRecorder = null, dmAudioChunks = [], speechRecognizer = null, isListeningStt = false;
+    let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let extraFriendQuota = 0, activeChatFriend = null, listPollTimer = null;
     let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waBlockedCache = [], realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
+    let sessionId = localStorage.getItem('vibepin_sid') || ('s_' + Math.random().toString(36).slice(2, 11));
+    localStorage.setItem('vibepin_sid', sessionId);
+    let sessionStartMs = Date.now();
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
     function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3600); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
     function hasVipAccess() { return isFounder() || adminPerms.can_events || isBirthdayToday; }
     function formatTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+    /* 📊 Kurucu Sayaç & Süre Takibi */
+    async function recordAnalytics(eventType, durationSec = 0) {
+      if (!sb) return;
+      try {
+        await sb.from('analytics_events').insert([{
+          user_id: currentUser ? currentUser.id : null,
+          session_id: sessionId,
+          event_type: eventType,
+          duration_sec: durationSec
+        }]);
+      } catch (_e) {}
+    }
+
+    function startSessionHeartbeat() {
+      recordAnalytics('visit', 0);
+      setInterval(() => {
+        if (!currentUser || document.hidden) return;
+        const sec = Math.max(10, Math.round((Date.now() - sessionStartMs) / 1000));
+        sessionStartMs = Date.now();
+        recordAnalytics('heartbeat', sec);
+      }, 30000);
+    }
+
+    async function openFounderStatsModal() {
+      if (!isFounder()) return;
+      openModal('founderStatsModal');
+      loadFounderStats();
+    }
+
+    async function loadFounderStats() {
+      if (!isFounder()) return;
+      const [{ data: evs }, { count: pinCnt }, { count: cmtCnt }] = await Promise.all([
+        sb.from('analytics_events').select('user_id,session_id,event_type,duration_sec').limit(2000),
+        sb.from('pins').select('*', { count: 'exact', head: true }),
+        sb.from('pin_comments').select('*', { count: 'exact', head: true })
+      ]);
+      const rows = evs || [];
+      const uniqueIds = new Set(rows.map(r => r.user_id || r.session_id).filter(Boolean));
+      const heartbeats = rows.filter(r => r.event_type === 'heartbeat');
+      const totalSec = heartbeats.reduce((acc, r) => acc + (r.duration_sec || 0), 0);
+      const avgSec = uniqueIds.size ? Math.round(totalSec / uniqueIds.size) : 0;
+      const mins = Math.floor(avgSec / 60);
+      const remSec = avgSec % 60;
+
+      document.getElementById('statUniqueUsers').textContent = uniqueIds.size;
+      document.getElementById('statAvgDuration').textContent = mins > 0 ? `${mins}dk ${remSec}sn` : `${remSec}sn`;
+      document.getElementById('statTotalPins').textContent = pinCnt || 0;
+      document.getElementById('statTotalComments').textContent = cmtCnt || 0;
+    }
+
+    /* 🌡️ 5. Yoğunluğa Göre Bölge Renklendirmesi (Yoğun = Kırmızı, Boş = Açık) */
+    function toggleHeatmap() {
+      heatmapVisible = !heatmapVisible;
+      const btn = document.getElementById('heatmapToggleBtn');
+      btn.style.background = heatmapVisible ? 'rgba(239,68,68,0.28)' : 'var(--panel)';
+      btn.style.color = heatmapVisible ? '#ffffff' : '#fca5a5';
+      renderHeatmap();
+      showToast(heatmapVisible ? '🌡️ Bölge yoğunluk katmanı açıldı (Kırmızı = Yoğun)' : '🌡️ Yoğunluk katmanı kapatıldı');
+    }
+
+    function renderHeatmap() {
+      if (!map) return;
+      if (heatmapLayer) { map.removeLayer(heatmapLayer); heatmapLayer = null; }
+      if (!heatmapVisible || !allPins.length) return;
+      heatmapLayer = L.layerGroup();
+
+      const cells = [];
+      allPins.forEach(p => {
+        let hit = cells.find(c => getDistanceKm(c.lat, c.lng, p.latitude, p.longitude) <= 0.65);
+        if (hit) {
+          hit.count += 1;
+          hit.lat = (hit.lat + p.latitude) / 2;
+          hit.lng = (hit.lng + p.longitude) / 2;
+        } else {
+          cells.push({ lat: p.latitude, lng: p.longitude, count: 1 });
+        }
+      });
+
+      const maxCount = Math.max(...cells.map(c => c.count), 1);
+      cells.forEach(cell => {
+        const ratio = cell.count / maxCount;
+        let fillColor = '#bae6fd';
+        let strokeColor = '#38bdf8';
+        let fillOpacity = 0.20;
+
+        if (ratio >= 0.66) {
+          fillColor = '#ef4444';
+          strokeColor = '#dc2626';
+          fillOpacity = 0.44;
+        } else if (ratio >= 0.34) {
+          fillColor = '#fb923c';
+          strokeColor = '#f97316';
+          fillOpacity = 0.32;
+        }
+
+        const circle = L.circle([cell.lat, cell.lng], {
+          radius: 260 + cell.count * 65,
+          color: strokeColor,
+          weight: 1.5,
+          fillColor,
+          fillOpacity
+        });
+        heatmapLayer.addLayer(circle);
+      });
+
+      heatmapLayer.addTo(map);
+    }
 
     async function loadUserPermissions() {
       if (!currentUser || !currentUser.email) return;
@@ -812,7 +1062,7 @@
       applyLanguage(); initSwipeMapBar();
       if (!window.supabase) { document.getElementById('loginStatus').textContent = 'Connection error.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v26' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v27' }
       });
       document.getElementById('googleLoginBtn').addEventListener('click', () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } }));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
@@ -843,29 +1093,75 @@
       currentUser = user;
       await loadMyProfile(); await loadUserPermissions();
       document.getElementById('authGate').style.display = 'none';
+      document.getElementById('founderStatsBtn').style.display = isFounder() ? 'flex' : 'none';
       document.getElementById('ghostBtn').style.display = isFounder() ? 'flex' : 'none';
       document.getElementById('manageAdminsBtn').style.display = isFounder() ? 'block' : 'none';
       document.getElementById('venueFlagQuickBtn').style.display = adminPerms.can_flags ? 'flex' : 'none';
       document.getElementById('trEventsBtn').style.display = adminPerms.can_events ? 'flex' : 'none';
       document.getElementById('adminTicketsBtn').style.display = adminPerms.can_tickets ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
-      locateUser(); await loadBlockedUsers(); loadPins(); setupRealtime(); checkNotifications();
+      locateUser(); await loadBlockedUsers(); loadPins(); setupRealtime(); startSessionHeartbeat(); checkNotifications();
       setInterval(checkNotifications, 10000);
+    }
+
+    /* 🏪 İşletme Profili Kaydet & Haritada Göster */
+    function openBusinessSetupModal() { openModal('businessSetupModal'); }
+    async function saveBusinessProfile() {
+      const bizName = document.getElementById('bizNameInput').value.trim();
+      const bizCat = document.getElementById('bizCategorySelect').value;
+      const bizAddr = document.getElementById('bizAddressInput').value.trim();
+      const selling = document.getElementById('bizSellingInput').value.trim();
+      const campType = document.getElementById('bizCampaignTypeSelect').value;
+      const campDetail = document.getElementById('bizCampaignDetailInput').value.trim();
+      if (!bizName || !bizAddr || !campDetail) return showToast('İşletme adı, tam adres ve kampanya detayını yazın.');
+
+      const btn = document.getElementById('saveBizBtn'); btn.disabled = true; btn.textContent = '📍 Adres Konumlandırılıyor...';
+      let lat = map ? map.getCenter().lat : userCoords[0];
+      let lng = map ? map.getCenter().lng : userCoords[1];
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(bizAddr)}`);
+        const data = await res.json();
+        if (data && data[0]) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
+      } catch (_e) {}
+
+      await sb.from('business_profiles').insert([{
+        owner_id: currentUser.id,
+        business_name: bizName,
+        category: bizCat,
+        address: bizAddr,
+        selling_items: selling,
+        campaign_type: campType,
+        campaign_detail: campDetail,
+        latitude: lat,
+        longitude: lng
+      }]);
+
+      const fullText = `${campDetail}${selling ? ' • Ürünler: ' + selling : ''} (${bizAddr})`;
+      await sb.from('pins').insert([{
+        user_id: currentUser.id,
+        ghost_author_name: bizName,
+        category: 'deal',
+        content_text: fullText,
+        latitude: lat,
+        longitude: lng,
+        is_sponsored: true,
+        sponsor_title: bizName,
+        expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
+      }]);
+
+      btn.disabled = false; btn.textContent = '💾 İşletme Profilini Kaydet & Haritada Göster';
+      closeModal('businessSetupModal');
+      if (map) map.flyTo([lat, lng], 15);
+      showToast('🏪 İşletme kaydedildi ve haritada bayraklandı!');
+      loadPins();
     }
 
     async function openAdminRolesModal() { if (!isFounder()) return; closeModal('profileModal'); document.getElementById('newAdminEmailInput').value = ''; openModal('adminRolesModal'); loadAdminsList(); }
     async function loadAdminsList() {
       const box = document.getElementById('adminsListContainer');
-      const { data, error } = await sb.from('app_admins').select('*').order('created_at', { ascending: false });
-      if (error) { box.innerHTML = `<div style="color:#f87171;font-size:12px;">${esc(error.message)}</div>`; return; }
-      if (!data || !data.length) { box.innerHTML = '<div style="color:var(--muted);font-size:12.5px;">Henüz atanmış alt admin yok.</div>'; return; }
-      box.innerHTML = data.map(a => {
-        const badges = [a.can_tickets ? '📬 Destek' : '', a.can_events ? '🌍 Etkinlik' : '', a.can_flags ? '🚩 Bayrak' : '', a.can_delete_pins ? '🗑️ Silme' : ''].filter(Boolean).join(' • ') || 'Yetki Yok';
-        return `<div style="padding:10px 12px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid var(--border);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <div style="min-width:0;"><div style="font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;">${esc(a.email)}</div><div style="font-size:11px;color:#38bdf8;margin-top:2px;">${badges}</div></div>
-          <button onclick="removeAdmin('${esc(a.email)}')" style="padding:6px 10px;border-radius:10px;border:none;background:rgba(239,68,68,0.2);color:#fca5a5;font-size:11.5px;font-weight:700;cursor:pointer;">Kaldır</button>
-        </div>`;
-      }).join('');
+      const { data } = await sb.from('app_admins').select('*').order('created_at', { ascending: false });
+      box.innerHTML = !(data || []).length ? '<div style="color:var(--muted);font-size:12.5px;">Henüz atanmış alt admin yok.</div>' : data.map(a => `<div style="padding:10px 12px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid var(--border);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;"><div style="font-size:13px;font-weight:800;">${esc(a.email)}</div><button onclick="removeAdmin('${esc(a.email)}')" style="padding:6px 10px;border-radius:10px;border:none;background:rgba(239,68,68,0.2);color:#fca5a5;font-size:11.5px;font-weight:700;cursor:pointer;">Kaldır</button></div>`).join('');
     }
     async function saveAdminPermissions() {
       if (!isFounder()) return;
@@ -913,7 +1209,7 @@
       const blocked = blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id);
       if (blocked) sub.textContent = '';
       else if (typingUsersMap[activeChatFriend.id]) { sub.textContent = 'yazıyor...'; sub.style.color = 'var(--wa-green)'; }
-      else { sub.textContent = 'çevrimiçi • VibePin'; sub.style.color = '#8696a0'; }
+      else { sub.textContent = 'çevrimiçi • VibePin'; sub.style.color = '#54656f'; }
     }
 
     async function gateSignIn() {
@@ -963,6 +1259,33 @@
       closeModal('profileModal'); showToast('✅ Profil kaydedildi!'); loadMyProfile(); loadPins();
     }
 
+    /* 🗑️ 3. Uygulama İçi Hesap Silme */
+    function openDeleteAccountModal() {
+      document.getElementById('deleteConfirmInput').value = '';
+      document.getElementById('deleteReasonInput').value = '';
+      closeModal('profileModal');
+      openModal('deleteAccountModal');
+    }
+
+    async function deleteMyAccount() {
+      const confirmTxt = document.getElementById('deleteConfirmInput').value.trim().toUpperCase();
+      if (confirmTxt !== 'SIL') return showToast('Lütfen onaylamak için SIL yazın.');
+      const reason = document.getElementById('deleteReasonInput').value.trim();
+      const btn = document.getElementById('confirmDeleteAccBtn'); btn.disabled = true;
+
+      await sb.from('account_deletion_requests').insert([{ user_id: currentUser.id, email: currentUser.email, reason }]);
+      await sb.from('direct_messages').delete().or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+      await sb.from('pins').delete().eq('user_id', currentUser.id);
+      await sb.from('profiles').delete().eq('id', currentUser.id);
+
+      await sb.auth.signOut();
+      currentUser = null;
+      btn.disabled = false;
+      closeModal('deleteAccountModal');
+      document.getElementById('authGate').style.display = 'flex';
+      showToast('🗑️ Hesabın ve verilerin silindi.');
+    }
+
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
     function locateUser() { if (!navigator.geolocation || !map) return; navigator.geolocation.getCurrentPosition((pos) => { realGpsCoords = [pos.coords.latitude, pos.coords.longitude]; userCoords = [...realGpsCoords]; map.flyTo(userCoords, 15); if (myLocationMarker) myLocationMarker.setLatLng(realGpsCoords); document.getElementById('returnLocBtn').style.display = 'none'; }, () => {}, { enableHighAccuracy: true }); }
     function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👑 Kurucu Hayalet Modu Açık' : 'Kapalı'); }
@@ -1002,7 +1325,6 @@
       if (!adminPerms.can_events) return;
       const country = document.getElementById('glCountryInput').value.trim() || 'Türkiye', city = document.getElementById('glCityInput').value.trim(), venueAddr = document.getElementById('glVenueAddressInput').value.trim(), desc = document.getElementById('glEventDescInput').value.trim();
       if (!city || !venueAddr || !desc) return showToast('Şehir, adres ve detayı yazın.');
-      if (allPins.find(p => (p.content_text || '').toLowerCase().includes(venueAddr.toLowerCase()) && (p.ghost_author_name || '').toLowerCase().includes(city.toLowerCase()))) return showToast('⚠️ Bu mekanda zaten aktif etkinlik var!');
       const btn = document.getElementById('publishSingleGlBtn'); btn.disabled = true; btn.textContent = '🔍 Konum Aranıyor...';
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${venueAddr}, ${city}, ${country}`)}`);
@@ -1019,7 +1341,7 @@
       if (!adminPerms.can_flags || !map) return showToast('⛔ Yetkiniz yok.');
       if (draggableFlagMarker) map.removeLayer(draggableFlagMarker);
       const center = map.getCenter(); pendingFlagCoords = [center.lat, center.lng];
-      const dragIcon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-banner">🚩 Sürükle & Bırak</div><div class="venue-flag-pole"></div></div>`, iconSize: [140, 44], iconAnchor: [16, 44] });
+      const dragIcon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-card">🚩 Sürükle & Bırak</div><div class="venue-flag-pole"></div></div>`, iconSize: [150, 44], iconAnchor: [20, 44] });
       draggableFlagMarker = L.marker(center, { icon: dragIcon, draggable: true, zIndexOffset: 1200 }).addTo(map);
       draggableFlagMarker.on('dragend', () => { const pos = draggableFlagMarker.getLatLng(); pendingFlagCoords = [pos.lat, pos.lng]; });
       document.getElementById('flagPlaceBar').style.display = 'flex';
@@ -1043,8 +1365,8 @@
       let image_url = null;
       if (selectedVenuePhotoFile) { const path = `${currentUser.id}/venue_${Date.now()}.jpg`; const { error } = await sb.storage.from('vibe-media').upload(path, selectedVenuePhotoFile); if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl; }
       const target = pendingFlagCoords || (map ? [map.getCenter().lat, map.getCenter().lng] : userCoords);
-      await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: venueName, category: 'deal', content_text: campaignDesc, latitude: target[0], longitude: target[1], image_url, is_sponsored: true, sponsor_title: offerBadge ? `${venueName} • ${offerBadge}` : venueName, expires_at: new Date(Date.now() + durationHours * 3600 * 1000).toISOString() }]);
-      pendingFlagCoords = null; closeModal('venueFlagModal'); showToast('🚩 Bayrak dikildi!'); loadPins();
+      await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: venueName, category: 'deal', content_text: offerBadge ? `${offerBadge}: ${campaignDesc}` : campaignDesc, latitude: target[0], longitude: target[1], image_url, is_sponsored: true, sponsor_title: venueName, expires_at: new Date(Date.now() + durationHours * 3600 * 1000).toISOString() }]);
+      pendingFlagCoords = null; closeModal('venueFlagModal'); showToast('🚩 İşletme bayrağı dikildi!'); loadPins();
     }
 
     function openCreatePin(fromGhost = false) {
@@ -1099,7 +1421,7 @@
     async function loadPins() {
       if (!currentUser) return;
       const { data } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
-      if (data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderPins(); }
+      if (data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderPins(); renderHeatmap(); }
     }
 
     function renderPins() {
@@ -1107,9 +1429,15 @@
       const filtered = currentFilter === 'all' ? allPins : (currentFilter === 'sponsored' ? allPins.filter(p => p.is_sponsored) : allPins.filter(p => p.category === currentFilter));
       const z = map ? map.getZoom() : 14; const radiusKm = z <= 12 ? 1.2 : (z === 13 ? 0.7 : (z === 14 ? 0.38 : (z === 15 ? 0.18 : 0.07)));
 
+      /* 🚩 4. Temiz, Kaymayan ve Okunaklı İşletme Bayrakları */
       filtered.filter(p => p.is_sponsored).forEach(pin => {
-        const label = esc(pin.sponsor_title || pin.ghost_author_name || 'Sponsorlu Mekan');
-        const icon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-banner" style="max-width:136px; overflow:hidden; text-overflow:ellipsis;">🚩 ${label}</div><div class="venue-flag-pole"></div></div>`, iconSize: [140, 44], iconAnchor: [16, 44] });
+        const label = esc(pin.sponsor_title || pin.ghost_author_name || 'İşletme');
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="venue-flag-pin"><div class="venue-flag-card"><span>🚩</span><span>${label}</span></div><div class="venue-flag-pole"></div></div>`,
+          iconSize: [165, 44],
+          iconAnchor: [24, 44]
+        });
         const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: 900 });
         m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
       });
@@ -1126,13 +1454,13 @@
           const pin = cluster.items[0], imp = getPinImportance(pin), meta = CAT_META[pin.category] || CAT_META.event;
           const isGuidePin = (pin.ghost_author_name || '').includes('Etkinlik Rehberi');
           const badge = isGuidePin ? '🎟️' : (imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji))));
-          const extra = imp.isTrending ? 'width:48px;height:48px;border:3px solid #ffd700;' : '';
+          const extra = imp.isTrending ? 'width:48px;height:48px;border:3px solid #fffc00;' : '';
           const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${isGuidePin ? '#0284c7' : (imp.hasAlertWord ? '#ef4444' : meta.color)};${extra}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
           const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: imp.isTrending ? 700 : 400 });
           m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
         } else {
           const hasHot = cluster.items.some(p => getPinImportance(p).isTrending);
-          const icon = L.divIcon({ className: '', html: `<div class="cluster-pin" style="${hasHot ? 'background:linear-gradient(135deg,#ef4444,#ff7b39);border-color:#ffd700;' : ''}"><span style="font-size:12px;">${hasHot ? '🔥' : '📍'}</span><span style="font-size:12px;">+${cluster.items.length}</span></div>`, iconSize: [48, 48], iconAnchor: [24, 24] });
+          const icon = L.divIcon({ className: '', html: `<div class="cluster-pin" style="${hasHot ? 'background:linear-gradient(135deg,#ef4444,#dd2a7b);border-color:#fffc00;' : ''}"><span style="font-size:12px;">${hasHot ? '🔥' : '📍'}</span><span style="font-size:12px;">+${cluster.items.length}</span></div>`, iconSize: [48, 48], iconAnchor: [24, 24] });
           const m = L.marker([cluster.lat, cluster.lng], { icon, zIndexOffset: 650 });
           m.on('click', () => openClusterModal(cluster.items)); markersLayer.addLayer(m);
         }
@@ -1143,7 +1471,7 @@
       document.getElementById('clusterTitle').textContent = `📍 Bu Bölgede ${items.length} Paylaşım`;
       document.getElementById('clusterListContainer').innerHTML = items.map(pin => {
         const imp = getPinImportance(pin);
-        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid ${imp.isTrending ? '#ffd700' : 'var(--border)'};cursor:pointer;">
+        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid ${imp.isTrending ? '#fffc00' : 'var(--border)'};cursor:pointer;">
           <div style="font-size:13.5px;font-weight:800;">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')} ${imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : '')}</div>
           <div style="font-size:12.5px;color:#cbd5e1;">${esc(pin.content_text)}</div>
         </div>`;
@@ -1248,14 +1576,14 @@
       if (waTab === 'chats') {
         const q = (document.getElementById('waSearchInput').value || '').toLowerCase();
         const list = waFriendsCache.filter(x => x.name.toLowerCase().includes(q));
-        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">Sohbet yok.</div>' : list.map(item => {
-          const prev = typingUsersMap[item.friendId] ? '<span style="color:var(--wa-green);">yazıyor...</span>' : (item.lastMsg ? esc(item.lastMsg.message_text || '📷 Fotoğraf') : 'Mesaj gönder 👋');
-          return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')"><div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.blockedByThem)}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;">${esc(item.name)}</div><div style="font-size:13px;color:#8696a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${prev}</div></div>${item.unread ? `<span class="wa-badge">${item.unread}</span>` : ''}</div>`;
+        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#667781;">Sohbet yok.</div>' : list.map(item => {
+          const prev = typingUsersMap[item.friendId] ? '<span style="color:var(--wa-green);font-weight:700;">yazıyor...</span>' : (item.lastMsg ? esc(item.lastMsg.message_text || (item.lastMsg.audio_url ? '🎙️ Sesli mesaj' : '📷 Fotoğraf')) : 'Mesaj gönder 👋');
+          return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')"><div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.blockedByThem)}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#111b21;">${esc(item.name)}</div><div style="font-size:13px;color:#54656f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${prev}</div></div>${item.unread ? `<span class="wa-badge">${item.unread}</span>` : ''}</div>`;
         }).join('');
       } else if (waTab === 'requests') {
-        box.innerHTML = !waIncomingCache.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">İstek yok.</div>' : waIncomingCache.map(f => `<div class="wa-chat-row" style="cursor:default;"><div style="flex:1;font-weight:700;">${esc(f.sender_name || 'Kullanıcı')}</div><button onclick="respondFriend('${f.id}','accepted')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#111b21;font-weight:800;">✓</button></div>`).join('');
+        box.innerHTML = !waIncomingCache.length ? '<div style="padding:36px;text-align:center;color:#667781;">İstek yok.</div>' : waIncomingCache.map(f => `<div class="wa-chat-row" style="cursor:default;"><div style="flex:1;font-weight:700;color:#111b21;">${esc(f.sender_name || 'Kullanıcı')}</div><button onclick="respondFriend('${f.id}','accepted')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#fff;font-weight:800;">✓</button></div>`).join('');
       } else {
-        box.innerHTML = !waBlockedCache.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">Engelli yok.</div>' : waBlockedCache.map(b => `<div class="wa-chat-row" style="cursor:default;"><div class="wa-avatar">${avatarHtml(null, '🚫', true)}</div><div style="flex:1;font-weight:700;">${esc(b.name)}</div><button onclick="unblockUser('${b.blocked_id}')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#111b21;font-weight:800;">Kaldır</button></div>`).join('');
+        box.innerHTML = !waBlockedCache.length ? '<div style="padding:36px;text-align:center;color:#667781;">Engelli yok.</div>' : waBlockedCache.map(b => `<div class="wa-chat-row" style="cursor:default;"><div class="wa-avatar">${avatarHtml(null, '🚫', true)}</div><div style="flex:1;font-weight:700;color:#111b21;">${esc(b.name)}</div><button onclick="unblockUser('${b.blocked_id}')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#fff;font-weight:800;">Kaldır</button></div>`).join('');
       }
     }
 
@@ -1268,19 +1596,80 @@
     function handleDmPhotoSelect(input) {
       if (input.files?.[0]) {
         selectedDmPhotoFile = input.files[0];
-        document.getElementById('dmPendingPhotoThumb').src = URL.createObjectURL(selectedDmPhotoFile);
-        document.getElementById('dmPendingPhotoBar').style.display = 'flex';
+        dmAudioBlob = null;
+        document.getElementById('dmPendingMediaLabel').innerHTML = `<img src="${URL.createObjectURL(selectedDmPhotoFile)}" style="width:36px;height:36px;border-radius:7px;object-fit:cover;" /> <span>📷 Fotoğraf hazır</span>`;
+        document.getElementById('dmPendingMediaBar').style.display = 'flex';
       }
     }
-    function clearPendingDmPhoto() {
+
+    async function toggleDmVoiceRecord() {
+      const btn = document.getElementById('dmVoiceRecBtn');
+      if (dmRecorder && dmRecorder.state === 'recording') {
+        dmRecorder.stop();
+        btn.classList.remove('recording');
+        btn.textContent = '🎙️';
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        dmAudioChunks = [];
+        dmRecorder = new MediaRecorder(stream);
+        dmRecorder.ondataavailable = e => dmAudioChunks.push(e.data);
+        dmRecorder.onstop = () => {
+          dmAudioBlob = new Blob(dmAudioChunks, { type: 'audio/webm' });
+          selectedDmPhotoFile = null;
+          document.getElementById('dmPendingMediaLabel').innerHTML = '<span>🎙️ Ses kaydı hazır — göndermek için ➤ bas</span>';
+          document.getElementById('dmPendingMediaBar').style.display = 'flex';
+          stream.getTracks().forEach(t => t.stop());
+        };
+        dmRecorder.start();
+        btn.classList.add('recording');
+        btn.textContent = '⏹️';
+      } catch (_e) {
+        showToast('Mikrofon izni verilmedi.');
+      }
+    }
+
+    function toggleSpeechToText() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return showToast('Bu tarayıcıda sesle yazma desteklenmiyor.');
+      const btn = document.getElementById('dmSttBtn');
+      if (isListeningStt && speechRecognizer) {
+        speechRecognizer.stop();
+        isListeningStt = false;
+        btn.classList.remove('recording');
+        return;
+      }
+      speechRecognizer = new SR();
+      speechRecognizer.lang = currentLang === 'en' ? 'en-US' : 'tr-TR';
+      speechRecognizer.interimResults = false;
+      isListeningStt = true;
+      btn.classList.add('recording');
+      showToast('🎤 Dinleniyor, konuşabilirsin...');
+
+      speechRecognizer.onresult = (ev) => {
+        const transcript = ev.results[0]?.[0]?.transcript || '';
+        const inp = document.getElementById('dmInput');
+        inp.value = inp.value ? `${inp.value} ${transcript}` : transcript;
+      };
+      speechRecognizer.onerror = () => showToast('Ses metne çevrilemedi.');
+      speechRecognizer.onend = () => {
+        isListeningStt = false;
+        btn.classList.remove('recording');
+      };
+      speechRecognizer.start();
+    }
+
+    function clearPendingDmMedia() {
       selectedDmPhotoFile = null;
+      dmAudioBlob = null;
       document.getElementById('dmPhotoInput').value = '';
-      document.getElementById('dmPendingPhotoBar').style.display = 'none';
+      document.getElementById('dmPendingMediaBar').style.display = 'none';
     }
 
     async function openDirectChat(friendId) {
       document.getElementById('waChatMenu').style.display = 'none';
-      clearPendingDmPhoto();
+      clearPendingDmMedia();
       const cached = waFriendsCache.find(x => x.friendId === friendId);
       const hideAv = blockedIds.includes(friendId) || blockedByIds.includes(friendId);
       activeChatFriend = { id: friendId, name: cached?.name || 'Vibe Üyesi', profile: cached?.profile || null, friendshipId: cached?.friendshipId || null };
@@ -1301,10 +1690,11 @@
       });
     }
 
-    /* Sohbetten çıkınca doğrudan Sohbetler listesine (#friendsModal) dön */
     function closeChatModal() {
       document.getElementById('waChatMenu').style.display = 'none';
-      clearPendingDmPhoto();
+      if (dmRecorder && dmRecorder.state === 'recording') { try { dmRecorder.stop(); } catch (_e) {} }
+      if (speechRecognizer && isListeningStt) { try { speechRecognizer.stop(); } catch (_e) {} }
+      clearPendingDmMedia();
       activeChatFriend = null;
       closeModal('chatModal');
       openModal('friendsModal');
@@ -1320,12 +1710,13 @@
       if (!activeChatFriend || activeChatFriend.id !== fid) return;
 
       const box = document.getElementById('chatMessagesBox');
-      box.innerHTML = !(data || []).length ? '<div style="text-align:center;color:#8696a0;margin:auto;font-size:12px;">Henüz mesaj yok</div>' : data.map(m => {
+      box.innerHTML = !(data || []).length ? '<div style="text-align:center;color:#667781;margin:auto;font-size:12.5px;">Henüz mesaj yok</div>' : data.map(m => {
         const mine = m.sender_id === currentUser.id;
-        const ticks = mine ? `<span style="color:${m.is_read ? '#53bdeb' : 'rgba(233,237,239,0.65)'};font-weight:800;">✓✓</span>` : '';
+        const ticks = mine ? `<span style="color:${m.is_read ? '#0284c7' : '#667781'};font-weight:800;">✓✓</span>` : '';
         const imgHtml = m.image_url ? `<img class="dm-photo" src="${esc(m.image_url)}" onclick="openLightbox('${esc(m.image_url)}', '${esc(activeChatFriend.name)}')" />` : '';
+        const audHtml = m.audio_url ? `<audio controls src="${esc(m.audio_url)}" style="width:205px;height:34px;margin-bottom:4px;"></audio>` : '';
         const txtHtml = m.message_text ? `<div>${esc(m.message_text)}</div>` : '';
-        return `<div class="wa-bubble ${mine ? 'wa-mine' : 'wa-theirs'}">${imgHtml}${txtHtml}<div class="wa-meta"><span>${formatTime(m.created_at)}</span>${ticks}</div></div>`;
+        return `<div class="wa-bubble ${mine ? 'wa-mine' : 'wa-theirs'}">${imgHtml}${audHtml}${txtHtml}<div class="wa-meta"><span>${formatTime(m.created_at)}</span>${ticks}</div></div>`;
       }).join('');
       box.scrollTop = box.scrollHeight;
 
@@ -1338,13 +1729,13 @@
 
     async function sendDirectMessage() {
       const inp = document.getElementById('dmInput'), text = inp.value.trim();
-      if ((!text && !selectedDmPhotoFile) || !activeChatFriend) return;
+      if ((!text && !selectedDmPhotoFile && !dmAudioBlob) || !activeChatFriend) return;
       if (blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id)) return showToast('🚫 Mesaj iletilemedi.');
 
       const sendBtn = document.getElementById('dmSendBtn');
       sendBtn.disabled = true;
 
-      let image_url = null;
+      let image_url = null, audio_url = null;
       if (selectedDmPhotoFile) {
         const ext = (selectedDmPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
         const path = `${currentUser.id}/dm_${Date.now()}.${ext}`;
@@ -1352,15 +1743,23 @@
         if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
         else { sendBtn.disabled = false; return showToast('Resim yüklenemedi: ' + error.message); }
       }
+      if (dmAudioBlob) {
+        const path = `${currentUser.id}/dm_voice_${Date.now()}.webm`;
+        const { error } = await sb.storage.from('vibe-media').upload(path, dmAudioBlob);
+        if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+        else { sendBtn.disabled = false; return showToast('Ses yüklenemedi: ' + error.message); }
+      }
 
       inp.value = '';
-      clearPendingDmPhoto();
+      clearPendingDmMedia();
 
+      const fallbackLabel = audio_url ? '🎙️ Sesli mesaj' : (image_url ? '📷 Fotoğraf' : '');
       const { error } = await sb.from('direct_messages').insert([{
         sender_id: currentUser.id,
         receiver_id: activeChatFriend.id,
-        message_text: text || (image_url ? '📷 Fotoğraf' : ''),
+        message_text: text || fallbackLabel,
         image_url,
+        audio_url,
         is_read: false
       }]);
 
