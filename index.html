@@ -23,8 +23,6 @@
     @keyframes locPulse { 0% { transform:scale(0.6); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
 
     #returnLocBtn { position:fixed; bottom:84px; right:14px; z-index:1001; display:none; align-items:center; gap:6px; padding:10px 15px; border-radius:999px; border:1px solid var(--accent); background:rgba(15,23,42,0.94); color:#38bdf8; font-size:12.5px; font-weight:800; box-shadow:0 10px 25px rgba(0,0,0,0.6); cursor:pointer; }
-
-    /* Sürüklenebilir Bayrak Konum Onay Çubuğu */
     #flagPlaceBar { position:fixed; bottom:84px; left:14px; right:14px; z-index:1002; display:none; align-items:center; justify-content:space-between; gap:8px; background:rgba(15,20,32,0.96); border:1.5px solid #ffd700; border-radius:18px; padding:10px 12px; box-shadow:0 12px 32px rgba(0,0,0,0.75); }
 
     #authGate { position:fixed; inset:0; z-index:9999; background:#090814; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto; }
@@ -64,7 +62,6 @@
     .int-chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#cbd5e1; font-size:11.5px; font-weight:600; cursor:pointer; }
     .int-chip.selected { border-color:#ff7b39; background:rgba(255,123,57,0.22); color:#fff; }
 
-    /* Kompakt ve Profil Butonu Garantili Üst Bar */
     .top-bar { position:fixed; top:12px; left:8px; right:8px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:4px; pointer-events:none; }
     .top-bar > * { pointer-events:auto; }
     .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 8px; display:flex; align-items:center; gap:3px; font-size:10.5px; font-weight:800; cursor:pointer; white-space:nowrap; }
@@ -272,7 +269,6 @@
   <div id="map"></div>
   <button id="returnLocBtn" onclick="locateUser()">🧭 Konumuma Dön</button>
 
-  <!-- Sürüklenebilir Mekan Bayrağı Konum Seçme Çubuğu -->
   <div id="flagPlaceBar">
     <div style="font-size:12px; font-weight:700; color:#fde047; line-height:1.3;">🚩 Altın bayrağı parmağınla mekanın tam üzerine sürükle</div>
     <div style="display:flex; gap:6px; flex-shrink:0;">
@@ -284,7 +280,8 @@
   <div class="top-bar">
     <div style="display:flex; gap:4px; align-items:center;">
       <div class="pill" onclick="locateUser()">📍</div>
-      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:#ffd700; color:#fde047;" onclick="startFlagPlacement()">🚩 Bayrak Dik</div>
+      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:#ffd700; color:#fde047;" onclick="startFlagPlacement()">🚩 Bayrak</div>
+      <div class="pill" id="trEventsBtn" style="display:none; border-color:var(--accent); color:#38bdf8;" onclick="openTrEventsStudio()">🇹🇷 81 İl</div>
     </div>
     <div style="display:flex; gap:4px; align-items:center;">
       <button class="icon-btn" onclick="openModal('langModal')" id="topLangBtn" style="font-size:10px; font-weight:800;">TR</button>
@@ -314,6 +311,31 @@
     <button class="icon-btn" onclick="openModal('supportModal')">🆘</button>
     <button class="fab-main" onclick="openCreatePin()">＋ Fotoğraf / Ses / Vibe Bırak</button>
     <button class="icon-btn" onclick="loadPins()">↻</button>
+  </div>
+
+  <!-- 🇹🇷 81 İl Günlük Etkinlik Rehberi Stüdyosu (Kurucu Sabit Modül) -->
+  <div id="trEventsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('trEventsModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#38bdf8;">🇹🇷 81 İl Günlük Etkinlik Stüdyosu</div>
+          <div style="font-size:11.5px; color:var(--muted);">Etkinlikleri il, ilçe ve tam mekan adresine göre haritaya yayar</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('trEventsModal')">✕</button>
+      </div>
+
+      <div style="padding:12px; border-radius:15px; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); margin-bottom:12px;">
+        <div style="font-size:12.5px; font-weight:800; color:#67e8f9; margin-bottom:4px;">⚡ Tek Tıkla Bugünün Türkiye Etkinlik Paketini Yay</div>
+        <div style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px;">Büyükşehirler ve Anadolu illerindeki güncel konser, tiyatro, sergi ve festival noktalarını tam mekan adreslerine otomatik yerleştirir.</div>
+        <button class="btn-primary" id="publishDailyPackBtn" onclick="publishDailyTurkeyPack()">🚀 Bugünün Türkiye Etkinliklerini Haritaya Yay</button>
+      </div>
+
+      <div style="font-size:12px; font-weight:800; color:#fde047; margin-bottom:6px;">📍 Tekil İl / Mekan Adresine Etkinlik Ekle:</div>
+      <select id="trCitySelect"></select>
+      <input type="text" id="trVenueAddressInput" placeholder="Tam Mekan veya Adres (örn: Harbiye Cemil Topuzlu, İstanbul)" />
+      <textarea id="trEventDescInput" rows="2" placeholder="Etkinlik adı, saati ve detayı (örn: Akşam 20:30 Canlı Akustik Konser — Giriş Ücretsiz)"></textarea>
+      <button class="btn-gold" id="publishSingleTrBtn" onclick="publishSingleCityEvent()">📌 Tam Adresini Bul & Haritaya Ekle</button>
+    </div>
   </div>
 
   <div id="venueFlagModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('venueFlagModal')">
@@ -405,15 +427,20 @@
       <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(255,215,0,0.16); border:1px solid #ffd700; color:#fde047; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
       <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
-      <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
+      <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:12px;"></p>
+
+      <!-- Etkinliğe Katılıyorum / Gidiyorum Butonu -->
+      <button id="goingEventBtn" onclick="upvoteCurrentPin()" style="width:100%; padding:11px; border-radius:13px; border:1px solid rgba(16,185,129,0.5); background:rgba(16,185,129,0.16); color:#6ee7b7; font-size:13.5px; font-weight:800; cursor:pointer; margin-bottom:10px;">🎟️ Ben de Gidiyorum / Katılacağım (<span id="detailGoingCount">1</span> Kişi)</button>
+
       <div class="action-bar">
         <button class="act-pill" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
         <button class="act-pill" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
         <button class="act-pill" style="color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
       </div>
       <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
+      <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">💬 Gidecek Olanlar & Yorumlar:</div>
       <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Ben de geliyorum, saat kaçta buluşuyoruz?..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
   </div>
 
@@ -537,6 +564,41 @@
     const IMPORTANT_KEYWORDS = ['kaza', 'yangın', 'yangin', 'acil', 'önemli', 'onemli', 'ünlü', 'unlu', 'görüldü', 'goruldu', 'konser', 'olay', 'yardım', 'yardim', 'ambulans', 'polis', 'trafik'];
     const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
+    const TR_81_CITIES = [
+      "Adana","Adıyaman","Afyonkarahisar","Ağrı","Amasya","Ankara","Antalya","Artvin","Aydın","Balıkesir",
+      "Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli",
+      "Diyarbakır","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkari",
+      "Hatay","Isparta","Mersin","İstanbul","İzmir","Kars","Kastamonu","Kayseri","Kırklareli","Kırşehir",
+      "Kocaeli","Konya","Kütahya","Malatya","Manisa","Kahramanmaraş","Mardin","Muğla","Muş","Nevşehir",
+      "Niğde","Ordu","Rize","Sakarya","Samsun","Siirt","Sinop","Sivas","Tekirdağ","Tokat",
+      "Trabzon","Tunceli","Şanlıurfa","Uşak","Van","Yozgat","Zonguldak","Aksaray","Bayburt","Karaman",
+      "Kırıkkale","Batman","Şırnak","Bartın","Ardahan","Iğdır","Yalova","Karabük","Kilis","Osmaniye","Düzce"
+    ];
+
+    /* Türkiye'nin önde gelen kültür, sanat, konser ve buluşma noktaları (Tam Mekan Koordinatlarıyla) */
+    const DAILY_TURKEY_VENUES = [
+      { city: "İstanbul", venue: "Zorlu PSM — Beşiktaş", lat: 41.0664, lng: 29.0172, text: "🎭 Zorlu PSM Sahne Etkinliği & Akşam Konseri — Gidecekler yorumda buluşsun!" },
+      { city: "İstanbul", venue: "Moda Sahnesi — Kadıköy", lat: 40.9856, lng: 29.0268, text: "🎬 Kadıköy Moda Sahnesi Tiyatro & Akustik Gece — Katılacak olanlar?" },
+      { city: "İstanbul", venue: "KüçükÇiftlik Park — Maçka", lat: 41.0422, lng: 28.9936, text: "🎵 Maçka Açıkhava Festival & Müzik Buluşması" },
+      { city: "Ankara", venue: "CSO Ada Ankara — Çankaya", lat: 39.9365, lng: 32.8510, text: "🎻 CSO Ada Ankara Senfoni & Kültür Sanat Etkinliği" },
+      { city: "Ankara", venue: "Tunalı Hilmi & Kuğulu Park", lat: 39.9019, lng: 32.8601, text: "☕ Tunalı Akşam Buluşması & Sokak Müziği Etkinliği" },
+      { city: "İzmir", venue: "Alsancak Kültürpark & Kordon", lat: 38.4278, lng: 27.1436, text: "🌊 İzmir Kordon Gün Batımı Müzik & Sosyal Buluşma" },
+      { city: "İzmir", venue: "Ahmed Adnan Saygun Sanat Merkezi", lat: 38.3975, lng: 27.0792, text: "🎶 AASSM Akşam Konseri & Sergi Etkinliği" },
+      { city: "Antalya", venue: "Antalya Kültür Merkezi (AKM)", lat: 36.8856, lng: 30.6778, text: "🎭 AKM Kültür Sanat Gösterisi & Akşam Etkinliği" },
+      { city: "Bursa", venue: "Merinos Atatürk Kongre Kültür Merkezi", lat: 40.1958, lng: 29.0487, text: "🎪 Merinos AKKM Konser & Gençlik Etkinliği" },
+      { city: "Malatya", venue: "Malatya Kongre ve Kültür Merkezi", lat: 38.3489, lng: 38.3186, text: "🏛️ Malatya Kültür Merkezi Akşam Etkinliği & Söyleşi" },
+      { city: "Malatya", venue: "Yeşilyurt Kernek Meydanı", lat: 38.3421, lng: 38.3112, text: "☕ Kernek Meydanı Akşam Buluşması & Canlı Müzik" },
+      { city: "Gaziantep", venue: "Şahinbey Kongre ve Sanat Merkezi", lat: 37.0428, lng: 37.3612, text: "🎶 Gaziantep Kültür Sanat Gecesi & Yerel Etkinlik" },
+      { city: "Adana", venue: "Çukurova Üniversitesi Kongre Merkezi", lat: 37.0561, lng: 35.3547, text: "🎉 Adana Kampüs & Şehir Konser Etkinliği" },
+      { city: "Konya", venue: "Selçuklu Kongre Merkezi", lat: 37.9422, lng: 32.5125, text: "🎭 Selçuklu Kongre Merkezi Tiyatro & Kültür Etkinliği" },
+      { city: "Eskişehir", venue: "Odunpazarı Modern Müze (OMM) Meydanı", lat: 39.7647, lng: 30.5250, text: "🎨 Odunpazarı Sanat Buluşması & Akşam Etkinliği" },
+      { city: "Samsun", venue: "Atakum Sahil & Sanat Merkezi", lat: 41.3285, lng: 36.2712, text: "🌊 Atakum Sahil Akşam Yürüyüşü & Müzik Etkinliği" },
+      { city: "Trabzon", venue: "Hamamizade İhsan Bey Kültür Merkezi", lat: 41.0056, lng: 39.7269, text: "🎭 Trabzon Tiyatro & Kültür Sanat Buluşması" },
+      { city: "Diyarbakır", venue: "Sezai Karakoç Kültür ve Kongre Merkezi", lat: 37.9250, lng: 40.2110, text: "🎶 Diyarbakır Kültür Sanat Etkinliği & Akşam Konseri" },
+      { city: "Kayseri", venue: "Kadir Has Kültür ve Sanat Merkezi", lat: 38.7348, lng: 35.4875, text: "🎪 Kayseri Akşam Etkinliği & Sahne Gösterisi" },
+      { city: "Mersin", venue: "Yenişehir Kültür Merkezi & Marina", lat: 36.7745, lng: 34.5682, text: "🌴 Mersin Marina Akşam Etkinliği & Canlı Performans" }
+    ];
+
     let sb = null, map = null, tileLayerObj = null, currentMapMode = 'dark';
     let realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, isBirthdayToday = false;
@@ -548,10 +610,16 @@
     let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waBlockedCache = [], realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
-    function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3500); }
+    function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3800); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
     function hasVipAccess() { return isFounder() || isBirthdayToday; }
     function formatTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+    function populateTrCities() {
+      const sel = document.getElementById('trCitySelect');
+      if (!sel) return;
+      sel.innerHTML = TR_81_CITIES.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
 
     function getPinImportance(pin) {
       const txt = (pin.content_text || '').toLowerCase();
@@ -625,10 +693,11 @@
     }
 
     function initApp() {
+      populateTrCities();
       initSwipeMapBar();
       if (!window.supabase) { document.getElementById('loginStatus').textContent = 'Bağlantı hatası.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v23' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v24' }
       });
       document.getElementById('googleLoginBtn').addEventListener('click', () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } }));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
@@ -666,6 +735,7 @@
       const founder = isFounder();
       document.getElementById('ghostBtn').style.display = founder ? 'flex' : 'none';
       document.getElementById('venueFlagQuickBtn').style.display = founder ? 'flex' : 'none';
+      document.getElementById('trEventsBtn').style.display = founder ? 'flex' : 'none';
       document.getElementById('adminTicketsBtn').style.display = founder ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
       locateUser();
@@ -770,7 +840,93 @@
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
     function setFilter(cat, el) { currentFilter = cat; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderPins(); }
 
-    /* Sürüklenebilir Mekan Bayrağı Yerleştirme (Sadece Kurucu) */
+    /* 🇹🇷 81 İl Günlük Etkinlik Stüdyosu Fonksiyonları */
+    function openTrEventsStudio() {
+      if (!isFounder()) return;
+      document.getElementById('trVenueAddressInput').value = '';
+      document.getElementById('trEventDescInput').value = '';
+      openModal('trEventsModal');
+    }
+
+    async function publishDailyTurkeyPack() {
+      if (!isFounder()) return;
+      const btn = document.getElementById('publishDailyPackBtn');
+      btn.disabled = true; btn.textContent = '⏳ Türkiye Etkinlikleri Haritaya Yayılıyor...';
+      const expires_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+
+      const rows = DAILY_TURKEY_VENUES.map(item => ({
+        user_id: currentUser.id,
+        ghost_author_name: `🏛️ VibePin Etkinlik Rehberi • ${item.city}`,
+        ghost_avatar_emoji: '🎟️',
+        category: 'event',
+        content_text: `${item.venue}: ${item.text}`,
+        latitude: item.lat,
+        longitude: item.lng,
+        is_sponsored: false,
+        expires_at
+      }));
+
+      const { error } = await sb.from('pins').insert(rows);
+      btn.disabled = false; btn.textContent = '🚀 Bugünün Türkiye Etkinliklerini Haritaya Yay';
+      if (error) return showToast(error.message);
+
+      closeModal('trEventsModal');
+      showToast(`🇹🇷 ${rows.length} şehir/mekan etkinliği tam adresleriyle haritaya yayıldı!`);
+      loadPins();
+    }
+
+    async function publishSingleCityEvent() {
+      if (!isFounder()) return;
+      const city = document.getElementById('trCitySelect').value;
+      const venueAddr = document.getElementById('trVenueAddressInput').value.trim();
+      const desc = document.getElementById('trEventDescInput').value.trim();
+      if (!venueAddr || !desc) return showToast('Mekan adresini ve etkinlik detayını yazın.');
+
+      const btn = document.getElementById('publishSingleTrBtn');
+      btn.disabled = true; btn.textContent = '🔍 Tam Adres Konumu Aranıyor...';
+
+      try {
+        const query = encodeURIComponent(`${venueAddr}, ${city}, Türkiye`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`);
+        const data = await res.json();
+        let lat, lng;
+        if (data && data[0]) {
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
+        } else {
+          const cityRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(city + ', Türkiye')}`);
+          const cityData = await cityRes.json();
+          if (!cityData || !cityData[0]) throw new Error('Adres konumu bulunamadı, mekan adını daha açık yazın.');
+          lat = parseFloat(cityData[0].lat);
+          lng = parseFloat(cityData[0].lon);
+        }
+
+        const expires_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+        const { error } = await sb.from('pins').insert([{
+          user_id: currentUser.id,
+          ghost_author_name: `🏛️ VibePin Etkinlik Rehberi • ${city}`,
+          ghost_avatar_emoji: '🎟️',
+          category: 'event',
+          content_text: `📍 ${venueAddr}: ${desc}`,
+          latitude: lat,
+          longitude: lng,
+          is_sponsored: false,
+          expires_at
+        }]);
+
+        btn.disabled = false; btn.textContent = '📌 Tam Adresini Bul & Haritaya Ekle';
+        if (error) return showToast(error.message);
+
+        closeModal('trEventsModal');
+        if (map) map.flyTo([lat, lng], 15);
+        showToast(`📍 ${city} (${venueAddr}) etkinliği tam adresine eklendi!`);
+        loadPins();
+      } catch (err) {
+        btn.disabled = false; btn.textContent = '📌 Tam Adresini Bul & Haritaya Ekle';
+        showToast(err.message);
+      }
+    }
+
     function startFlagPlacement() {
       if (!isFounder() || !map) return;
       if (draggableFlagMarker) map.removeLayer(draggableFlagMarker);
@@ -921,9 +1077,10 @@
         cluster.items.sort((a, b) => getPinImportance(b).score - getPinImportance(a).score);
         if (cluster.items.length === 1) {
           const pin = cluster.items[0], imp = getPinImportance(pin), meta = CAT_META[pin.category] || CAT_META.event;
-          const badge = imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji)));
+          const isGuidePin = (pin.ghost_author_name || '').includes('Etkinlik Rehberi');
+          const badge = isGuidePin ? '🎟️' : (imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji))));
           const extra = imp.isTrending ? 'width:48px;height:48px;border:3px solid #ffd700;' : '';
-          const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${imp.hasAlertWord ? '#ef4444' : meta.color};${extra}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
+          const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${isGuidePin ? '#0284c7' : (imp.hasAlertWord ? '#ef4444' : meta.color)};${extra}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
           const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: imp.isTrending ? 700 : 400 });
           m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
         } else {
@@ -953,16 +1110,21 @@
       activePin = pin; await loadBlockedUsers();
       const hideAv = blockedIds.includes(pin.user_id) || blockedByIds.includes(pin.user_id);
       const author = pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı';
+      const isGuidePin = (pin.ghost_author_name || '').includes('Etkinlik Rehberi');
       document.getElementById('detailAuthor').innerHTML = `<span>${pin.is_sponsored ? '🚩' : (hideAv ? '👤' : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊'))}</span> <span>${esc(author)}</span>`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
-      document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
+      const goingCnt = pin.upvotes_count || 1;
+      document.getElementById('detailUpvotes').textContent = goingCnt;
+      document.getElementById('detailGoingCount').textContent = goingCnt;
+      document.getElementById('goingEventBtn').style.display = (pin.category === 'event' || isGuidePin) ? 'block' : 'none';
       document.getElementById('detailFakes').textContent = pin.fake_reports_count || 0;
+
       const sbEl = document.getElementById('sponsorBanner');
       if (pin.is_sponsored) { sbEl.style.display = 'block'; sbEl.textContent = `🚩 ${pin.sponsor_title || author}`; } else sbEl.style.display = 'none';
       const mine = pin.user_id === currentUser.id;
-      document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
-      document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
+      document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored && !isGuidePin) ? 'block' : 'none';
+      document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored && !isGuidePin) ? 'block' : 'none';
       document.getElementById('deletePinBtn').style.display = (mine || isFounder()) ? 'block' : 'none';
       const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
       if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else img.style.display = 'none';
@@ -987,7 +1149,7 @@
     }
 
     async function likeCurrentPin() { if (!activePin) return; const v = (activePin.likes_count || 0) + 1; await sb.from('pins').update({ likes_count: v }).eq('id', activePin.id); activePin.likes_count = v; document.getElementById('detailLikes').textContent = v; renderPins(); }
-    async function upvoteCurrentPin() { if (!activePin) return; const v = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: v }).eq('id', activePin.id); activePin.upvotes_count = v; document.getElementById('detailUpvotes').textContent = v; renderPins(); }
+    async function upvoteCurrentPin() { if (!activePin) return; const v = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: v }).eq('id', activePin.id); activePin.upvotes_count = v; document.getElementById('detailUpvotes').textContent = v; document.getElementById('detailGoingCount').textContent = v; showToast('🎟️ Katılımın eklendi!'); renderPins(); }
     async function reportFakePin() { if (!activePin) return; const v = (activePin.fake_reports_count || 0) + 1; await sb.from('pins').update({ fake_reports_count: v }).eq('id', activePin.id); activePin.fake_reports_count = v; document.getElementById('detailFakes').textContent = v; if (v >= 3 && !activePin.is_sponsored) { await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); } }
     async function deleteCurrentPin() { if (!activePin) return; await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); }
     async function blockAuthor() { if (!activePin?.user_id) return; if (!blockedIds.includes(activePin.user_id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]); blockedIds.push(activePin.user_id); } closeModal('detailModal'); loadPins(); }
@@ -1102,7 +1264,7 @@
 
     async function loadComments(pinId) {
       const { data } = await sb.from('pin_comments').select('*,profiles(username)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      document.getElementById('commentsList').innerHTML = !(data || []).length ? '<div style="color:var(--muted);font-size:12px;">Yorum yok.</div>' : data.map(c => `<div style="padding:8px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:13px;"><strong>${esc(c.profiles?.username || 'Kullanıcı')}:</strong> ${esc(c.comment_text)}</div>`).join('');
+      document.getElementById('commentsList').innerHTML = !(data || []).length ? '<div style="color:var(--muted);font-size:12px;">Henüz yorum yok. İlk yazan sen ol!</div>' : data.map(c => `<div style="padding:8px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:13px;"><strong>${esc(c.profiles?.username || 'Kullanıcı')}:</strong> ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
