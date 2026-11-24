@@ -1,232 +1,554 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VibePin — Şehrin Nabzını Yakala</title>
+  <link rel="manifest" href="manifest.json" />
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --bg:#070a10; --panel:rgba(15,20,32,0.94); --border:rgba(255,255,255,0.12); --primary:#7c3aed; --accent:#06b6d4; --pink:#ec4899; --coral:#ff5e3a; --magenta:#d946ef; --green:#10b981; --wa-green:#00a884; --wa-bg:#0b141a; --wa-header:#202c33; --wa-mine:#005c4b; --wa-theirs:#202c33; --gold:#f59e0b; --danger:#ef4444; --text:#f8fafc; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-tap-highlight-color:transparent; }
+    body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
+    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:var(--bg); }
+    .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(88%) saturate(35%); }
+    .leaflet-control-attribution { display:none !important; }
+
+    .my-loc-wrap { position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
+    .my-loc-pulse { position:absolute; inset:0; border-radius:50%; background:rgba(56,189,248,0.45); animation:locPulse 2s infinite ease-out; }
+    .my-loc-dot { position:relative; width:14px; height:14px; border-radius:50%; background:#0ea5e9; border:2.5px solid #ffffff; box-shadow:0 0 12px #38bdf8; }
+    @keyframes locPulse { 0% { transform:scale(0.6); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
+
+    #returnLocBtn { position:fixed; bottom:84px; right:14px; z-index:1001; display:none; align-items:center; gap:6px; padding:10px 15px; border-radius:999px; border:1px solid var(--accent); background:rgba(15,23,42,0.94); color:#38bdf8; font-size:12.5px; font-weight:800; box-shadow:0 10px 25px rgba(0,0,0,0.6); cursor:pointer; }
+
+    #authGate { position:fixed; inset:0; z-index:9999; background:#090814; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto; }
+    .hero-city-bg { position:relative; width:100%; min-height:235px; padding:14px 16px 24px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:
+      radial-gradient(circle at 50% 78%, rgba(255,115,64,0.34) 0%, rgba(217,70,239,0.22) 32%, rgba(15,12,41,0.92) 75%),
+      linear-gradient(180deg, rgba(11,10,28,0.55) 0%, rgba(9,8,20,0.98) 100%),
+      url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=70') center/cover no-repeat;
+    }
+    .hero-grid-overlay { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size:32px 32px; transform:perspective(360px) rotateX(48deg); transform-origin:bottom; opacity:0.55; pointer-events:none; }
+    .hero-top-row { position:relative; z-index:2; width:100%; max-width:430px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .live-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; background:rgba(16,185,129,0.16); border:1px solid rgba(16,185,129,0.38); color:#6ee7b7; font-size:10.5px; font-weight:700; backdrop-filter:blur(8px); }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
+    .lang-pill { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:800; cursor:pointer; backdrop-filter:blur(8px); }
+
+    .glow-pin-hero { position:relative; z-index:2; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle, rgba(255,140,66,0.35) 0%, rgba(217,70,239,0.12) 60%, transparent 75%); display:flex; align-items:center; justify-content:center; margin-bottom:2px; animation:heroPulse 3s infinite ease-in-out; }
+    @keyframes heroPulse { 0%,100% { transform:scale(0.96); } 50% { transform:scale(1.05); } }
+    .hero-title { position:relative; z-index:2; font-size:35px; font-weight:900; letter-spacing:-0.8px; color:#ffffff; text-shadow:0 4px 24px rgba(0,0,0,0.6); }
+    .hero-title span { background:linear-gradient(90deg,#ff8a3d,#f43f5e,#d946ef); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero-sub { position:relative; z-index:2; font-size:13px; color:#e2e8f0; font-weight:500; margin-top:2px; opacity:0.92; }
+
+    .gate-sheet-card { position:relative; z-index:3; width:100%; max-width:430px; margin:-18px auto 0; flex:1; background:rgba(19,18,38,0.94); backdrop-filter:blur(24px); border-top:1px solid rgba(255,255,255,0.18); border-left:1px solid rgba(255,255,255,0.1); border-right:1px solid rgba(255,255,255,0.1); border-radius:30px 30px 0 0; padding:18px 20px 16px; box-shadow:0 -12px 45px rgba(0,0,0,0.75); display:flex; flex-direction:column; justify-content:space-between; }
+    .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:14px; margin-bottom:12px; }
+    .auth-tab-btn { padding:9px; border-radius:11px; border:none; background:transparent; color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; }
+    .auth-tab-btn.active { background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; }
+
+    .btn-google-hero { width:100%; padding:12.5px 16px; border-radius:15px; background:#ffffff; color:#0f172a; border:none; font-weight:800; font-size:14.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 24px rgba(255,255,255,0.14); }
+    .divider { display:flex; align-items:center; gap:10px; margin:11px 0; color:#cbd5e1; font-size:11.5px; font-weight:500; }
+    .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.14); }
+
+    .icon-input-wrap { position:relative; margin-bottom:9px; }
+    .icon-input-wrap svg.left-ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none; }
+    .icon-input-wrap input { padding-left:42px !important; margin-bottom:0 !important; background:rgba(255,255,255,0.07) !important; border:1px solid rgba(255,255,255,0.14) !important; border-radius:14px !important; height:45px; }
+
+    .btn-gradient-cta { width:100%; padding:13px; border-radius:15px; border:none; background:linear-gradient(90deg,#ff8c37 0%,#f43f5e 52%,#c026d3 100%); color:#fff; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 10px 28px rgba(244,63,94,0.38); }
+
+    .interest-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .int-chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#cbd5e1; font-size:11.5px; font-weight:600; cursor:pointer; }
+    .int-chip.selected { border-color:#ff7b39; background:rgba(255,123,57,0.22); color:#fff; }
+
+    .top-bar { position:fixed; top:12px; left:10px; right:10px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:4px; pointer-events:none; }
+    .top-bar > * { pointer-events:auto; }
+    .pill { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:7px 10px; display:flex; align-items:center; gap:4px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .icon-btn { position:relative; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; overflow:hidden; flex-shrink:0; }
+    .icon-btn img { width:100%; height:100%; object-fit:cover; }
+    .notif-dot { position:absolute; top:2px; right:2px; width:9px; height:9px; border-radius:50%; background:var(--danger); border:2px solid #090c12; display:none; }
+    .ghost-active { border-color:#facc15; background:rgba(250,204,21,0.24); }
+
+    .filter-row { position:fixed; top:56px; left:10px; right:10px; z-index:999; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
+    .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 11px; font-size:11.5px; font-weight:600; white-space:nowrap; color:var(--muted); cursor:pointer; }
+    .chip.active { background:linear-gradient(90deg,#ff7b39,#e11d48); color:#fff; border-color:transparent; }
+
+    .map-mode-swipe { position:fixed; top:94px; left:50%; transform:translateX(-50%); z-index:999; display:flex; align-items:center; gap:3px; background:rgba(15,20,32,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.16); border-radius:999px; padding:3px; box-shadow:0 6px 20px rgba(0,0,0,0.45); touch-action:pan-y; user-select:none; }
+    .mm-tab { padding:5px 11px; border-radius:999px; font-size:11px; font-weight:800; color:#94a3b8; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+    .mm-tab.active { background:linear-gradient(90deg,#ff7b39,#d946ef); color:#fff; box-shadow:0 2px 10px rgba(217,70,239,0.4); }
+
+    .bottom-bar { position:fixed; bottom:18px; left:14px; right:14px; z-index:1000; display:flex; align-items:center; justify-content:space-between; gap:10px; pointer-events:none; }
+    .bottom-bar > * { pointer-events:auto; }
+    .fab-main { flex:1; height:50px; border-radius:999px; border:none; background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(225,29,72,0.45); }
+
+    .vibe-marker { position:relative; width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.55); }
+    .vibe-marker span { transform:rotate(45deg); font-size:19px; }
+
+    .venue-flag-pin { position:relative; display:flex; flex-direction:column; align-items:center; }
+    .venue-flag-banner { background:linear-gradient(135deg,#fff078 0%,#ffd700 45%,#f59e0b 100%); color:#0f172a; border:2.5px solid #ffffff; border-radius:12px 12px 12px 2px; padding:4px 9px; font-size:11px; font-weight:900; white-space:nowrap; box-shadow:0 6px 20px rgba(255,215,0,0.75); }
+    .venue-flag-pole { width:3.5px; height:14px; background:#ffd700; border-radius:0 0 3px 3px; border:1px solid #fff; }
+
+    .cluster-pin { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#ff7b39,#d946ef); border:3px solid #fff; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(217,70,239,0.6); font-weight:900; }
+
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:10005; display:none; align-items:flex-end; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:18px 18px 28px; max-height:90vh; overflow-y:auto; }
+    .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .sheet-title { font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0; }
+    .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
+    .cat-opt { padding:9px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; text-align:left; }
+    .cat-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.16); }
+    textarea, input[type="email"], input[type="password"], input[type="text"], input[type="number"], input[type="date"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:13px; padding:11px 13px; color:#fff; font-size:13.5px; outline:none; margin-bottom:9px; }
+    select option { background:#111622; color:#fff; }
+    textarea:focus, input:focus, select:focus { border-color:var(--accent); background:rgba(255,255,255,0.09); }
+    .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+    .media-btn { padding:10px 8px; border-radius:13px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:12px; font-weight:600; cursor:pointer; text-align:center; display:block; }
+    .btn-primary { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(90deg,#ff7b39,#e11d48,#c026d3); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
+    .btn-gold { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(135deg,#ffd700,#f59e0b); color:#111827; font-weight:900; font-size:14px; cursor:pointer; }
+    .btn-secondary { width:100%; padding:11px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
+    .btn-danger { width:100%; padding:11px; border-radius:13px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
+    .action-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .act-pill { padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
+    .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:10px; max-height:135px; overflow-y:auto; padding:4px; }
+    .av-opt { height:40px; border-radius:11px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid #ff7b39; color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .lang-opt { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.04); margin-bottom:8px; cursor:pointer; font-size:14.5px; font-weight:700; }
+
+    .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-bg); border-top:1px solid var(--border); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
+    .wa-top { background:var(--wa-header); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .wa-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--wa-header); border-bottom:1px solid rgba(255,255,255,0.08); }
+    .wa-tab { padding:10px 4px; text-align:center; font-size:12.5px; font-weight:700; color:#8696a0; cursor:pointer; border-bottom:2.5px solid transparent; }
+    .wa-tab.active { color:var(--wa-green); border-bottom-color:var(--wa-green); }
+    .wa-search-wrap { padding:10px 14px 6px; background:var(--wa-bg); }
+    .wa-search { width:100%; background:var(--wa-header); border:none; border-radius:12px; padding:9px 14px; color:#e9edef; font-size:13.5px; outline:none; margin-bottom:0; }
+    .wa-list { flex:1; overflow-y:auto; padding:4px 0; }
+    .wa-chat-row { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .wa-avatar { width:48px; height:48px; border-radius:50%; background:#2a3942; display:flex; align-items:center; justify-content:center; font-size:23px; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(255,255,255,0.1); }
+    .wa-avatar img { width:100%; height:100%; object-fit:cover; }
+    .wa-badge { background:var(--wa-green); color:#111b21; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; }
+    .wa-messages { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:6px; background-color:#0b141a; background-image:radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0); background-size:20px 20px; }
+    .wa-bubble { max-width:80%; padding:8px 11px 6px; border-radius:12px; font-size:14px; line-height:1.4; word-break:break-word; box-shadow:0 1px 2px rgba(0,0,0,0.35); }
+    .wa-mine { align-self:flex-end; background:var(--wa-mine); color:#e9edef; border-top-right-radius:2px; }
+    .wa-theirs { align-self:flex-start; background:var(--wa-theirs); color:#e9edef; border-top-left-radius:2px; }
+    .wa-meta { display:flex; align-items:center; justify-content:flex-end; gap:4px; font-size:10px; color:rgba(233,237,239,0.65); margin-top:3px; }
+    .wa-input-bar { background:var(--wa-header); padding:8px 10px 14px; display:flex; align-items:center; gap:8px; }
+    .wa-input { flex:1; background:#2a3942; border:none; border-radius:22px; padding:11px 16px; color:#e9edef; font-size:14px; outline:none; margin-bottom:0; }
+    .wa-send-btn { width:44px; height:44px; border-radius:50%; border:none; background:var(--wa-green); color:#111b21; font-size:18px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+    .wa-menu-drop { position:absolute; right:14px; top:54px; background:#233138; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:50; display:none; overflow:hidden; min-width:175px; }
+    .wa-menu-item { padding:12px 16px; font-size:13.5px; color:#e9edef; cursor:pointer; display:flex; align-items:center; gap:8px; }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <div id="authGate">
+    <div class="hero-city-bg">
+      <div class="hero-grid-overlay"></div>
+      <div class="hero-top-row">
+        <div class="live-badge"><span class="live-dot"></span> <span>Canlı Sosyal Harita</span></div>
+        <button type="button" class="lang-pill" id="gateLangBtn" onclick="openModal('langModal')">🌐 TR</button>
+      </div>
+      <div class="glow-pin-hero">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="vibePinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ff9a3c" />
+              <stop offset="50%" stop-color="#f43f5e" />
+              <stop offset="100%" stop-color="#c026d3" />
+            </linearGradient>
+          </defs>
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#vibePinGrad)"/>
+        </svg>
+      </div>
+      <h1 class="hero-title">Vibe<span>Pin</span></h1>
+      <p class="hero-sub">Şehrin Nabzını Yakala</p>
+    </div>
+
+    <div class="gate-sheet-card">
+      <div>
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabLoginMode" onclick="switchAuthMode('login')">🔐 Giriş Yap</button>
+          <button type="button" class="auth-tab-btn" id="tabSignupMode" onclick="switchAuthMode('signup')">✨ Yeni Kayıt Ol</button>
+        </div>
+
+        <div id="loginSection">
+          <button type="button" class="btn-google-hero" id="googleLoginBtn">
+            <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Google ile Devam Et</span>
+          </button>
+
+          <div class="divider">veya E-posta ile Giriş</div>
+
+          <div class="icon-input-wrap">
+            <svg class="left-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <input type="email" id="gateEmail" placeholder="E-posta adresin" />
+          </div>
+
+          <div class="icon-input-wrap" style="margin-bottom:6px;">
+            <svg class="left-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="gatePass" placeholder="Şifren (en az 6 karakter)" style="padding-right:42px;" />
+            <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);">👁️</button>
+          </div>
+
+          <div style="text-align:right; margin-bottom:12px;">
+            <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:12px; color:#38bdf8; text-decoration:none; font-weight:700;">🔑 Şifremi Unuttum</a>
+          </div>
+
+          <button type="button" class="btn-gradient-cta" id="loginBtn"><span>🔒</span> <span>Giriş Yap</span></button>
+        </div>
+
+        <div id="signupSection" style="display:none;">
+          <input type="text" id="regUsername" placeholder="Benzersiz Kullanıcı Adın (örn: ahmet_34)" />
+          <input type="email" id="regEmail" placeholder="E-posta adresin" />
+          <input type="password" id="regPass" placeholder="Şifre oluştur (en az 6 karakter)" />
+          <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
+            <select id="regGender" style="margin-bottom:8px;"><option value="">Cinsiyet Seç</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
+            <input type="date" id="regBirthDate" style="margin-bottom:8px;" />
+          </div>
+          <div class="interest-grid" id="regInterestsGrid">
+            <div class="int-chip" data-val="food" onclick="this.classList.toggle('selected')">☕ Yeme & İçme</div>
+            <div class="int-chip" data-val="travel" onclick="this.classList.toggle('selected')">✈️ Gezme & Keşif</div>
+            <div class="int-chip" data-val="sport" onclick="this.classList.toggle('selected')">⚽ Spor</div>
+            <div class="int-chip" data-val="party" onclick="this.classList.toggle('selected')">🎉 Etkinlik & Eğlence</div>
+            <div class="int-chip" data-val="friends" onclick="this.classList.toggle('selected')">🤝 Arkadaşlık</div>
+            <div class="int-chip" data-val="music" onclick="this.classList.toggle('selected')">🎵 Müzik & Sanat</div>
+          </div>
+          <button type="button" class="btn-gradient-cta" id="signupBtn">🚀 Hesabı Oluştur ve Başla</button>
+        </div>
+
+        <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
+      </div>
+
+      <div style="margin-top:8px; text-align:center;">
+        <p style="font-size:11px; color:var(--muted); line-height:1.4; margin-bottom:10px;">
+          Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:#38bdf8; text-decoration:underline; font-weight:600;">Kullanım Koşulları & KVKK</a> metnini kabul edersiniz.
+        </p>
+        <div style="padding-top:10px; border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:10px; letter-spacing:1.3px; text-transform:uppercase; color:#94a3b8; font-weight:700;">
+            POWERED BY <span style="background:linear-gradient(90deg,#ff8a3d,#f43f5e,#d946ef); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:900;">VIBELABS TECHNOLOGIES</span>
+          </div>
+          <div style="font-size:10.5px; color:#cbd5e1; margin-top:3px;">
+            📩 <a href="mailto:getvibepin@gmail.com" style="color:#38bdf8; text-decoration:none; font-weight:700;">getvibepin@gmail.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgotModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('forgotModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🔑 Şifre Sıfırlama</div><button class="close-btn" onclick="closeModal('forgotModal')">✕</button></div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Kayıtlı e-posta adresini yaz, şifre sıfırlama bağlantısını gönderelim.</p>
+      <input type="email" id="forgotEmailInput" placeholder="E-posta adresin" />
+      <button class="btn-primary" onclick="sendPasswordReset()">📨 Sıfırlama Bağlantısı Gönder</button>
+    </div>
+  </div>
+
+  <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🌍 Dil Seçin / Language</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
+      <div class="lang-opt" id="langOpt-tr" onclick="setLanguage('tr')"><span>🇹🇷 Türkçe</span><span>TR</span></div>
+      <div class="lang-opt" id="langOpt-en" onclick="setLanguage('en')"><span>🇬🇧 English</span><span>EN</span></div>
+    </div>
+  </div>
+
+  <div id="legalModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('legalModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🛡️ KVKK & Gizlilik</div><button class="close-btn" onclick="closeModal('legalModal')">✕</button></div>
+      <div style="font-size:13px; color:#cbd5e1; line-height:1.55;">
+        <p style="margin-bottom:8px;"><strong>1. Gizlilik:</strong> Verileriniz şifreli altyapıda korunur.</p>
+        <p><strong>2. Konum & Süre:</strong> Bireysel paylaşımlarda konum ~150m yuvarlanır ve paylaşımlar <strong>24 saat</strong> canlı kalır.</p>
+      </div>
+      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal('legalModal')">Okudum, Anladım</button>
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <button id="returnLocBtn" onclick="locateUser()">🧭 Konumuma Dön</button>
+
+  <div class="top-bar">
+    <div style="display:flex; gap:5px;">
+      <div class="pill" onclick="locateUser()">📍 Konumum</div>
+      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:#ffd700; color:#fde047;" onclick="openVenueFlagModal()">🚩 Mekan Bayrağı Dik</div>
+    </div>
+    <div style="display:flex; gap:4px;">
+      <button class="icon-btn" onclick="openModal('langModal')" id="topLangBtn" style="font-size:10.5px; font-weight:800;">TR</button>
+      <button class="icon-btn" onclick="openNotificationsModal()">🔔<span id="bellDot" class="notif-dot"></span></button>
+      <button class="icon-btn" onclick="openFriendsModal()">💬<span id="notifDot" class="notif-dot"></span></button>
+      <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👑</button>
+      <button class="icon-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <div class="chip active" onclick="setFilter('all', this)">🔥 Tümü</div>
+    <div class="chip" onclick="setFilter('sponsored', this)">🚩 Sponsorlu Mekan</div>
+    <div class="chip" onclick="setFilter('event', this)">🎉 Etkinlik</div>
+    <div class="chip" onclick="setFilter('social', this)">☕ Yeme & İçme</div>
+    <div class="chip" onclick="setFilter('question', this)">❓ Durum / Soru</div>
+    <div class="chip" onclick="setFilter('deal', this)">⚡ Fırsat</div>
+  </div>
+
+  <div class="map-mode-swipe" id="mapModeSwipeBar">
+    <div class="mm-tab active" id="mm-dark" onclick="setMapStyle('dark')">🌑 Harita</div>
+    <div class="mm-tab" id="mm-satellite" onclick="setMapStyle('satellite')">🛰️ Uydu</div>
+    <div class="mm-tab" id="mm-street" onclick="setMapStyle('street')">🏙️ Sokak</div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="icon-btn" onclick="openModal('supportModal')">🆘</button>
+    <button class="fab-main" onclick="openCreatePin()">＋ Fotoğraf / Ses / Vibe Bırak</button>
+    <button class="icon-btn" onclick="loadPins()">↻</button>
+  </div>
+
+  <div id="venueFlagModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('venueFlagModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#ffd700;">🚩 Sponsorlu Mekan Bayrağı & Kampanya</div>
+          <div style="font-size:11.5px; color:var(--muted);">Harita merkezindeki konuma altın kampanya bayrağı diker</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('venueFlagModal')">✕</button>
+      </div>
+      <input type="text" id="venueNameInput" placeholder="Mekan / İşletme Adı" />
+      <input type="text" id="venueOfferBadgeInput" placeholder="Kısa Etiket / Fiyat (örn: Günün Menüsü 240₺)" />
+      <textarea id="venueCampaignDescInput" rows="3" placeholder="Kampanya, menü veya etkinlik detaylarını yazın..."></textarea>
+      <select id="venueDurationSelect">
+        <option value="24">⏳ 1 Gün (24 Saat)</option>
+        <option value="72">🔥 3 Gün</option>
+        <option value="168" selected>🚩 7 Gün (Sponsorlu Bayrak)</option>
+      </select>
+      <label class="media-btn" for="venuePhotoInput" id="venuePhotoLabel" style="margin-bottom:10px; border-color:#ffd700; color:#fde047;">📸 Mekan / Menü Fotoğrafı Ekle</label>
+      <input type="file" id="venuePhotoInput" accept="image/*" style="display:none;" onchange="handleVenuePhoto(this)" />
+      <img id="venuePhotoPreview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
+      <button class="btn-gold" id="publishVenueBtn" onclick="submitVenueFlag()">🚩 Haritaya Sponsorlu Bayrak Dik</button>
+    </div>
+  </div>
+
+  <div id="clusterModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('clusterModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" id="clusterTitle">📍 Bu Bölgedeki Paylaşımlar</div><button class="close-btn" onclick="closeModal('clusterModal')">✕</button></div>
+      <div id="clusterListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </div>
+
+  <div id="createModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('createModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">📍 Yeni VibePin</div>
+          <div style="font-size:11.5px; color:var(--accent); margin-top:2px;">⏳ 24s canlı • Günde max 3 paylaşım • ~150m gizlilik</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('createModal')">✕</button>
+      </div>
+      <div class="cat-grid">
+        <button class="cat-opt selected" onclick="selectCat('event', this)">🎉 Etkinlik</button>
+        <button class="cat-opt" onclick="selectCat('social', this)">☕ Yeme & İçme</button>
+        <button class="cat-opt" onclick="selectCat('question', this)">❓ Durum / Soru</button>
+        <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
+      </div>
+
+      <div id="ghostFields" style="display:none; padding:11px; border-radius:15px; background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.38); margin-bottom:10px;">
+        <div style="font-size:11.5px; color:#f472b6; font-weight:800; margin-bottom:8px;">👻 Kurucu Hayalet Karakter</div>
+        <input type="text" id="ghostNameInput" placeholder="Hayalet İsim (örn: Selin_24)" />
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+          <select id="ghostGenderInput" style="margin-bottom:0; padding:9px;"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
+          <input type="number" id="ghostAgeInput" min="13" max="99" placeholder="Yaş" style="margin-bottom:0; padding:9px;" />
+          <input type="text" id="ghostEmojiInput" placeholder="🦊" maxlength="4" style="margin-bottom:0; padding:9px; text-align:center;" />
+        </div>
+        <label class="media-btn" for="ghostAvatarFileInput" id="ghostAvLabel" style="margin-bottom:4px; border-color:#f472b6;">🎭 Hayalet Profil Fotoğrafı</label>
+        <input type="file" id="ghostAvatarFileInput" accept="image/*" style="display:none;" onchange="handleGhostAvatarFile(this)" />
+      </div>
+
+      <textarea id="pinText" rows="2" placeholder="Yediğini, içtiğini, önemli bir olayı veya durumu paylaş..."></textarea>
+      <div class="media-row">
+        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--accent);">📸 Kamera</label>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
+        <label class="media-btn" for="galleryInput" id="galleryLabel">🖼️ Galeri</label>
+        <input type="file" id="galleryInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this, 'gallery')" />
+      </div>
+      <button type="button" class="media-btn" id="audioBtn" style="width:100%; margin-bottom:12px;" onclick="toggleAudioRecord()">🎙️ Canlı Ses Kaydı</button>
+      <img id="photoPreview" style="display:none; width:100%; max-height:170px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
+      <audio id="audioPreview" controls style="display:none; width:100%; margin-bottom:10px;"></audio>
+      <button class="btn-primary" id="publishBtn" onclick="submitPin()">🚀 Haritada Yayınla (24 Saat)</button>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
+          <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven: 100 • ⏳ 24s</div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--primary); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
+          <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
+        </div>
+      </div>
+      <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(255,215,0,0.16); border:1px solid #ffd700; color:#fde047; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
+      <img id="detailImg" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px;" />
+      <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
+      <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:14px;"></p>
+      <div class="action-bar">
+        <button class="act-pill" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
+        <button class="act-pill" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
+        <button class="act-pill" style="color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
+      </div>
+      <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
+      <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title">🎭 Profil, Cinsiyet & Yaş</div>
+          <div id="myTrustScoreText" style="font-size:12px; color:var(--green); font-weight:700;">🛡️ Güven: 100 / 100</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+        <div id="profilePhotoPreview" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; border:2px solid var(--accent);">🦊</div>
+        <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Galeriden Fotoğraf Yükle</label>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
+      </div>
+      <div class="avatar-grid" id="avatarGrid">
+        <div class="av-opt" onclick="pickAvatar('👸', this)">👸</div>
+        <div class="av-opt" onclick="pickAvatar('💄', this)">💄</div>
+        <div class="av-opt" onclick="pickAvatar('🦋', this)">🦋</div>
+        <div class="av-opt" onclick="pickAvatar('💎', this)">💎</div>
+        <div class="av-opt" onclick="pickAvatar('🦁', this)">🦁</div>
+        <div class="av-opt" onclick="pickAvatar('🐺', this)">🐺</div>
+        <div class="av-opt" onclick="pickAvatar('👑', this)">👑</div>
+        <div class="av-opt" onclick="pickAvatar('🦅', this)">🦅</div>
+        <div class="av-opt" onclick="pickAvatar('🦊', this)">🦊</div>
+        <div class="av-opt" onclick="pickAvatar('🚀', this)">🚀</div>
+        <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
+        <div class="av-opt" onclick="pickAvatar('✨', this)">✨</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
+        <select id="profileGenderInput" style="margin-bottom:8px;"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
+        <input type="date" id="profileBirthInput" style="margin-bottom:8px;" />
+      </div>
+      <input type="text" id="profileNameInput" placeholder="Kullanıcı Adın" style="margin-bottom:8px;" />
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="saveProfile()">💾 Profili Kaydet</button>
+      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:8px; border-color:var(--gold); color:#fde047;" onclick="openAdminTickets()">📬 Gelen Destek & Sponsor Talepleri</button>
+      <button class="btn-secondary" style="color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
+    </div>
+  </div>
+
+  <div id="notificationsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('notificationsModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🔔 Bildirimler</div><button class="close-btn" onclick="closeModal('notificationsModal')">✕</button></div>
+      <div id="notificationsContainer"></div>
+    </div>
+  </div>
+
+  <div id="friendsModal" class="modal-backdrop" onclick="if(event.target===this) closeFriendsModal()">
+    <div class="wa-sheet">
+      <div class="wa-top">
+        <div style="font-size:18px; font-weight:800; color:#e9edef;"><span style="color:var(--wa-green);">●</span> VibeChat</div>
+        <button class="close-btn" onclick="closeFriendsModal()">✕</button>
+      </div>
+      <div class="wa-tabs">
+        <div class="wa-tab active" id="tabChats" onclick="switchWaTab('chats')">Sohbetler</div>
+        <div class="wa-tab" id="tabRequests" onclick="switchWaTab('requests')">İstekler <span id="reqCountBadge"></span></div>
+        <div class="wa-tab" id="tabBlocked" onclick="switchWaTab('blocked')">Engelliler</div>
+      </div>
+      <div class="wa-search-wrap" id="waSearchWrap"><input type="text" class="wa-search" id="waSearchInput" placeholder="🔍 Kişi veya sohbet ara..." oninput="renderWaChatList()" /></div>
+      <div class="wa-list" id="waListContainer"></div>
+    </div>
+  </div>
+
+  <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
+    <div class="wa-sheet" style="position:relative;">
+      <div class="wa-top">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button onclick="backToChats()" style="background:none; border:none; color:#e9edef; font-size:20px; cursor:pointer; padding:2px 6px;">←</button>
+          <div class="wa-avatar" id="chatHeaderAvatar" style="width:40px; height:40px; font-size:19px;">🦊</div>
+          <div>
+            <div id="chatFriendTitle" style="font-size:15.5px; font-weight:700; color:#e9edef;">Arkadaş</div>
+            <div id="chatStatusSub" style="font-size:11.5px; color:#8696a0; font-weight:600;">çevrimiçi • VibePin</div>
+          </div>
+        </div>
+        <button onclick="toggleWaMenu()" style="background:none; border:none; color:#aebac1; font-size:20px; cursor:pointer; padding:4px 8px;">⋮</button>
+      </div>
+      <div class="wa-menu-drop" id="waChatMenu">
+        <div class="wa-menu-item" onclick="removeCurrentChatFriend()">🗑️ Arkadaşı Sil</div>
+        <div class="wa-menu-item" style="color:#f87171;" onclick="blockCurrentChatFriend()">🚫 Kullanıcıyı Engelle</div>
+      </div>
+      <div id="chatMessagesBox" class="wa-messages" onclick="document.getElementById('waChatMenu').style.display='none'"></div>
+      <div class="wa-input-bar">
+        <input type="text" id="dmInput" class="wa-input" placeholder="Mesaj yazın..." oninput="handleDmTyping()" onkeydown="if(event.key==='Enter') sendDirectMessage()" />
+        <button class="wa-send-btn" onclick="sendDirectMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="supportModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('supportModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">🆘 Sorun Bildir & Sponsorluk</div><button class="close-btn" onclick="closeModal('supportModal')">✕</button></div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:10px;">İletişim: <strong style="color:#38bdf8;">getvibepin@gmail.com</strong></p>
+      <select id="supportCat"><option value="business">🚩 Mekan Sponsorluğu</option><option value="bug">🐞 Teknik Sorun</option><option value="abuse">🚨 Şikayet</option></select>
+      <textarea id="supportMsg" rows="3" placeholder="Mesajını yaz..."></textarea>
+      <button class="btn-primary" onclick="submitSupportTicket()">📨 Gönder</button>
+    </div>
+  </div>
+
+  <div id="adminTicketsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adminTicketsModal')">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title">📬 Gelen Talepler</div><button class="close-btn" onclick="closeModal('adminTicketsModal')">✕</button></div>
+      <div id="ticketsContainer"></div>
+    </div>
+  </div>
+
+  <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
+    <div class="sheet" style="text-align:center;">
+      <div class="sheet-header"><div class="sheet-title">🚩 Sponsorlu Mekan Tanıtımı</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
+      <div id="sponsorAdCardText" style="padding:14px; border-radius:14px; background:rgba(255,215,0,0.14); border:1px solid #ffd700; margin-bottom:12px; font-size:13.5px;">Semtindeki öne çıkan mekan kampanyalarını incele!</div>
+      <p id="adModalDesc" style="font-size:13px; color:var(--muted); margin-bottom:14px;">10 istek hakkın doldu. +1 ek istek hakkı için sponsorlu tanıtımı izle.</p>
+      <div id="adCountdownBox" style="display:none; padding:14px; font-weight:800; font-size:16px;">⏳ <span id="adSec">5</span> s...</div>
+      <button class="btn-gold" id="watchAdBtn" onclick="startRewardAd()">🚩 Tanıtımı İzle (+1 İstek Aç)</button>
+    </div>
+  </div>
   <script>
     const FOUNDER_EMAIL = 'getvibepin@gmail.com';
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
-
-    const I18N = {
-      tr: {
-        live_badge: 'Canlı Sosyal Harita', tagline: 'Şehrin Nabzını Yakala',
-        login_tab: '🔐 Giriş Yap', signup_tab: '✨ Yeni Kayıt Ol',
-        google_btn: 'Google ile Devam Et', or_email: 'veya E-posta ile Giriş',
-        email_ph: 'E-posta adresin', pass_ph: 'Şifren (en az 6 karakter)', login_btn: 'Giriş Yap',
-        forgot_link: '🔑 Şifremi Unuttum', forgot_title: '🔑 Şifre Sıfırlama',
-        forgot_desc: 'Kayıtlı e-posta adresini yaz, şifre sıfırlama bağlantısını hemen gönderelim.', forgot_send: '📨 Sıfırlama Bağlantısı Gönder',
-        bday_hint: '🎂 Doğum gününde özel kutlama ve tüm gün sınırsız VIP kullanım hediye!',
-        interests_lbl: 'İlgi Alanlarını Seç:', complete_signup_btn: '🚀 Hesabı Oluştur ve Başla',
-        terms_pre: 'Devam ederek', terms_link: 'Kullanım Koşulları & KVKK', terms_post: 'metnini kabul edersiniz.',
-        return_loc: 'Konumuma Dön',
-        cat_all: '🔥 Tümü', cat_sponsored: '🚩 Sponsorlu Mekan', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat',
-        fab_create: '＋ Fotoğraf / Ses / Vibe Bırak', new_pin_title: '📍 Yeni VibePin', pin_24h_note: '⏳ 24s canlı • Günde max 3 paylaşım • ~150m gizlilik',
-        pin_text_ph: 'Yediğini, içtiğini, önemli bir olayı veya durumu paylaş...', cam_btn: '📸 Kamera ile Çek', gal_btn: '🖼️ Galeriden Seç', aud_btn: '🎙️ Canlı Ses Kaydı Ekle',
-        pub_btn: '🚀 Haritada Yayınla (24 Saat)', add_friend: '➕ Arkadaş Ekle',
-        like_lbl: 'Beğen', verify_lbl: 'Doğrula', fake_lbl: 'Yalan', del_pin: '🗑️ Bu Paylaşımı Sil', comment_ph: 'Yorum yaz...', send_btn: 'Gönder',
-        profile_title: '🎭 Profil, Cinsiyet & Yaş', upload_avatar: '📸 Galeriden Fotoğraf Yükle',
-        g_select: 'Cinsiyet Seçin', g_female: '👩 Kadın', g_male: '👨 Erkek', g_other: '🧑 Diğer',
-        username_ph: 'Benzersiz Kullanıcı Adın', save_profile: '💾 Profili Kaydet', logout_btn: 'Çıkış Yap',
-        notif_title: '🔔 Bildirimler', tab_chats: 'Sohbetler', tab_reqs: 'İstekler', tab_blocked: 'Engelliler', search_chat_ph: '🔍 Kişi veya sohbet ara...',
-        remove_friend: '🗑️ Arkadaşı Sil', block_user: '🚫 Kullanıcıyı Engelle', msg_ph: 'Mesaj yazın...',
-        support_title: '🆘 Sorun Bildir & Mekan Sponsorluğu', support_desc: 'Mekanınızı haritada altın bayrakla öne çıkarmak, günün menüsünü duyurmak veya sorun bildirmek için bize yazın.',
-        support_ph: 'Mekan adınızı veya mesajınızı yazın...', send_msg_btn: '📨 Mesajı Gönder',
-        online_sub: 'çevrimiçi • VibePin', typing_txt: 'yazıyor...', start_chat_hint: 'Sohbet başlatmak için dokun 👋',
-        req_sent: '⏳ İstek Gönderildi', friends_badge: '✅ Arkadaşsınız', legal_title: '🛡️ KVKK, Gizlilik & Kişisel Haklar', legal_ok: 'Okudum, Anladım',
-        legal_body: '<p><strong>1. Kişisel Verilerin Korunması (KVKK):</strong> VibeLabs Technologies olarak verileriniz şifreli sunucularda korunur.</p><p><strong>2. Yaklaşık Konum & 24 Saat:</strong> Bireysel paylaşımlarda konumunuz ~150m yuvarlanır ve <strong>24 saat</strong> sonunda otomatik silinir.</p>'
-      },
-      en: {
-        live_badge: 'Live Social Map', tagline: 'Capture the Pulse of Your City',
-        login_tab: '🔐 Sign In', signup_tab: '✨ Sign Up',
-        google_btn: 'Continue with Google', or_email: 'or Sign In with Email',
-        email_ph: 'Your email address', pass_ph: 'Password (min 6 chars)', login_btn: 'Sign In',
-        forgot_link: '🔑 Forgot Password?', forgot_title: '🔑 Reset Password',
-        forgot_desc: 'Enter your registered email and we will send a password reset link.', forgot_send: '📨 Send Reset Link',
-        bday_hint: '🎂 Enjoy birthday wishes & unlimited VIP access all day on your birthday!',
-        interests_lbl: 'Select Your Interests:', complete_signup_btn: '🚀 Create Account & Start',
-        terms_pre: 'By continuing, you agree to our', terms_link: 'Terms & Privacy Policy', terms_post: '.',
-        return_loc: 'Back to My Location',
-        cat_all: '🔥 All', cat_sponsored: '🚩 Sponsored Venues', cat_event: '🎉 Event', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals',
-        fab_create: '＋ Drop Photo / Voice / Vibe', new_pin_title: '📍 New VibePin', pin_24h_note: '⏳ Live 24h • Max 3 pins/day • ~150m privacy',
-        pin_text_ph: 'Share food, drinks, important events or status...', cam_btn: '📸 Camera', gal_btn: '🖼️ Gallery', aud_btn: '🎙️ Voice Note',
-        pub_btn: '🚀 Publish on Map (24h)', add_friend: '➕ Add Friend',
-        like_lbl: 'Like', verify_lbl: 'Verify', fake_lbl: 'Fake', del_pin: '🗑️ Delete Pin', comment_ph: 'Write a comment...', send_btn: 'Send',
-        profile_title: '🎭 Profile, Gender & Age', upload_avatar: '📸 Upload Photo',
-        g_select: 'Select Gender', g_female: '👩 Female', g_male: '👨 Male', g_other: '🧑 Other',
-        username_ph: 'Your Unique Username', save_profile: '💾 Save Profile', logout_btn: 'Log Out',
-        notif_title: '🔔 Notifications', tab_chats: 'Chats', tab_reqs: 'Requests', tab_blocked: 'Blocked', search_chat_ph: '🔍 Search chats...',
-        remove_friend: '🗑️ Remove Friend', block_user: '🚫 Block User', msg_ph: 'Type a message...',
-        support_title: '🆘 Support & Venue Sponsorship', support_desc: 'Feature your venue with a golden flag on the map or report an issue.',
-        support_ph: 'Write your venue name or message...', send_msg_btn: '📨 Send Message',
-        online_sub: 'online • VibePin', typing_txt: 'typing...', start_chat_hint: 'Tap to start chatting 👋',
-        req_sent: '⏳ Request Sent', friends_badge: '✅ Friends', legal_title: '🛡️ Privacy & User Rights', legal_ok: 'I Understand',
-        legal_body: '<p><strong>1. Data Protection:</strong> VibeLabs Technologies protects your encrypted data.</p><p><strong>2. ~150m Privacy & 24h Expiry:</strong> Personal pins use ~150m rounded coordinates and expire in <strong>24 hours</strong>.</p>'
-      },
-      de: {
-        live_badge: 'Live Social Map', tagline: 'Erlebe den Puls deiner Stadt',
-        login_tab: '🔐 Anmelden', signup_tab: '✨ Registrieren', google_btn: 'Mit Google fortfahren',
-        or_email: 'oder per E-Mail', email_ph: 'E-Mail-Adresse', pass_ph: 'Passwort', login_btn: 'Anmelden',
-        forgot_link: '🔑 Passwort vergessen?', forgot_title: '🔑 Passwort zurücksetzen', forgot_desc: 'E-Mail eingeben.', forgot_send: '📨 Senden',
-        bday_hint: '🎂 VIP-Zugang an deinem Geburtstag!', interests_lbl: 'Interessen:', complete_signup_btn: '🚀 Konto erstellen',
-        terms_pre: 'Akzeptierst du unsere', terms_link: 'Datenschutzbestimmungen', terms_post: '.',
-        return_loc: 'Zu meinem Standort',
-        cat_all: '🔥 Alle', cat_sponsored: '🚩 Gesponsert', cat_event: '🎉 Event', cat_social: '☕ Essen', cat_question: '❓ Frage', cat_deal: '⚡ Deals',
-        fab_create: '＋ Vibe teilen', new_pin_title: '📍 Neuer VibePin', pin_24h_note: '⏳ 24 Stunden live',
-        pin_text_ph: 'Teile deinen Moment...', cam_btn: '📸 Kamera', gal_btn: '🖼️ Galerie', aud_btn: '🎙️ Sprache',
-        pub_btn: '🚀 Veröffentlichen (24h)', add_friend: '➕ Freund',
-        like_lbl: 'Like', verify_lbl: 'Bestätigen', fake_lbl: 'Fake', del_pin: '🗑️ Löschen', comment_ph: 'Kommentar...', send_btn: 'Senden',
-        profile_title: '🎭 Profil', upload_avatar: '📸 Foto', g_select: 'Geschlecht', g_female: '👩 Weiblich', g_male: '👨 Männlich', g_other: '🧑 Divers',
-        username_ph: 'Benutzername', save_profile: '💾 Speichern', logout_btn: 'Abmelden',
-        notif_title: '🔔 Benachrichtigungen', tab_chats: 'Chats', tab_reqs: 'Anfragen', tab_blocked: 'Blockiert', search_chat_ph: '🔍 Suchen...',
-        remove_friend: '🗑️ Entfernen', block_user: '🚫 Blockieren', msg_ph: 'Nachricht...',
-        support_title: '🆘 Kontakt', support_desc: 'Schreibe uns direkt.', support_ph: 'Nachricht...', send_msg_btn: '📨 Senden',
-        online_sub: 'online • VibePin', typing_txt: 'schreibt...', start_chat_hint: 'Tippen zum Chatten 👋',
-        req_sent: '⏳ Gesendet', friends_badge: '✅ Befreundet', legal_title: '🛡️ Datenschutz', legal_ok: 'OK', legal_body: '<p>DSGVO-konform.</p>'
-      },
-      es: {
-        live_badge: 'Mapa Social en Vivo', tagline: 'Captura el pulso de tu ciudad', login_tab: '🔐 Entrar', signup_tab: '✨ Registrarse',
-        google_btn: 'Continuar con Google', or_email: 'o con correo', email_ph: 'Correo', pass_ph: 'Contraseña', login_btn: 'Entrar',
-        forgot_link: '🔑 ¿Olvidaste tu contraseña?', forgot_title: '🔑 Restablecer', forgot_desc: 'Ingresa tu correo.', forgot_send: '📨 Enviar',
-        bday_hint: '🎂 ¡Acceso VIP en tu cumpleaños!', interests_lbl: 'Intereses:', complete_signup_btn: '🚀 Crear Cuenta',
-        terms_pre: 'Aceptas nuestros', terms_link: 'Términos y Privacidad', terms_post: '.',
-        return_loc: 'Volver a mi ubicación',
-        cat_all: '🔥 Todo', cat_sponsored: '🚩 Patrocinado', cat_event: '🎉 Eventos', cat_social: '☕ Comida', cat_question: '❓ Pregunta', cat_deal: '⚡ Ofertas',
-        fab_create: '＋ Publicar Vibe', new_pin_title: '📍 Nuevo VibePin', pin_24h_note: '⏳ 24 horas en vivo',
-        pin_text_ph: 'Comparte algo...', cam_btn: '📸 Cámara', gal_btn: '🖼️ Galería', aud_btn: '🎙️ Voz',
-        pub_btn: '🚀 Publicar (24h)', add_friend: '➕ Amigo',
-        like_lbl: 'Me gusta', verify_lbl: 'Verificar', fake_lbl: 'Falso', del_pin: '🗑️ Eliminar', comment_ph: 'Comentario...', send_btn: 'Enviar',
-        profile_title: '🎭 Perfil', upload_avatar: '📸 Subir foto', g_select: 'Género', g_female: '👩 Mujer', g_male: '👨 Hombre', g_other: '🧑 Otro',
-        username_ph: 'Usuario', save_profile: '💾 Guardar', logout_btn: 'Salir',
-        notif_title: '🔔 Notificaciones', tab_chats: 'Chats', tab_reqs: 'Solicitudes', tab_blocked: 'Bloqueados', search_chat_ph: '🔍 Buscar...',
-        remove_friend: '🗑️ Eliminar', block_user: '🚫 Bloquear', msg_ph: 'Mensaje...',
-        support_title: '🆘 Contacto', support_desc: 'Contáctanos.', support_ph: 'Mensaje...', send_msg_btn: '📨 Enviar',
-        online_sub: 'en línea • VibePin', typing_txt: 'escribiendo...', start_chat_hint: 'Toca para chatear 👋',
-        req_sent: '⏳ Enviada', friends_badge: '✅ Amigos', legal_title: '🛡️ Privacidad', legal_ok: 'OK', legal_body: '<p>Datos cifrados.</p>'
-      },
-      ar: {
-        live_badge: 'خريطة اجتماعية حية', tagline: 'شارك نبض مدينتك', login_tab: '🔐 دخول', signup_tab: '✨ تسجيل جديد',
-        google_btn: 'Google', or_email: 'البريد الإلكتروني', email_ph: 'البريد', pass_ph: 'كلمة المرور', login_btn: 'دخول',
-        forgot_link: '🔑 نسيت كلمة المرور؟', forgot_title: '🔑 استعادة', forgot_desc: 'أدخل بريدك.', forgot_send: '📨 إرسال',
-        bday_hint: '🎂 استخدام VIP في عيد ميلادك!', interests_lbl: 'الاهتمامات:', complete_signup_btn: '🚀 إنشاء حساب',
-        terms_pre: 'توافق على', terms_link: 'الخصوصية', terms_post: '.',
-        return_loc: 'العودة لموقعي',
-        cat_all: '🔥 الكل', cat_sponsored: '🚩 ممول', cat_event: '🎉 فعاليات', cat_social: '☕ طعام', cat_question: '❓ سؤال', cat_deal: '⚡ عروض',
-        fab_create: '＋ أضف Vibe', new_pin_title: '📍 جديد', pin_24h_note: '⏳ 24 ساعة',
-        pin_text_ph: 'شارك لحظتك...', cam_btn: '📸 كاميرا', gal_btn: '🖼️ معرض', aud_btn: '🎙️ صوت',
-        pub_btn: '🚀 نشر (24 ساعة)', add_friend: '➕ صديق',
-        like_lbl: 'إعجاب', verify_lbl: 'تأكيد', fake_lbl: 'كاذب', del_pin: '🗑️ حذف', comment_ph: 'تعليق...', send_btn: 'إرسال',
-        profile_title: '🎭 الملف الشخصي', upload_avatar: '📸 صورة', g_select: 'الجنس', g_female: '👩 أنثى', g_male: '👨 ذكر', g_other: '🧑 آخر',
-        username_ph: 'اسم المستخدم', save_profile: '💾 حفظ', logout_btn: 'خروج',
-        notif_title: '🔔 الإشعارات', tab_chats: 'المحادثات', tab_reqs: 'الطلبات', tab_blocked: 'المحظورون', search_chat_ph: '🔍 بحث...',
-        remove_friend: '🗑️ إزالة', block_user: '🚫 حظر', msg_ph: 'رسالة...',
-        support_title: '🆘 تواصل', support_desc: 'راسلنا.', support_ph: 'رسالتك...', send_msg_btn: '📨 إرسال',
-        online_sub: 'متصل • VibePin', typing_txt: 'يكتب...', start_chat_hint: 'ابدأ المحادثة 👋',
-        req_sent: '⏳ تم الإرسال', friends_badge: '✅ أصدقاء', legal_title: '🛡️ الخصوصية', legal_ok: 'حسناً', legal_body: '<p>بيانات مشفرة.</p>'
-      }
-    };
-
-    let currentLang = localStorage.getItem('vibepin_lang') || ((navigator.language || '').toLowerCase().startsWith('tr') ? 'tr' : 'en');
-    function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.tr[key] || key; }
-
-    function applyLanguage() {
-      document.documentElement.lang = currentLang;
-      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
-      document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
-      document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-      const codeUpper = currentLang.toUpperCase();
-      const gBtn = document.getElementById('gateLangBtn'); if (gBtn) gBtn.textContent = '🌐 ' + codeUpper;
-      const tBtn = document.getElementById('topLangBtn'); if (tBtn) tBtn.textContent = codeUpper;
-      document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active'));
-      const activeOpt = document.getElementById('langOpt-' + currentLang);
-      if (activeOpt) activeOpt.classList.add('active');
-    }
-
-    function setLanguage(lang) { currentLang = lang; localStorage.setItem('vibepin_lang', lang); applyLanguage(); closeModal('langModal'); }
+    const IMPORTANT_KEYWORDS = ['kaza', 'yangın', 'yangin', 'acil', 'önemli', 'onemli', 'ünlü', 'unlu', 'görüldü', 'goruldu', 'konser', 'olay', 'yardım', 'yardim', 'ambulans', 'polis', 'trafik'];
+    const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
 
     let sb = null, map = null, tileLayerObj = null, currentMapMode = 'dark';
     let realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, isBirthdayToday = false;
-    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null, birth_date: null, interests: [] };
+    let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0, gender: '', age: null, birth_date: null };
     let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, myLocationMarker = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, selectedGhostAvatarFile = null, selectedVenuePhotoFile = null, mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
-    let extraFriendQuota = 0;
-    let activeChatFriend = null, chatPollTimer = null, listPollTimer = null, lastUnreadCount = 0;
-    let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waResponsesCache = [], waBlockedCache = [];
-    let realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
-    let localUndeliveredMsgs = [];
-    const CAT_META = { event: { emoji: '🎉', color: '#ec4899' }, social: { emoji: '☕', color: '#06b6d4' }, question: { emoji: '❓', color: '#f59e0b' }, deal: { emoji: '⚡', color: '#10b981' } };
-    const IMPORTANT_KEYWORDS = ['kaza', 'yangın', 'yangin', 'acil', 'önemli', 'onemli', 'ünlü', 'unlu', 'görüldü', 'goruldu', 'konser', 'olay', 'yardım', 'yardim', 'ambulans', 'polis', 'trafik'];
+    let extraFriendQuota = 0, activeChatFriend = null, chatPollTimer = null, listPollTimer = null;
+    let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waBlockedCache = [], realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
 
     function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
-    function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3800); }
+    function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3500); }
     function isFounder() { return currentUser && currentUser.email && currentUser.email.toLowerCase() === FOUNDER_EMAIL.toLowerCase(); }
     function hasVipAccess() { return isFounder() || isBirthdayToday; }
+    function formatTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-    /* Önemli olay / popüler etkileşim skoru */
     function getPinImportance(pin) {
       const txt = (pin.content_text || '').toLowerCase();
       const hasAlertWord = IMPORTANT_KEYWORDS.some(k => txt.includes(k));
-      const likes = pin.likes_count || 0;
-      const upvotes = pin.upvotes_count || 0;
-      const score = likes * 2 + upvotes * 3 + (hasAlertWord ? 15 : 0);
-      const isTrending = score >= 10 || hasAlertWord;
-      return { score, isTrending, hasAlertWord };
+      const score = (pin.likes_count || 0) * 2 + (pin.upvotes_count || 0) * 3 + (hasAlertWord ? 15 : 0);
+      return { score, isTrending: score >= 10 || hasAlertWord, hasAlertWord };
     }
 
     function fuzzCoords(lat, lng) {
-      const radiusMeters = 120 + Math.random() * 80;
-      const angle = Math.random() * 2 * Math.PI;
-      const dLat = (radiusMeters * Math.cos(angle)) / 111320;
-      const dLng = (radiusMeters * Math.sin(angle)) / (111320 * Math.cos(lat * Math.PI / 180));
-      return [lat + dLat, lng + dLng];
-    }
-
-    function calcAgeFromBirth(birthStr) {
-      if (!birthStr) return null;
-      const b = new Date(birthStr), now = new Date();
-      let age = now.getFullYear() - b.getFullYear();
-      const m = now.getMonth() - b.getMonth();
-      if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
-      return age;
-    }
-
-    function checkIsBirthday(birthStr) {
-      if (!birthStr) return false;
-      const b = new Date(birthStr), now = new Date();
-      return (b.getMonth() === now.getMonth() && b.getDate() === now.getDate());
-    }
-
-    function renderDemoBadge(profile) {
-      if (!profile) return '';
-      const g = profile.gender || '';
-      const age = profile.age ? parseInt(profile.age, 10) : calcAgeFromBirth(profile.birth_date);
-      if (!g && !age) return '';
-      let icon = '', cls = 'demo-other';
-      if (g === 'female') { icon = '👩'; cls = 'demo-female'; }
-      else if (g === 'male') { icon = '👨'; cls = 'demo-male'; }
-      else if (g === 'other') { icon = '🧑'; cls = 'demo-other'; }
-      const text = [icon, age ? age : ''].filter(Boolean).join(' ');
-      return `<span class="demo-badge ${cls}">${text}</span>`;
-    }
-
-    function formatTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-
-    function avatarHtml(profile, fallbackEmoji = '🦊', hidePhoto = false) {
-      if (hidePhoto) {
-        return `<svg width="26" height="26" viewBox="0 0 24 24" fill="#8696a0"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`;
-      }
-      if (profile && profile.avatar_url) return `<img src="${esc(profile.avatar_url)}" />`;
-      return esc((profile && profile.avatar_emoji) || fallbackEmoji);
-    }
-
-    function playNotifSound() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.14);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.35);
-      } catch (e) {}
+      const r = 120 + Math.random() * 80, ang = Math.random() * 2 * Math.PI;
+      return [lat + (r * Math.cos(ang)) / 111320, lng + (r * Math.sin(ang)) / (111320 * Math.cos(lat * Math.PI / 180))];
     }
 
     function getDistanceKm(lat1, lon1, lat2, lon2) {
@@ -235,23 +557,16 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    function getRemainingHoursText(expiresAt) {
-      if (!expiresAt) return '⏳ 24s';
-      const diffMs = new Date(expiresAt) - new Date();
-      if (diffMs <= 0) return '⌛ Süresi Doldu';
-      const hrs = Math.ceil(diffMs / (1000 * 60 * 60));
-      return hrs > 24 ? `🚩 ${Math.ceil(hrs/24)} gün` : `⏳ ${hrs}s`;
+    function avatarHtml(profile, fallbackEmoji = '🦊', hidePhoto = false) {
+      if (hidePhoto) return `<svg width="26" height="26" viewBox="0 0 24 24" fill="#8696a0"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`;
+      if (profile && profile.avatar_url) return `<img src="${esc(profile.avatar_url)}" />`;
+      return esc((profile && profile.avatar_emoji) || fallbackEmoji);
     }
 
-    function updateMyLocationMarker(coords) {
-      if (!map || !window.L) return;
-      const myLocIcon = L.divIcon({
-        className: '',
-        html: `<div class="my-loc-wrap"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`,
-        iconSize: [26, 26], iconAnchor: [13, 13]
-      });
-      if (myLocationMarker) myLocationMarker.setLatLng(coords);
-      else myLocationMarker = L.marker(coords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
+    function setLanguage(lang) {
+      document.getElementById('gateLangBtn').textContent = '🌐 ' + lang.toUpperCase();
+      document.getElementById('topLangBtn').textContent = lang.toUpperCase();
+      closeModal('langModal');
     }
 
     function setMapStyle(mode) {
@@ -259,65 +574,49 @@
       currentMapMode = mode;
       map.removeLayer(tileLayerObj);
       document.querySelectorAll('.mm-tab').forEach(el => el.classList.remove('active'));
-      const activeTab = document.getElementById('mm-' + mode);
-      if (activeTab) activeTab.classList.add('active');
-
-      if (mode === 'satellite') {
-        tileLayerObj = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
-      } else if (mode === 'street') {
-        tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      } else {
-        tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
-      }
+      const active = document.getElementById('mm-' + mode); if (active) active.classList.add('active');
+      if (mode === 'satellite') tileLayerObj = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
+      else if (mode === 'street') tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      else tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
     }
 
     function initSwipeMapBar() {
-      const bar = document.getElementById('mapModeSwipeBar');
-      if (!bar) return;
-      let startX = 0;
-      const modes = ['dark', 'satellite', 'street'];
+      const bar = document.getElementById('mapModeSwipeBar'); if (!bar) return;
+      let startX = 0; const modes = ['dark', 'satellite', 'street'];
       bar.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
       bar.addEventListener('touchend', (e) => {
-        const diffX = e.changedTouches[0].clientX - startX;
-        if (Math.abs(diffX) < 25) return;
+        const diff = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diff) < 25) return;
         const idx = modes.indexOf(currentMapMode);
-        if (diffX < 0 && idx < modes.length - 1) setMapStyle(modes[idx + 1]);
-        else if (diffX > 0 && idx > 0) setMapStyle(modes[idx - 1]);
+        if (diff < 0 && idx < modes.length - 1) setMapStyle(modes[idx + 1]);
+        else if (diff > 0 && idx > 0) setMapStyle(modes[idx - 1]);
       }, { passive: true });
     }
 
     function switchAuthMode(mode) {
       document.getElementById('tabLoginMode').classList.toggle('active', mode === 'login');
       document.getElementById('tabSignupMode').classList.toggle('active', mode === 'signup');
-      document.getElementById('loginSection').style.display = (mode === 'login') ? 'block' : 'none';
-      document.getElementById('signupSection').style.display = (mode === 'signup') ? 'block' : 'none';
+      document.getElementById('loginSection').style.display = mode === 'login' ? 'block' : 'none';
+      document.getElementById('signupSection').style.display = mode === 'signup' ? 'block' : 'none';
       document.getElementById('loginStatus').textContent = '';
     }
 
-    function openForgotModal() {
-      document.getElementById('forgotEmailInput').value = document.getElementById('gateEmail').value.trim();
-      openModal('forgotModal');
-    }
-
+    function openForgotModal() { document.getElementById('forgotEmailInput').value = document.getElementById('gateEmail').value.trim(); openModal('forgotModal'); }
     async function sendPasswordReset() {
       const email = document.getElementById('forgotEmailInput').value.trim();
-      if (!email) return showToast('Lütfen e-posta adresinizi girin.');
+      if (!email) return showToast('E-posta girin.');
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://getvibepin.github.io/vibepin/' });
-      if (error) return showToast('Hata: ' + error.message);
-      closeModal('forgotModal');
-      showToast('📨 Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!');
+      if (error) return showToast(error.message);
+      closeModal('forgotModal'); showToast('📨 Sıfırlama bağlantısı gönderildi!');
     }
 
     function initApp() {
-      applyLanguage();
       initSwipeMapBar();
-      const status = document.getElementById('loginStatus');
-      if (!window.supabase) { status.textContent = 'Connection error, please refresh.'; return; }
+      if (!window.supabase) { document.getElementById('loginStatus').textContent = 'Bağlantı hatası.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v21' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v22' }
       });
-
-      document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithProvider('google'));
+      document.getElementById('googleLoginBtn').addEventListener('click', () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } }));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
       document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
@@ -325,344 +624,133 @@
         map = L.map('map', { zoomControl: false }).setView(userCoords, 13);
         tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
         markersLayer = L.layerGroup().addTo(map);
-        updateMyLocationMarker(realGpsCoords);
-
-        map.on('zoomend', () => { renderPins(); });
-
+        const myLocIcon = L.divIcon({ className: '', html: `<div class="my-loc-wrap"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
+        myLocationMarker = L.marker(realGpsCoords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
+        map.on('zoomend', () => renderPins());
         map.on('moveend', () => {
           const c = map.getCenter();
-          const dist = getDistanceKm(realGpsCoords[0], realGpsCoords[1], c.lat, c.lng);
-          document.getElementById('returnLocBtn').style.display = (dist > 0.6) ? 'flex' : 'none';
+          document.getElementById('returnLocBtn').style.display = getDistanceKm(realGpsCoords[0], realGpsCoords[1], c.lat, c.lng) > 0.6 ? 'flex' : 'none';
         });
-
-        map.on('click', (e) => {
-          if (ghostMode && isFounder()) {
-            selectedCoords = [e.latlng.lat, e.latlng.lng];
-            openCreatePin(true);
-          }
-        });
+        map.on('click', (e) => { if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); } });
       }
 
-      sb.auth.onAuthStateChange((_event, session) => { if (session?.user) enterApp(session.user); });
-      checkSession();
+      sb.auth.onAuthStateChange((_ev, session) => { if (session?.user) enterApp(session.user); });
+      sb.auth.getSession().then(({ data: { session } }) => { if (session?.user) enterApp(session.user); });
     }
 
     async function enterApp(user) {
       currentUser = user;
       await loadMyProfile();
-      if (myProfile.is_banned || (myProfile.trust_score !== null && myProfile.trust_score <= 30)) {
-        await sb.auth.signOut();
-        document.getElementById('authGate').style.display = 'flex';
-        document.getElementById('loginStatus').textContent = '🚫 Account restricted due to low trust score.';
-        return;
-      }
       document.getElementById('authGate').style.display = 'none';
-      const founderActive = isFounder();
-      document.getElementById('ghostBtn').style.display = founderActive ? 'flex' : 'none';
-      document.getElementById('venueFlagQuickBtn').style.display = founderActive ? 'flex' : 'none';
-      document.getElementById('adminTicketsBtn').style.display = founderActive ? 'block' : 'none';
-
-      isBirthdayToday = checkIsBirthday(myProfile.birth_date);
-      if (isBirthdayToday) {
-        showToast(`🎂 Doğum Günün Kutlu Olsun ${myProfile.username}! Bugün sınırsız VIP kullanım hediye!`);
-      }
-
+      const founder = isFounder();
+      document.getElementById('ghostBtn').style.display = founder ? 'flex' : 'none';
+      document.getElementById('venueFlagQuickBtn').style.display = founder ? 'flex' : 'none';
+      document.getElementById('adminTicketsBtn').style.display = founder ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
       locateUser();
       await loadBlockedUsers();
       loadPins();
-      setupRealtimeChannel();
+      setupRealtime();
       checkNotifications();
       setInterval(checkNotifications, 5000);
     }
 
-    function setupRealtimeChannel() {
+    function setupRealtime() {
       if (!sb || !currentUser || realtimeChatChannel) return;
-      realtimeChatChannel = sb.channel('vibepin-global-live')
+      realtimeChatChannel = sb.channel('vibepin-live')
         .on('broadcast', { event: 'typing' }, ({ payload }) => {
           if (!payload || payload.to !== currentUser.id) return;
           if (blockedIds.includes(payload.from) || blockedByIds.includes(payload.from)) return;
-          const senderId = payload.from;
-          typingUsersMap[senderId] = true;
-          updateTypingIndicators();
-          if (typingHideTimers[senderId]) clearTimeout(typingHideTimers[senderId]);
-          typingHideTimers[senderId] = setTimeout(() => { delete typingUsersMap[senderId]; updateTypingIndicators(); }, 2600);
+          typingUsersMap[payload.from] = true; updateTypingUI();
+          if (typingHideTimers[payload.from]) clearTimeout(typingHideTimers[payload.from]);
+          typingHideTimers[payload.from] = setTimeout(() => { delete typingUsersMap[payload.from]; updateTypingUI(); }, 2600);
         })
-        .on('broadcast', { event: 'pin_refresh' }, () => { loadPins(); })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pins' }, () => { loadPins(); })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'blocked_users' }, async () => {
-          await loadBlockedUsers();
-          if (activeChatFriend) loadDirectMessages();
-          if (document.getElementById('friendsModal').classList.contains('open')) refreshFriendsData();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
-          if (payload.new && payload.new.user_id === currentUser.id) { playNotifSound(); checkNotifications(); }
-        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pins' }, () => loadPins())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'blocked_users' }, async () => { await loadBlockedUsers(); if (activeChatFriend) loadDirectMessages(); if (document.getElementById('friendsModal').classList.contains('open')) refreshFriendsData(); })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_messages' }, (payload) => {
-          const row = payload.new || payload.old;
-          if (!row) return;
-          if (row.receiver_id === currentUser.id || row.sender_id === currentUser.id) {
-            if (activeChatFriend && (row.sender_id === activeChatFriend.id || row.receiver_id === activeChatFriend.id)) {
-              delete typingUsersMap[activeChatFriend.id];
-              updateTypingIndicators();
-              loadDirectMessages();
-            }
+          const r = payload.new || payload.old; if (!r) return;
+          if (r.receiver_id === currentUser.id || r.sender_id === currentUser.id) {
+            if (activeChatFriend && (r.sender_id === activeChatFriend.id || r.receiver_id === activeChatFriend.id)) { delete typingUsersMap[activeChatFriend.id]; updateTypingUI(); loadDirectMessages(); }
             if (document.getElementById('friendsModal').classList.contains('open')) refreshFriendsData();
             checkNotifications();
           }
-        })
-        .subscribe();
+        }).subscribe();
     }
 
     function handleDmTyping() {
       if (!realtimeChatChannel || !activeChatFriend || !currentUser) return;
       if (blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id)) return;
-      const now = Date.now();
-      if (now - lastTypingSentAt > 1200) {
-        lastTypingSentAt = now;
-        realtimeChatChannel.send({ type: 'broadcast', event: 'typing', payload: { from: currentUser.id, to: activeChatFriend.id } });
-      }
+      if (Date.now() - lastTypingSentAt > 1200) { lastTypingSentAt = Date.now(); realtimeChatChannel.send({ type: 'broadcast', event: 'typing', payload: { from: currentUser.id, to: activeChatFriend.id } }); }
     }
 
-    function updateTypingIndicators() {
+    function updateTypingUI() {
       if (activeChatFriend) {
         const sub = document.getElementById('chatStatusSub');
-        const isBlocked = blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id);
-        if (isBlocked) sub.textContent = '';
-        else if (typingUsersMap[activeChatFriend.id]) { sub.textContent = t('typing_txt'); sub.style.color = 'var(--wa-green)'; }
-        else { sub.textContent = t('online_sub'); sub.style.color = '#8696a0'; }
+        const blocked = blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id);
+        if (blocked) sub.textContent = '';
+        else if (typingUsersMap[activeChatFriend.id]) { sub.textContent = 'yazıyor...'; sub.style.color = 'var(--wa-green)'; }
+        else { sub.textContent = 'çevrimiçi • VibePin'; sub.style.color = '#8696a0'; }
       }
       if (document.getElementById('friendsModal').classList.contains('open') && waTab === 'chats') renderWaChatList();
     }
 
-    async function checkSession() {
-      try {
-        const { data: { session } } = await sb.auth.getSession();
-        if (session?.user) await enterApp(session.user);
-        else document.getElementById('authGate').style.display = 'flex';
-      } catch (e) { document.getElementById('authGate').style.display = 'flex'; }
-    }
-
-    async function signInWithProvider(provider) {
-      const status = document.getElementById('loginStatus');
-      status.style.color = '#38bdf8'; status.textContent = 'Google hesabına yönlendiriliyor...';
-      const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } });
-      if (error) { status.style.color = '#f87171'; status.textContent = error.message; }
-    }
-
     async function gateSignIn() {
-      const btn = document.getElementById('loginBtn'), status = document.getElementById('loginStatus');
       const email = document.getElementById('gateEmail').value.trim(), password = document.getElementById('gatePass').value.trim();
-      if (!email || !password) { status.textContent = 'Lütfen e-posta ve şifrenizi girin.'; return; }
-      btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = '⏳...';
+      if (!email || !password) return showToast('E-posta ve şifre girin.');
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      btn.disabled = false;
-      if (error) { status.style.color = '#f87171'; status.textContent = error.message; return; }
-      status.textContent = ''; await enterApp(data.user);
+      if (error) document.getElementById('loginStatus').textContent = error.message;
+      else enterApp(data.user);
     }
 
     async function gateSignUp() {
-      const btn = document.getElementById('signupBtn'), status = document.getElementById('loginStatus');
-      const username = document.getElementById('regUsername').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const password = document.getElementById('regPass').value.trim();
-      const gender = document.getElementById('regGender').value;
-      const birthDate = document.getElementById('regBirthDate').value;
-      const interests = Array.from(document.querySelectorAll('#regInterestsGrid .int-chip.selected')).map(el => el.getAttribute('data-val'));
-
-      if (!username || username.length < 3) { status.textContent = 'En az 3 karakterli benzersiz bir kullanıcı adı yazın.'; return; }
-      if (!email || password.length < 6) { status.textContent = 'Geçerli bir e-posta ve en az 6 haneli şifre girin.'; return; }
-      if (birthDate) {
-        const ageCheck = calcAgeFromBirth(birthDate);
-        if (ageCheck !== null && ageCheck < 13) { status.textContent = 'Uygulamayı kullanmak için en az 13 yaşında olmalısınız.'; return; }
-      }
-
-      btn.disabled = true; status.style.color = '#38bdf8'; status.textContent = '⏳ Hesap oluşturuluyor...';
+      const username = document.getElementById('regUsername').value.trim(), email = document.getElementById('regEmail').value.trim(), password = document.getElementById('regPass').value.trim();
+      if (!username || !email || password.length < 6) return showToast('Kullanıcı adı, e-posta ve en az 6 haneli şifre girin.');
       const { data, error } = await sb.auth.signUp({ email, password });
-      btn.disabled = false;
-      if (error) { status.style.color = '#f87171'; status.textContent = error.message; return; }
-
-      if (data.user) {
-        const calcAge = calcAgeFromBirth(birthDate);
-        await sb.from('profiles').upsert({
-          id: data.user.id, username,
-          avatar_emoji: gender === 'female' ? '👸' : (gender === 'male' ? '🦁' : '🦊'),
-          gender: gender || null, birth_date: birthDate || null, age: calcAge,
-          interests, trust_score: 100, username_updated_at: new Date().toISOString()
-        });
-      }
-
-      if (data.session) { status.textContent = ''; await enterApp(data.user); }
-      else { status.style.color = '#10b981'; status.textContent = '✅ Kayıt tamamlandı! Giriş Yap sekmesinden giriş yapabilirsiniz.'; switchAuthMode('login'); }
-    }
-
-    function updateAvatarUI() {
-      const btn = document.getElementById('myAvatarBtn'), prev = document.getElementById('profilePhotoPreview');
-      if (myProfile.avatar_url) {
-        btn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
-        prev.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
-      } else { btn.textContent = myProfile.avatar_emoji || '🦊'; prev.textContent = myProfile.avatar_emoji || '🦊'; }
-      const score = myProfile.trust_score ?? 100;
-      const tEl = document.getElementById('myTrustScoreText');
-      tEl.textContent = `🛡️ Güven: ${score} / 100` + (isBirthdayToday ? ' • 🎂 VIP' : '');
-      tEl.style.color = score >= 70 ? '#10b981' : (score >= 45 ? '#f59e0b' : '#ef4444');
+      if (error) return showToast(error.message);
+      if (data.user) await sb.from('profiles').upsert({ id: data.user.id, username, avatar_emoji: '🦊', trust_score: 100 });
+      if (data.session) enterApp(data.user);
+      else { showToast('✅ Kayıt tamamlandı, şimdi giriş yapabilirsin.'); switchAuthMode('login'); }
     }
 
     async function loadMyProfile() {
       const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-      if (data) { myProfile = data; }
-      else {
-        const defaultName = (currentUser.user_metadata?.full_name || currentUser.email.split('@')[0]) + '_' + Math.floor(100 + Math.random()*899);
-        myProfile = { username: defaultName, avatar_emoji: '🦊', avatar_url: currentUser.user_metadata?.avatar_url || null, trust_score: 100, is_banned: false, friend_requests_sent: 0, username_updated_at: null, gender: '', age: null, birth_date: null, interests: [] };
-        await sb.from('profiles').upsert({ id: currentUser.id, ...myProfile });
-      }
-      refreshProfileFields(); updateAvatarUI();
+      if (data) myProfile = data;
+      document.getElementById('profileNameInput').value = myProfile.username || '';
+      document.getElementById('myAvatarBtn').textContent = myProfile.avatar_emoji || '🦊';
     }
 
-    function refreshProfileFields() {
-      document.getElementById('profileGenderInput').value = myProfile.gender || '';
-      document.getElementById('profileBirthInput').value = myProfile.birth_date || '';
-      const savedInts = myProfile.interests || [];
-      document.querySelectorAll('#profileInterestsGrid .int-chip').forEach(el => {
-        el.classList.toggle('selected', savedInts.includes(el.getAttribute('data-val')));
-      });
-
-      const nameInput = document.getElementById('profileNameInput');
-      const lockNote = document.getElementById('usernameLockNote');
-      nameInput.value = myProfile.username || '';
-      if (isFounder()) { nameInput.disabled = false; lockNote.textContent = '👑 Kurucu Hesabı: İsim kısıtlaması yok.'; return; }
-      if (myProfile.username_updated_at) {
-        const daysPassed = (Date.now() - new Date(myProfile.username_updated_at).getTime()) / (1000 * 3600 * 24);
-        if (daysPassed < 14) { nameInput.disabled = true; lockNote.style.color = '#f59e0b'; lockNote.textContent = `⏳ Trol koruması: ${Math.ceil(14 - daysPassed)} gün kaldı.`; return; }
-      }
-      nameInput.disabled = false; lockNote.style.color = 'var(--muted)'; lockNote.textContent = '🔒 Kullanıcı adı 14 günde bir kez değiştirilebilir.';
-    }
-
-    function openProfileModal() { selectedAvatarFile = null; refreshProfileFields(); openModal('profileModal'); }
-    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; selectedAvatarFile = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); updateAvatarUI(); }
-    function handleAvatarFile(input) {
-      if (input.files && input.files[0]) {
-        selectedAvatarFile = input.files[0];
-        document.getElementById('avatarUploadLabel').textContent = '✅ Seçildi';
-        document.getElementById('profilePhotoPreview').innerHTML = `<img src="${URL.createObjectURL(selectedAvatarFile)}" style="width:100%;height:100%;object-fit:cover;" />`;
-      }
-    }
+    function openProfileModal() { openModal('profileModal'); }
+    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); document.getElementById('myAvatarBtn').textContent = emoji; }
+    function handleAvatarFile(input) { if (input.files?.[0]) { selectedAvatarFile = input.files[0]; document.getElementById('avatarUploadLabel').textContent = '✅ Seçildi'; } }
 
     async function saveProfile() {
-      const nameInput = document.getElementById('profileNameInput');
-      const newName = nameInput.value.trim() || myProfile.username;
-      const nameChanged = (newName !== myProfile.username);
-      const genderVal = document.getElementById('profileGenderInput').value;
-      const birthVal = document.getElementById('profileBirthInput').value;
-      const ageVal = calcAgeFromBirth(birthVal) ?? myProfile.age;
-      const interestsVal = Array.from(document.querySelectorAll('#profileInterestsGrid .int-chip.selected')).map(el => el.getAttribute('data-val'));
-
-      if (ageVal !== null && (ageVal < 13 || ageVal > 99)) return showToast('⚠️ Yaş 13 ile 99 arasında olmalıdır.');
-      if (nameChanged && !isFounder()) {
-        if (newName.length < 3 || newName.length > 20) return showToast('Kullanıcı adı 3–20 karakter olmalıdır.');
-        if (myProfile.username_updated_at) {
-          const daysPassed = (Date.now() - new Date(myProfile.username_updated_at).getTime()) / (1000 * 3600 * 24);
-          if (daysPassed < 14) return showToast(`Bekleme süresi: ${Math.ceil(14 - daysPassed)} gün.`);
-        }
-      }
-
+      const newName = document.getElementById('profileNameInput').value.trim() || myProfile.username;
       if (selectedAvatarFile) {
         const ext = selectedAvatarFile.name.split('.').pop() || 'jpg';
         const path = `${currentUser.id}/avatar_${Date.now()}.${ext}`;
-        const { error: upErr } = await sb.storage.from('vibe-media').upload(path, selectedAvatarFile);
-        if (!upErr) myProfile.avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+        const { error } = await sb.storage.from('vibe-media').upload(path, selectedAvatarFile);
+        if (!error) myProfile.avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
-
-      const payload = { id: currentUser.id, username: newName, avatar_emoji: myProfile.avatar_emoji, avatar_url: myProfile.avatar_url, gender: genderVal || null, birth_date: birthVal || null, age: ageVal, interests: interestsVal };
-      if (nameChanged) payload.username_updated_at = new Date().toISOString();
-
-      const { error } = await sb.from('profiles').upsert(payload);
-      if (error) {
-        if (error.message && error.message.includes('unique')) return showToast('⚠️ Bu kullanıcı adı alınmış.');
-        return showToast(error.message);
-      }
-      Object.assign(myProfile, payload);
-      refreshProfileFields(); updateAvatarUI(); closeModal('profileModal'); showToast('✅ Profil kaydedildi!'); loadPins();
-    }
-
-    function openAdForFriend() {
-      const sponsoredList = allPins.filter(p => p.is_sponsored);
-      if (sponsoredList.length > 0) {
-        const pick = sponsoredList[Math.floor(Math.random() * sponsoredList.length)];
-        document.getElementById('sponsorAdCardText').textContent = `🚩 ${pick.sponsor_title || pick.ghost_author_name}: ${pick.content_text}`;
-      }
-      document.getElementById('adModalDesc').textContent = `10 ücretsiz arkadaşlık isteği hakkın doldu (${extraFriendQuota}/3 ek hak kullanıldı). Sponsorlu mekan tanıtımını izleyerek +1 hak daha açabilirsin.`;
-      document.getElementById('watchAdBtn').style.display = 'block';
-      document.getElementById('adCountdownBox').style.display = 'none';
-      document.getElementById('adSec').textContent = '5';
-      openModal('adModal');
-    }
-
-    function startRewardAd() {
-      document.getElementById('watchAdBtn').style.display = 'none';
-      document.getElementById('adCountdownBox').style.display = 'block';
-      let sec = 5;
-      const timer = setInterval(() => {
-        sec--; document.getElementById('adSec').textContent = sec;
-        if (sec <= 0) {
-          clearInterval(timer); closeModal('adModal');
-          if (extraFriendQuota < 3) {
-            extraFriendQuota += 1;
-            showToast(`🎉 +1 Arkadaşlık İsteği Hakkı Açıldı! (${extraFriendQuota}/3)`);
-          }
-        }
-      }, 1000);
+      await sb.from('profiles').upsert({ id: currentUser.id, username: newName, avatar_emoji: myProfile.avatar_emoji, avatar_url: myProfile.avatar_url });
+      myProfile.username = newName; closeModal('profileModal'); showToast('✅ Profil kaydedildi!'); loadPins();
     }
 
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
-
-    function locateUser() {
-      if (!navigator.geolocation || !map) return;
-      navigator.geolocation.getCurrentPosition((pos) => {
-        realGpsCoords = [pos.coords.latitude, pos.coords.longitude]; userCoords = [...realGpsCoords];
-        map.flyTo(userCoords, 15); updateMyLocationMarker(realGpsCoords);
-        document.getElementById('returnLocBtn').style.display = 'none';
-      }, () => {}, { enableHighAccuracy: true });
-    }
-
-    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👑 Kurucu Hayalet Modu Açık (Haritaya dokun veya + bas)' : 'Kurucu Modu Kapalı'); }
+    function locateUser() { if (!navigator.geolocation || !map) return; navigator.geolocation.getCurrentPosition((pos) => { realGpsCoords = [pos.coords.latitude, pos.coords.longitude]; userCoords = [...realGpsCoords]; map.flyTo(userCoords, 15); if (myLocationMarker) myLocationMarker.setLatLng(realGpsCoords); document.getElementById('returnLocBtn').style.display = 'none'; }, () => {}, { enableHighAccuracy: true }); }
+    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👑 Kurucu Hayalet Modu Açık' : 'Kapalı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
     function setFilter(cat, el) { currentFilter = cat; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderPins(); }
 
-    /* Sponsorlu Bayrak Yalnızca Kurucuya Özel */
-    function openVenueFlagModal() {
-      if (!isFounder()) return showToast('⛔ Sponsor bayrağını yalnızca kurucu dikebilir.');
-      selectedVenuePhotoFile = null;
-      document.getElementById('venueNameInput').value = '';
-      document.getElementById('venueOfferBadgeInput').value = '';
-      document.getElementById('venueCampaignDescInput').value = '';
-      document.getElementById('venuePhotoLabel').textContent = '📸 Mekan / Menü Fotoğrafı Ekle (Opsiyonel)';
-      document.getElementById('venuePhotoPreview').style.display = 'none';
-      openModal('venueFlagModal');
-    }
-
-    function handleVenuePhoto(input) {
-      if (input.files && input.files[0]) {
-        selectedVenuePhotoFile = input.files[0];
-        document.getElementById('venuePhotoLabel').textContent = '✅ Mekan Fotoğrafı Hazır';
-        const img = document.getElementById('venuePhotoPreview');
-        img.src = URL.createObjectURL(selectedVenuePhotoFile);
-        img.style.display = 'block';
-      }
-    }
+    function openVenueFlagModal() { if (!isFounder()) return; selectedVenuePhotoFile = null; document.getElementById('venueNameInput').value = ''; document.getElementById('venueOfferBadgeInput').value = ''; document.getElementById('venueCampaignDescInput').value = ''; document.getElementById('venuePhotoPreview').style.display = 'none'; openModal('venueFlagModal'); }
+    function handleVenuePhoto(input) { if (input.files?.[0]) { selectedVenuePhotoFile = input.files[0]; const img = document.getElementById('venuePhotoPreview'); img.src = URL.createObjectURL(selectedVenuePhotoFile); img.style.display = 'block'; } }
 
     async function submitVenueFlag() {
-      if (!isFounder()) return showToast('⛔ Yetkisiz işlem.');
-      const venueName = document.getElementById('venueNameInput').value.trim();
-      const offerBadge = document.getElementById('venueOfferBadgeInput').value.trim();
-      const campaignDesc = document.getElementById('venueCampaignDescInput').value.trim();
+      if (!isFounder()) return;
+      const venueName = document.getElementById('venueNameInput').value.trim(), offerBadge = document.getElementById('venueOfferBadgeInput').value.trim(), campaignDesc = document.getElementById('venueCampaignDescInput').value.trim();
       const durationHours = parseInt(document.getElementById('venueDurationSelect').value, 10) || 168;
-
-      if (!venueName || !campaignDesc) return showToast('Mekan adı ve kampanya/menü detayını yazın.');
-      const btn = document.getElementById('publishVenueBtn'); btn.disabled = true; btn.textContent = '⏳ Altın Bayrak Dikiliyor...';
-
+      if (!venueName || !campaignDesc) return showToast('Mekan adı ve detay yazın.');
       let image_url = null;
       if (selectedVenuePhotoFile) {
         const ext = selectedVenuePhotoFile.name.split('.').pop() || 'jpg';
@@ -670,448 +758,202 @@
         const { error } = await sb.storage.from('vibe-media').upload(path, selectedVenuePhotoFile);
         if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
       }
-
       const center = map ? [map.getCenter().lat, map.getCenter().lng] : userCoords;
-      const expires_at = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
-      const fullTitle = offerBadge ? `${venueName} • ${offerBadge}` : venueName;
-
-      const { error } = await sb.from('pins').insert([{
-        user_id: currentUser.id,
-        ghost_author_name: venueName,
-        ghost_avatar_emoji: '🚩',
-        category: 'deal',
-        content_text: campaignDesc,
-        latitude: center[0],
-        longitude: center[1],
-        image_url,
-        is_sponsored: true,
-        sponsor_title: fullTitle,
-        expires_at
-      }]);
-
-      btn.disabled = false; btn.textContent = '🚩 Haritaya Sponsorlu Bayrak Dik';
-      if (error) return showToast(error.message);
-
-      closeModal('venueFlagModal');
-      showToast(`🚩 "${venueName}" altın sponsor bayrağı haritada yayında!`);
-      await loadPins();
-      if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} });
+      await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: venueName, category: 'deal', content_text: campaignDesc, latitude: center[0], longitude: center[1], image_url, is_sponsored: true, sponsor_title: offerBadge ? `${venueName} • ${offerBadge}` : venueName, expires_at: new Date(Date.now() + durationHours * 3600 * 1000).toISOString() }]);
+      closeModal('venueFlagModal'); showToast('🚩 Sponsorlu bayrak dikildi!'); loadPins();
     }
 
     function openCreatePin(fromGhost = false) {
       if (!isFounder()) {
-        const last24hCutoff = Date.now() - 24 * 3600 * 1000;
-        const myRecentPins = allPins.filter(p => p.user_id === currentUser.id && !p.is_sponsored && new Date(p.created_at).getTime() > last24hCutoff);
-        if (myRecentPins.length >= 3) {
-          return showToast('⚠️ Son 24 saatte en fazla 3 paylaşım yapabilirsin (harita yoğunluğunu korumak için).');
-        }
-        const latest = myRecentPins[0];
-        if (latest) {
-          const minsAgo = (Date.now() - new Date(latest.created_at).getTime()) / 60000;
-          if (minsAgo < 3) {
-            return showToast(`⏳ Yeni bir paylaşım için ${Math.ceil(3 - minsAgo)} dakika bekle.`);
-          }
-        }
+        const cutoff = Date.now() - 24 * 3600 * 1000;
+        const mine = allPins.filter(p => p.user_id === currentUser.id && !p.is_sponsored && new Date(p.created_at).getTime() > cutoff);
+        if (mine.length >= 3) return showToast('⚠️ 24 saat içinde en fazla 3 paylaşım yapabilirsin.');
+        if (mine[0] && (Date.now() - new Date(mine[0].created_at).getTime()) / 60000 < 3) return showToast('⏳ Yeni paylaşım için 3 dakika bekle.');
       }
-
       selectedCoords = fromGhost ? selectedCoords : (map ? [map.getCenter().lat, map.getCenter().lng] : userCoords);
       document.getElementById('ghostFields').style.display = (ghostMode && isFounder()) ? 'block' : 'none';
       selectedPhotoFile = null; selectedGhostAvatarFile = null; recordedAudioBlob = null;
-      document.getElementById('ghostAvLabel').textContent = '🎭 Hayalet Profil Fotoğrafı Seç (Opsiyonel)';
-      document.getElementById('photoPreview').style.display = 'none';
-      document.getElementById('audioPreview').style.display = 'none';
-      document.getElementById('cameraLabel').textContent = t('cam_btn');
-      document.getElementById('galleryLabel').textContent = t('gal_btn');
+      document.getElementById('photoPreview').style.display = 'none'; document.getElementById('audioPreview').style.display = 'none';
       openModal('createModal');
     }
 
-    function handleGhostAvatarFile(input) { if (input.files && input.files[0]) { selectedGhostAvatarFile = input.files[0]; document.getElementById('ghostAvLabel').textContent = '✅ Hayalet Profil Fotoğrafı Seçildi'; } }
-    function handlePhotoSelect(input, source) {
-      if (input.files && input.files[0]) {
-        selectedPhotoFile = input.files[0];
-        if (source === 'camera') { document.getElementById('cameraLabel').textContent = '✅ OK'; document.getElementById('galleryLabel').textContent = t('gal_btn'); }
-        else { document.getElementById('galleryLabel').textContent = '✅ OK'; document.getElementById('cameraLabel').textContent = t('cam_btn'); }
-        const img = document.getElementById('photoPreview'); img.src = URL.createObjectURL(selectedPhotoFile); img.style.display = 'block';
-      }
-    }
+    function handleGhostAvatarFile(input) { if (input.files?.[0]) { selectedGhostAvatarFile = input.files[0]; document.getElementById('ghostAvLabel').textContent = '✅ Seçildi'; } }
+    function handlePhotoSelect(input) { if (input.files?.[0]) { selectedPhotoFile = input.files[0]; const img = document.getElementById('photoPreview'); img.src = URL.createObjectURL(selectedPhotoFile); img.style.display = 'block'; } }
 
     async function toggleAudioRecord() {
       const btn = document.getElementById('audioBtn');
-      if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); btn.classList.remove('recording'); btn.textContent = '✅ Audio Ready'; return; }
+      if (mediaRecorder && mediaRecorder.state === 'recording') { mediaRecorder.stop(); btn.textContent = '✅ Ses Hazır'; return; }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioChunks = []; mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.onstop = () => { recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' }); const aud = document.getElementById('audioPreview'); aud.src = URL.createObjectURL(recordedAudioBlob); aud.style.display = 'block'; stream.getTracks().forEach(t => t.stop()); };
-        mediaRecorder.start(); btn.classList.add('recording'); btn.textContent = '⏹️ Stop';
-      } catch (err) { showToast(err.message); }
+        mediaRecorder.start(); btn.textContent = '⏹️ Durdur';
+      } catch (e) { showToast(e.message); }
     }
 
     async function submitPin() {
       const text = document.getElementById('pinText').value.trim();
       if (!text && !selectedPhotoFile && !recordedAudioBlob) return showToast('Yazı, fotoğraf veya ses ekleyin.');
-      const btn = document.getElementById('publishBtn'); btn.textContent = '⏳...'; btn.disabled = true;
+      const btn = document.getElementById('publishBtn'); btn.disabled = true;
       let image_url = null, audio_url = null, ghost_avatar_url = null;
-
-      if (selectedPhotoFile) {
-        const ext = selectedPhotoFile.name.split('.').pop() || 'jpg';
-        const path = `${currentUser.id}/${Date.now()}.${ext}`;
-        const { error } = await sb.storage.from('vibe-media').upload(path, selectedPhotoFile);
-        if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
-      }
-      if (recordedAudioBlob) {
-        const path = `${currentUser.id}/${Date.now()}.webm`;
-        const { error } = await sb.storage.from('vibe-media').upload(path, recordedAudioBlob);
-        if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
-      }
-
-      const isGhost = (ghostMode && isFounder());
-      if (isGhost && selectedGhostAvatarFile) {
-        const ext = selectedGhostAvatarFile.name.split('.').pop() || 'jpg';
-        const path = `${currentUser.id}/ghost_${Date.now()}.${ext}`;
-        const { error } = await sb.storage.from('vibe-media').upload(path, selectedGhostAvatarFile);
-        if (!error) ghost_avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
-      }
-
-      const ghostName = isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Vibe_' + Math.floor(Math.random()*99)) : null;
-      const ghostGender = isGhost ? (document.getElementById('ghostGenderInput').value || null) : null;
-      const ghostAgeRaw = isGhost ? document.getElementById('ghostAgeInput').value.trim() : '';
-      const ghostAge = ghostAgeRaw ? parseInt(ghostAgeRaw, 10) : null;
-      const ghostEmoji = isGhost ? (document.getElementById('ghostEmojiInput').value.trim() || '🦊') : null;
-
-      const rawCoords = selectedCoords || userCoords;
-      const [lat, lng] = isGhost ? rawCoords : fuzzCoords(rawCoords[0], rawCoords[1]);
-      const expires_at = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-
-      // Normal kullanıcıların pinleri hiçbir zaman sponsorlu olarak kaydedilemez
-      const { data: insertedPins, error } = await sb.from('pins').insert([{
-        user_id: currentUser.id, ghost_author_name: ghostName, ghost_avatar_emoji: ghostEmoji, ghost_avatar_url,
-        ghost_gender: ghostGender, ghost_age: ghostAge, category: selectedCategory,
-        content_text: text || '📍 Live Vibe', latitude: lat, longitude: lng,
-        image_url, audio_url, is_sponsored: false, expires_at
-      }]).select();
-
-      btn.textContent = t('pub_btn'); btn.disabled = false;
-      if (error) return showToast(error.message);
-
-      if (selectedCategory === 'event' && insertedPins && insertedPins[0]) {
-        const senderDisplay = ghostName || myProfile.username;
-        const friendIds = waFriendsCache.map(f => f.friendId);
-        if (friendIds.length > 0) {
-          const notifRows = friendIds.map(fid => ({
-            user_id: fid, type: 'new_event', title: '🎉 Yeni Etkinlik Paylaşıldı!',
-            body: `${senderDisplay}: ${(text || 'Yeni etkinlik').slice(0, 50)}`, pin_id: insertedPins[0].id
-          }));
-          await sb.from('notifications').insert(notifRows);
-        }
-      }
-
-      document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 Haritada yayında!');
-      await loadPins();
-      if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} });
+      if (selectedPhotoFile) { const path = `${currentUser.id}/${Date.now()}.jpg`; const { error } = await sb.storage.from('vibe-media').upload(path, selectedPhotoFile); if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl; }
+      if (recordedAudioBlob) { const path = `${currentUser.id}/${Date.now()}.webm`; const { error } = await sb.storage.from('vibe-media').upload(path, recordedAudioBlob); if (!error) audio_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl; }
+      const isGhost = ghostMode && isFounder();
+      if (isGhost && selectedGhostAvatarFile) { const path = `${currentUser.id}/ghost_${Date.now()}.jpg`; const { error } = await sb.storage.from('vibe-media').upload(path, selectedGhostAvatarFile); if (!error) ghost_avatar_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl; }
+      const raw = selectedCoords || userCoords;
+      const [lat, lng] = isGhost ? raw : fuzzCoords(raw[0], raw[1]);
+      await sb.from('pins').insert([{
+        user_id: currentUser.id, ghost_author_name: isGhost ? (document.getElementById('ghostNameInput').value.trim() || 'Vibe') : null,
+        ghost_avatar_emoji: isGhost ? (document.getElementById('ghostEmojiInput').value.trim() || '🦊') : null, ghost_avatar_url,
+        category: selectedCategory, content_text: text || '📍 Live Vibe', latitude: lat, longitude: lng,
+        image_url, audio_url, is_sponsored: false, expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      }]);
+      btn.disabled = false; document.getElementById('pinText').value = ''; closeModal('createModal'); showToast('🚀 Yayında!'); loadPins();
     }
 
     async function loadBlockedUsers() {
       if (!currentUser) return;
-      const [{ data: myBlocks }, { data: theirBlocks }] = await Promise.all([
-        sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id),
-        sb.from('blocked_users').select('blocker_id').eq('blocked_id', currentUser.id)
-      ]);
-      blockedIds = (myBlocks || []).map(b => b.blocked_id);
-      blockedByIds = (theirBlocks || []).map(b => b.blocker_id);
+      const [{ data: a }, { data: b }] = await Promise.all([sb.from('blocked_users').select('blocked_id').eq('blocker_id', currentUser.id), sb.from('blocked_users').select('blocker_id').eq('blocked_id', currentUser.id)]);
+      blockedIds = (a || []).map(x => x.blocked_id); blockedByIds = (b || []).map(x => x.blocker_id);
     }
 
     async function loadPins() {
       if (!currentUser) return;
-      const { data, error } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score, gender, age, birth_date)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
-      if (!error && data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderPins(); }
+      const { data } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
+      if (data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderPins(); }
     }
 
-    /* Parlak Gold Sponsor Bayrağı + Önemli/Popüler Pin Öne Çıkarma + Yığılmayan Dinamik Kümeleme */
     function renderPins() {
       if (!markersLayer) return;
       markersLayer.clearLayers();
-      const filtered = currentFilter === 'all' ? allPins :
-        (currentFilter === 'sponsored' ? allPins.filter(p => p.is_sponsored) : allPins.filter(p => p.category === currentFilter));
-
+      const filtered = currentFilter === 'all' ? allPins : (currentFilter === 'sponsored' ? allPins.filter(p => p.is_sponsored) : allPins.filter(p => p.category === currentFilter));
       const z = map ? map.getZoom() : 14;
-      const clusterRadiusKm = z <= 12 ? 1.2 : (z === 13 ? 0.7 : (z === 14 ? 0.38 : (z === 15 ? 0.18 : 0.07)));
+      const radiusKm = z <= 12 ? 1.2 : (z === 13 ? 0.7 : (z === 14 ? 0.38 : (z === 15 ? 0.18 : 0.07)));
 
-      // Sadece kurucu tarafından oluşturulan sponsorlu bayrakları parlak altın olarak çiz
-      const sponsoredPins = filtered.filter(p => p.is_sponsored && p.user_id && p.user_id.toLowerCase() === FOUNDER_EMAIL.toLowerCase() || (p.is_sponsored && isFounder()));
-      const allSponsored = filtered.filter(p => p.is_sponsored);
-      const regularPins = filtered.filter(p => !p.is_sponsored);
-
-      allSponsored.forEach(pin => {
+      filtered.filter(p => p.is_sponsored).forEach(pin => {
         const label = esc(pin.sponsor_title || pin.ghost_author_name || 'Sponsorlu Mekan');
-        const flagIcon = L.divIcon({
-          className: '',
-          html: `<div class="venue-flag-pin" style="filter:drop-shadow(0 0 12px rgba(255,215,0,0.85));">
-            <div class="venue-flag-banner" style="background:linear-gradient(135deg,#fff078 0%,#ffd700 45%,#f59e0b 100%); color:#0f172a; border:2.5px solid #ffffff; max-width:136px; overflow:hidden; text-overflow:ellipsis; display:block; font-weight:900;">🚩 ${label}</div>
-            <div class="venue-flag-pole" style="width:3.5px; height:14px; background:#ffd700; border:1px solid #fff;"></div>
-          </div>`,
-          iconSize: [140, 44], iconAnchor: [16, 44]
-        });
-        const marker = L.marker([pin.latitude, pin.longitude], { icon: flagIcon, zIndexOffset: 900 });
-        marker.on('click', () => openPinDetail(pin));
-        markersLayer.addLayer(marker);
+        const icon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-banner" style="max-width:136px; overflow:hidden; text-overflow:ellipsis;">🚩 ${label}</div><div class="venue-flag-pole"></div></div>`, iconSize: [140, 44], iconAnchor: [16, 44] });
+        const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: 900 });
+        m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
       });
 
-      // Yakın pinleri grupla ve her küme içinde en önemli/popüler pini öne çıkar
       const clusters = [];
-      regularPins.forEach(pin => {
-        let foundCluster = null;
-        for (const c of clusters) {
-          if (getDistanceKm(c.lat, c.lng, pin.latitude, pin.longitude) <= clusterRadiusKm) {
-            foundCluster = c;
-            break;
-          }
-        }
-        if (foundCluster) foundCluster.items.push(pin);
-        else clusters.push({ lat: pin.latitude, lng: pin.longitude, items: [pin] });
+      filtered.filter(p => !p.is_sponsored).forEach(pin => {
+        let hit = clusters.find(c => getDistanceKm(c.lat, c.lng, pin.latitude, pin.longitude) <= radiusKm);
+        if (hit) hit.items.push(pin); else clusters.push({ lat: pin.latitude, lng: pin.longitude, items: [pin] });
       });
 
       clusters.forEach(cluster => {
         cluster.items.sort((a, b) => getPinImportance(b).score - getPinImportance(a).score);
         if (cluster.items.length === 1) {
-          const pin = cluster.items[0];
-          const imp = getPinImportance(pin);
-          const meta = CAT_META[pin.category] || CAT_META.event;
+          const pin = cluster.items[0], imp = getPinImportance(pin), meta = CAT_META[pin.category] || CAT_META.event;
           const badge = imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji)));
-          const sizeStyle = imp.isTrending ? 'width:48px; height:48px; box-shadow:0 0 18px rgba(255,123,57,0.85); border:3px solid #fde047;' : '';
-          const icon = L.divIcon({
-            className: '',
-            html: `<div class="vibe-marker" style="background:${imp.hasAlertWord ? '#ef4444' : meta.color}; ${sizeStyle}"><span>${badge}</span></div>`,
-            iconSize: [imp.isTrending ? 48 : 42, imp.isTrending ? 48 : 42],
-            iconAnchor: [imp.isTrending ? 24 : 21, imp.isTrending ? 48 : 42]
-          });
-          const marker = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: imp.isTrending ? 700 : 400 });
-          marker.on('click', () => openPinDetail(pin));
-          markersLayer.addLayer(marker);
+          const extra = imp.isTrending ? 'width:48px;height:48px;border:3px solid #ffd700;' : '';
+          const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${imp.hasAlertWord ? '#ef4444' : meta.color};${extra}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
+          const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: imp.isTrending ? 700 : 400 });
+          m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
         } else {
-          const count = cluster.items.length;
           const hasHot = cluster.items.some(p => getPinImportance(p).isTrending);
-          const clusterIcon = L.divIcon({
-            className: '',
-            html: `<div class="cluster-pin" style="${hasHot ? 'background:linear-gradient(135deg,#ef4444,#ff7b39); border-color:#fde047;' : ''}"><span style="font-size:12px;">${hasHot ? '🔥' : '📍'}</span><span style="font-size:12px;">+${count}</span></div>`,
-            iconSize: [46, 46], iconAnchor: [23, 23]
-          });
-          const marker = L.marker([cluster.lat, cluster.lng], { icon: clusterIcon, zIndexOffset: hasHot ? 650 : 450 });
-          marker.on('click', () => openClusterModal(cluster.items));
-          markersLayer.addLayer(marker);
+          const icon = L.divIcon({ className: '', html: `<div class="cluster-pin" style="${hasHot ? 'background:linear-gradient(135deg,#ef4444,#ff7b39);border-color:#ffd700;' : ''}"><span style="font-size:12px;">${hasHot ? '🔥' : '📍'}</span><span style="font-size:12px;">+${cluster.items.length}</span></div>`, iconSize: [48, 48], iconAnchor: [24, 24] });
+          const m = L.marker([cluster.lat, cluster.lng], { icon, zIndexOffset: 650 });
+          m.on('click', () => openClusterModal(cluster.items)); markersLayer.addLayer(m);
         }
       });
     }
 
     function openClusterModal(items) {
-      document.getElementById('clusterTitle').textContent = `📍 Bu Bölgede ${items.length} Paylaşım Var`;
-      const box = document.getElementById('clusterListContainer');
-      box.innerHTML = items.map(pin => {
+      document.getElementById('clusterTitle').textContent = `📍 Bu Bölgede ${items.length} Paylaşım`;
+      document.getElementById('clusterListContainer').innerHTML = items.map(pin => {
         const imp = getPinImportance(pin);
-        const meta = CAT_META[pin.category] || CAT_META.event;
-        const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe User';
-        const demo = renderDemoBadge(pin.ghost_author_name ? { gender: pin.ghost_gender, age: pin.ghost_age } : pin.profiles);
-        const hotTag = imp.hasAlertWord ? `<span style="font-size:10px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:2px 6px; border-radius:999px; margin-left:4px;">🚨 Önemli</span>` :
-          (imp.isTrending ? `<span style="font-size:10px; background:rgba(250,204,21,0.22); color:#fde047; padding:2px 6px; border-radius:999px; margin-left:4px;">🔥 Popüler</span>` : '');
-        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px; border-radius:14px; background:${imp.isTrending ? 'rgba(255,123,57,0.1)' : 'rgba(255,255,255,0.05)'}; border:1px solid ${imp.isTrending ? '#f59e0b' : 'var(--border)'}; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div style="min-width:0;">
-            <div style="font-size:13.5px; font-weight:800; color:#fff; margin-bottom:2px;">${meta.emoji} ${esc(author)}${demo}${hotTag}</div>
-            <div style="font-size:12.5px; color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(pin.content_text)}</div>
-          </div>
-          <span style="font-size:11px; color:var(--accent); font-weight:700; flex-shrink:0;">Aç →</span>
+        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid ${imp.isTrending ? '#ffd700' : 'var(--border)'};cursor:pointer;">
+          <div style="font-size:13.5px;font-weight:800;">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')} ${imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : '')}</div>
+          <div style="font-size:12.5px;color:#cbd5e1;">${esc(pin.content_text)}</div>
         </div>`;
       }).join('');
       openModal('clusterModal');
     }
 
-    function openPinDetailById(pinId) {
-      const found = allPins.find(p => String(p.id) === String(pinId));
-      if (found) openPinDetail(found);
-    }
+    function openPinDetailById(id) { const p = allPins.find(x => String(x.id) === String(id)); if (p) openPinDetail(p); }
 
     async function openPinDetail(pin) {
-      activePin = pin;
-      await loadBlockedUsers();
-      const hideAvatar = blockedIds.includes(pin.user_id) || blockedByIds.includes(pin.user_id);
-      const isGhostPin = !!pin.ghost_author_name;
-      const author = pin.ghost_author_name || pin.profiles?.username || 'Vibe User';
-      const effectiveDemo = isGhostPin ? { gender: pin.ghost_gender, age: pin.ghost_age } : pin.profiles;
-      const demoHtml = (hideAvatar || pin.is_sponsored) ? '' : renderDemoBadge(effectiveDemo);
-
-      let avHtml = '';
-      if (pin.is_sponsored) avHtml = `<span>🚩</span>`;
-      else if (hideAvatar) avHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#2a3942;">${avatarHtml(null, '🦊', true)}</span>`;
-      else if (isGhostPin) avHtml = pin.ghost_avatar_url ? `<img src="${esc(pin.ghost_avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />` : `<span>${esc(pin.ghost_avatar_emoji || '🦊')}</span>`;
-      else avHtml = pin.profiles?.avatar_url ? `<img src="${esc(pin.profiles.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" />` : `<span>${esc(pin.profiles?.avatar_emoji || '🦊')}</span>`;
-
-      document.getElementById('detailAuthor').innerHTML = `${avHtml} <span>${esc(author)}</span>${demoHtml}`;
-      const tScore = pin.profiles?.trust_score ?? 100;
-      const remTime = getRemainingHoursText(pin.expires_at);
-      document.getElementById('detailTrustBadge').textContent = pin.is_sponsored ? `🚩 Resmi Sponsorlu Mekan • ${remTime}` : `🛡️ Güven: ${tScore} • ${remTime}`;
+      activePin = pin; await loadBlockedUsers();
+      const hideAv = blockedIds.includes(pin.user_id) || blockedByIds.includes(pin.user_id);
+      const author = pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı';
+      document.getElementById('detailAuthor').innerHTML = `<span>${pin.is_sponsored ? '🚩' : (hideAv ? '👤' : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊'))}</span> <span>${esc(author)}</span>`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
       document.getElementById('detailUpvotes').textContent = pin.upvotes_count || 1;
       document.getElementById('detailFakes').textContent = pin.fake_reports_count || 0;
-
-      const sBanner = document.getElementById('sponsorBanner');
-      if (pin.is_sponsored) {
-        sBanner.style.display = 'block';
-        sBanner.textContent = `🚩 ${pin.sponsor_title || author}`;
-      } else {
-        sBanner.style.display = 'none';
-      }
-
-      const isMine = (pin.user_id && pin.user_id === currentUser.id);
-      const friendBtn = document.getElementById('addFriendBtn');
-      friendBtn.style.display = (pin.user_id && !isMine && !pin.is_sponsored) ? 'block' : 'none';
-      document.getElementById('blockUserBtn').style.display = (pin.user_id && !isMine && !pin.is_sponsored) ? 'block' : 'none';
-      document.getElementById('deletePinBtn').style.display = (isMine || isFounder()) ? 'block' : 'none';
-
-      if (pin.user_id && !isMine && !pin.is_sponsored) {
-        friendBtn.disabled = true; friendBtn.textContent = '⏳...'; friendBtn.style.opacity = '0.7';
-        const { data: rels } = await sb.from('friendships').select('status')
-          .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${pin.user_id}),and(sender_id.eq.${pin.user_id},receiver_id.eq.${currentUser.id})`)
-          .order('created_at', { ascending: false }).limit(1);
-        const st = rels && rels[0] ? rels[0].status : null;
-        if (st === 'pending') { friendBtn.textContent = t('req_sent'); friendBtn.style.background = '#475569'; friendBtn.disabled = true; }
-        else if (st === 'accepted') { friendBtn.textContent = t('friends_badge'); friendBtn.style.background = '#059669'; friendBtn.disabled = true; }
-        else { friendBtn.textContent = t('add_friend'); friendBtn.style.background = 'var(--primary)'; friendBtn.style.opacity = '1'; friendBtn.disabled = false; }
-      }
-
+      const sbEl = document.getElementById('sponsorBanner');
+      if (pin.is_sponsored) { sbEl.style.display = 'block'; sbEl.textContent = `🚩 ${pin.sponsor_title || author}`; } else sbEl.style.display = 'none';
+      const mine = pin.user_id === currentUser.id;
+      document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
+      document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
+      document.getElementById('deletePinBtn').style.display = (mine || isFounder()) ? 'block' : 'none';
       const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
-      if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else { img.style.display = 'none'; }
-      if (pin.audio_url) { aud.src = pin.audio_url; aud.style.display = 'block'; } else { aud.style.display = 'none'; }
+      if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else img.style.display = 'none';
+      if (pin.audio_url) { aud.src = pin.audio_url; aud.style.display = 'block'; } else aud.style.display = 'none';
       openModal('detailModal'); loadComments(pin.id);
     }
 
     async function sendFriendRequest() {
-      if (!activePin || !activePin.user_id) return;
-      const btn = document.getElementById('addFriendBtn');
-      if (btn.disabled) return;
-      btn.disabled = true;
-
-      const { data: existing } = await sb.from('friendships').select('status')
-        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activePin.user_id}),and(sender_id.eq.${activePin.user_id},receiver_id.eq.${currentUser.id})`)
-        .in('status', ['pending', 'accepted']);
-      if (existing && existing.length > 0) { btn.textContent = existing[0].status === 'accepted' ? t('friends_badge') : t('req_sent'); btn.style.background = '#475569'; return; }
-
-      const sentCount = myProfile.friend_requests_sent || 0;
-      const allowedLimit = 10 + extraFriendQuota;
-      if (sentCount >= allowedLimit && !hasVipAccess()) {
-        btn.disabled = false;
-        if (extraFriendQuota < 3) { openAdForFriend(); return; }
-        showToast('⚠️ Maksimum arkadaşlık isteği sınırına (10 + 3 reklam hakkı) ulaştınız.');
-        return;
-      }
-
-      const targetName = activePin.ghost_author_name || activePin.profiles?.username || 'User';
-      const { error } = await sb.from('friendships').insert([{ sender_id: currentUser.id, receiver_id: activePin.user_id, sender_name: myProfile.username, receiver_name: targetName, status: 'pending' }]);
-      if (error) { btn.disabled = false; return showToast(error.message); }
-
-      btn.textContent = t('req_sent'); btn.style.background = '#475569'; btn.style.opacity = '0.7';
-      myProfile.friend_requests_sent = sentCount + 1;
+      if (!activePin?.user_id) return;
+      const sent = myProfile.friend_requests_sent || 0;
+      if (sent >= 10 + extraFriendQuota && !hasVipAccess()) { if (extraFriendQuota < 3) openAdModal(); else showToast('İstek sınırına ulaştın.'); return; }
+      await sb.from('friendships').insert([{ sender_id: currentUser.id, receiver_id: activePin.user_id, sender_name: myProfile.username, receiver_name: activePin.ghost_author_name || activePin.profiles?.username || 'Kullanıcı', status: 'pending' }]);
+      myProfile.friend_requests_sent = sent + 1;
       await sb.from('profiles').update({ friend_requests_sent: myProfile.friend_requests_sent }).eq('id', currentUser.id);
-      showToast(`📨 ${targetName}`);
+      showToast('📨 İstek gönderildi!');
     }
 
-    async function likeCurrentPin() { if (!activePin || !currentUser) return; const { error } = await sb.from('pin_likes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]); if (error) return; const newLikes = (activePin.likes_count || 0) + 1; await sb.from('pins').update({ likes_count: newLikes }).eq('id', activePin.id); activePin.likes_count = newLikes; document.getElementById('detailLikes').textContent = newLikes; renderPins(); }
-    async function upvoteCurrentPin() { if (!activePin || !currentUser) return; const { error } = await sb.from('pin_upvotes').insert([{ pin_id: activePin.id, user_id: currentUser.id }]); if (error) return; const newCount = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: newCount }).eq('id', activePin.id); activePin.upvotes_count = newCount; document.getElementById('detailUpvotes').textContent = newCount; renderPins(); }
-    async function reportFakePin() {
-      if (!activePin || !currentUser || (myProfile.trust_score ?? 100) < 50) return;
-      const { error } = await sb.from('pin_fake_reports').insert([{ pin_id: activePin.id, reporter_id: currentUser.id }]);
-      if (error) return;
-      const newFakes = (activePin.fake_reports_count || 0) + 1;
-      await sb.from('pins').update({ fake_reports_count: newFakes }).eq('id', activePin.id);
-      activePin.fake_reports_count = newFakes; document.getElementById('detailFakes').textContent = newFakes;
-      if (activePin.user_id && !activePin.is_sponsored) {
-        const updatedScore = Math.max(0, (activePin.profiles?.trust_score ?? 100) - 15);
-        await sb.from('profiles').update({ trust_score: updatedScore, is_banned: updatedScore <= 30 }).eq('id', activePin.user_id);
-      }
-      if (newFakes >= 3 && !activePin.is_sponsored) { await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); await loadPins(); if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} }); }
+    function openAdModal() { document.getElementById('watchAdBtn').style.display = 'block'; document.getElementById('adCountdownBox').style.display = 'none'; document.getElementById('adSec').textContent = '5'; openModal('adModal'); }
+    function startRewardAd() {
+      document.getElementById('watchAdBtn').style.display = 'none'; document.getElementById('adCountdownBox').style.display = 'block';
+      let s = 5; const iv = setInterval(() => { s--; document.getElementById('adSec').textContent = s; if (s <= 0) { clearInterval(iv); closeModal('adModal'); if (extraFriendQuota < 3) { extraFriendQuota++; showToast(`🎉 +1 İstek Hakkı Açıldı (${extraFriendQuota}/3)`); } } }, 1000);
     }
 
-    async function deleteCurrentPin() { if (!activePin || !currentUser) return; const { error } = await sb.from('pins').delete().eq('id', activePin.id); if (error) return showToast(error.message); closeModal('detailModal'); await loadPins(); if (realtimeChatChannel) realtimeChatChannel.send({ type: 'broadcast', event: 'pin_refresh', payload: {} }); }
-    async function blockAuthor() { if (!activePin || !activePin.user_id) return; if (!blockedIds.includes(activePin.user_id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]); blockedIds.push(activePin.user_id); } closeModal('detailModal'); loadPins(); }
+    async function likeCurrentPin() { if (!activePin) return; const v = (activePin.likes_count || 0) + 1; await sb.from('pins').update({ likes_count: v }).eq('id', activePin.id); activePin.likes_count = v; document.getElementById('detailLikes').textContent = v; renderPins(); }
+    async function upvoteCurrentPin() { if (!activePin) return; const v = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: v }).eq('id', activePin.id); activePin.upvotes_count = v; document.getElementById('detailUpvotes').textContent = v; renderPins(); }
+    async function reportFakePin() { if (!activePin) return; const v = (activePin.fake_reports_count || 0) + 1; await sb.from('pins').update({ fake_reports_count: v }).eq('id', activePin.id); activePin.fake_reports_count = v; document.getElementById('detailFakes').textContent = v; if (v >= 3 && !activePin.is_sponsored) { await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); } }
+    async function deleteCurrentPin() { if (!activePin) return; await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); }
+    async function blockAuthor() { if (!activePin?.user_id) return; if (!blockedIds.includes(activePin.user_id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]); blockedIds.push(activePin.user_id); } closeModal('detailModal'); loadPins(); }
 
     async function openNotificationsModal() {
       openModal('notificationsModal');
-      const { data } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(25);
-      const box = document.getElementById('notificationsContainer');
-      if (!data || data.length === 0) { box.innerHTML = '<div style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Henüz yeni bildirim yok.</div>'; return; }
-      box.innerHTML = data.map(n => `
-        <div style="padding:11px; border-radius:13px; background:${n.is_read ? 'rgba(255,255,255,0.03)' : 'rgba(6,182,212,0.14)'}; border:1px solid var(--border); margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:800; color:var(--accent); margin-bottom:3px;">
-            <span>${esc(n.title)}</span><span style="font-size:10.5px; color:var(--muted);">${formatTime(n.created_at)}</span>
-          </div>
-          <div style="font-size:13px; color:#e2e8f0;">${esc(n.body)}</div>
-        </div>`).join('');
+      const { data } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
+      document.getElementById('notificationsContainer').innerHTML = (!data || !data.length) ? '<div style="text-align:center;color:var(--muted);padding:20px;">Bildirim yok.</div>' : data.map(n => `<div style="padding:10px;border-radius:12px;background:rgba(255,255,255,0.04);margin-bottom:8px;"><strong>${esc(n.title)}</strong><div>${esc(n.body)}</div></div>`).join('');
       await sb.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);
       document.getElementById('bellDot').style.display = 'none';
     }
 
     async function checkNotifications() {
-      if (!currentUser) return;
-      await loadBlockedUsers();
-      const [{ data: fData }, { data: mData }, { data: nData }] = await Promise.all([
-        sb.from('friendships').select('id, sender_id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
-        sb.from('direct_messages').select('id, sender_id').eq('receiver_id', currentUser.id).eq('is_read', false),
-        sb.from('notifications').select('id').eq('user_id', currentUser.id).eq('is_read', false)
-      ]);
-      const validFriends = (fData || []).filter(f => !blockedIds.includes(f.sender_id) && !blockedByIds.includes(f.sender_id));
-      const validMsgs = (mData || []).filter(m => !blockedIds.includes(m.sender_id) && !blockedByIds.includes(m.sender_id));
-      const chatUnread = validFriends.length + validMsgs.length;
-      const bellUnread = (nData || []).length;
-
-      if (chatUnread + bellUnread > lastUnreadCount) playNotifSound();
-      lastUnreadCount = chatUnread + bellUnread;
-      document.getElementById('notifDot').style.display = chatUnread > 0 ? 'block' : 'none';
-      document.getElementById('bellDot').style.display = bellUnread > 0 ? 'block' : 'none';
+      if (!currentUser) return; await loadBlockedUsers();
+      const [{ data: f }, { data: m }] = await Promise.all([sb.from('friendships').select('id,sender_id').eq('receiver_id', currentUser.id).eq('status', 'pending'), sb.from('direct_messages').select('id,sender_id').eq('receiver_id', currentUser.id).eq('is_read', false)]);
+      const cnt = (f || []).filter(x => !blockedIds.includes(x.sender_id)).length + (m || []).filter(x => !blockedIds.includes(x.sender_id)).length;
+      document.getElementById('notifDot').style.display = cnt > 0 ? 'block' : 'none';
     }
 
-    function switchWaTab(tab) { waTab = tab; document.getElementById('tabChats').classList.toggle('active', tab === 'chats'); document.getElementById('tabRequests').classList.toggle('active', tab === 'requests'); document.getElementById('tabBlocked').classList.toggle('active', tab === 'blocked'); document.getElementById('waSearchWrap').style.display = (tab === 'chats') ? 'block' : 'none'; renderWaChatList(); }
+    function switchWaTab(tab) { waTab = tab; document.getElementById('tabChats').classList.toggle('active', tab === 'chats'); document.getElementById('tabRequests').classList.toggle('active', tab === 'requests'); document.getElementById('tabBlocked').classList.toggle('active', tab === 'blocked'); document.getElementById('waSearchWrap').style.display = tab === 'chats' ? 'block' : 'none'; renderWaChatList(); }
     function openFriendsModal() { openModal('friendsModal'); refreshFriendsData(); if (listPollTimer) clearInterval(listPollTimer); listPollTimer = setInterval(refreshFriendsData, 2500); }
-    function closeFriendsModal() { if (listPollTimer) { clearInterval(listPollTimer); listPollTimer = null; } closeModal('friendsModal'); }
+    function closeFriendsModal() { if (listPollTimer) clearInterval(listPollTimer); closeModal('friendsModal'); }
 
     async function refreshFriendsData() {
-      if (!currentUser) return;
-      await loadBlockedUsers();
-      const [{ data: fShips }, { data: msgs }] = await Promise.all([
-        sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false }),
-        sb.from('direct_messages').select('*').or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order('created_at', { ascending: false })
-      ]);
-
-      const accepted = (fShips || []).filter(f => { if (f.status !== 'accepted') return false; const otherId = f.sender_id === currentUser.id ? f.receiver_id : f.sender_id; return !blockedIds.includes(otherId); });
+      if (!currentUser) return; await loadBlockedUsers();
+      const [{ data: fShips }, { data: msgs }] = await Promise.all([sb.from('friendships').select('*').or(`receiver_id.eq.${currentUser.id},sender_id.eq.${currentUser.id}`).order('created_at', { ascending: false }), sb.from('direct_messages').select('*').or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order('created_at', { ascending: false })]);
+      const acc = (fShips || []).filter(f => f.status === 'accepted' && !blockedIds.includes(f.sender_id === currentUser.id ? f.receiver_id : f.sender_id));
       waIncomingCache = (fShips || []).filter(f => f.receiver_id === currentUser.id && f.status === 'pending' && !blockedIds.includes(f.sender_id));
-      waResponsesCache = (fShips || []).filter(f => f.sender_id === currentUser.id && f.status !== 'pending' && !blockedIds.includes(f.receiver_id));
-      document.getElementById('reqCountBadge').textContent = waIncomingCache.length > 0 ? `(${waIncomingCache.length})` : '';
-
-      const friendIds = accepted.map(f => f.sender_id === currentUser.id ? f.receiver_id : f.sender_id);
-      const allProfileIds = [...new Set([...friendIds, ...blockedIds])];
-      let profilesMap = {};
-      if (allProfileIds.length > 0) {
-        const { data: profs } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url, gender, age, birth_date').in('id', allProfileIds);
-        (profs || []).forEach(p => { profilesMap[p.id] = p; });
-      }
-
-      waBlockedCache = blockedIds.map(bid => ({ blocked_id: bid, profile: profilesMap[bid] || null, name: profilesMap[bid]?.username || `User (${bid.slice(0,6)})` }));
-
-      waFriendsCache = accepted.map(f => {
-        const isSender = (f.sender_id === currentUser.id);
-        const friendId = isSender ? f.receiver_id : f.sender_id;
-        const isBlockedByThem = blockedByIds.includes(friendId);
-        const prof = profilesMap[friendId];
-        const liveName = prof?.username || (isSender ? f.receiver_name : f.sender_name) || 'Vibe User';
-        const ghostAlias = (!isSender && f.receiver_name && f.receiver_name !== myProfile.username) ? f.receiver_name : null;
-
-        const dbThread = (msgs || []).filter(m => (m.sender_id === friendId && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === friendId));
-        const localThread = localUndeliveredMsgs.filter(m => m.receiver_id === friendId);
-        const merged = [...localThread, ...dbThread].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        const lastMsg = merged[0] || null;
-        const unreadCount = dbThread.filter(m => m.sender_id === friendId && !m.is_read).length;
-
-        return { friendshipId: f.id, friendId, name: liveName, ghostAlias, profile: prof, lastMsg, unreadCount, isBlockedByThem };
-      }).sort((a, b) => (b.lastMsg ? new Date(b.lastMsg.created_at).getTime() : 0) - (a.lastMsg ? new Date(a.lastMsg.created_at).getTime() : 0));
-
+      document.getElementById('reqCountBadge').textContent = waIncomingCache.length ? `(${waIncomingCache.length})` : '';
+      const ids = [...new Set([...acc.map(f => f.sender_id === currentUser.id ? f.receiver_id : f.sender_id), ...blockedIds])];
+      let pMap = {};
+      if (ids.length) { const { data: ps } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', ids); (ps || []).forEach(p => pMap[p.id] = p); }
+      waBlockedCache = blockedIds.map(id => ({ blocked_id: id, name: pMap[id]?.username || 'Kullanıcı' }));
+      waFriendsCache = acc.map(f => {
+        const fid = f.sender_id === currentUser.id ? f.receiver_id : f.sender_id;
+        const last = (msgs || []).find(m => (m.sender_id === fid && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === fid));
+        const unread = (msgs || []).filter(m => m.sender_id === fid && !m.is_read).length;
+        return { friendshipId: f.id, friendId: fid, name: pMap[fid]?.username || 'Vibe Üyesi', profile: pMap[fid], lastMsg: last, unread, blockedByThem: blockedByIds.includes(fid) };
+      });
       renderWaChatList();
     }
 
@@ -1119,157 +961,85 @@
       const box = document.getElementById('waListContainer');
       if (waTab === 'chats') {
         const q = (document.getElementById('waSearchInput').value || '').toLowerCase();
-        const list = waFriendsCache.filter(item => item.name.toLowerCase().includes(q));
-        if (list.length === 0) { box.innerHTML = `<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">${t('start_chat_hint')}</div>`; return; }
-        box.innerHTML = list.map(item => {
-          const isTyping = !item.isBlockedByThem && !!typingUsersMap[item.friendId];
-          const tickPrefix = item.lastMsg && item.lastMsg.sender_id === currentUser.id ? (item.lastMsg.undelivered ? '✓ ' : '✓✓ ') : '';
-          const preview = isTyping ? `<span style="color:var(--wa-green); font-weight:700;">${t('typing_txt')}</span>` : (item.lastMsg ? tickPrefix + esc(item.lastMsg.message_text) : t('start_chat_hint'));
-          const timeStr = item.lastMsg ? formatTime(item.lastMsg.created_at) : '';
-          const badgeHtml = item.unreadCount > 0 ? `<span class="wa-badge">${item.unreadCount}</span>` : '';
-          const demoHtml = item.isBlockedByThem ? '' : renderDemoBadge(item.profile);
-          const ghostTag = item.ghostAlias ? `<span style="font-size:10px; background:rgba(236,72,153,0.2); color:#f472b6; padding:1px 6px; border-radius:999px; margin-left:4px;">👻 ${esc(item.ghostAlias)}</span>` : '';
-          return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')">
-            <div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.isBlockedByThem)}</div>
-            <div style="flex:1; min-width:0;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; gap:6px;">
-                <span style="font-size:15px; font-weight:700; color:#e9edef; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(item.name)}${demoHtml}${ghostTag}</span>
-                <span style="font-size:11px; color:${item.unreadCount > 0 ? 'var(--wa-green)' : '#8696a0'}; flex-shrink:0;">${timeStr}</span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                <span style="font-size:13px; color:#8696a0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${preview}</span>
-                ${badgeHtml}
-              </div>
-            </div>
-          </div>`;
+        const list = waFriendsCache.filter(x => x.name.toLowerCase().includes(q));
+        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">Sohbet yok.</div>' : list.map(item => {
+          const prev = typingUsersMap[item.friendId] ? '<span style="color:var(--wa-green);">yazıyor...</span>' : (item.lastMsg ? esc(item.lastMsg.message_text) : 'Mesaj gönder 👋');
+          return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')"><div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.blockedByThem)}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;">${esc(item.name)}</div><div style="font-size:13px;color:#8696a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${prev}</div></div>${item.unread ? `<span class="wa-badge">${item.unread}</span>` : ''}</div>`;
         }).join('');
       } else if (waTab === 'requests') {
-        if (waIncomingCache.length === 0 && waResponsesCache.length === 0) { box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">—</div>'; return; }
-        box.innerHTML = waIncomingCache.map(f => {
-          const targetPersona = (f.receiver_name && f.receiver_name !== myProfile.username) ? ` <span style="color:#f472b6; font-size:11px;">(👻 ${esc(f.receiver_name)} karakterine)</span>` : '';
-          return `<div class="wa-chat-row" style="cursor:default;"><div class="wa-avatar">👤</div><div style="flex:1;"><div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(f.sender_name || 'Vibe User')}${targetPersona}</div></div><div style="display:flex; gap:6px;"><button onclick="respondFriend('${f.id}','accepted')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">✓</button><button onclick="respondFriend('${f.id}','rejected')" style="padding:7px 11px; border-radius:999px; border:none; background:#2a3942; color:#f87171; font-weight:700; font-size:12px; cursor:pointer;">✕</button></div></div>`;
-        }).join('');
+        box.innerHTML = !waIncomingCache.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">İstek yok.</div>' : waIncomingCache.map(f => `<div class="wa-chat-row" style="cursor:default;"><div style="flex:1;font-weight:700;">${esc(f.sender_name || 'Kullanıcı')}</div><button onclick="respondFriend('${f.id}','accepted')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#111b21;font-weight:800;">✓</button></div>`).join('');
       } else {
-        if (waBlockedCache.length === 0) { box.innerHTML = '<div style="padding:40px 20px; text-align:center; color:#8696a0; font-size:13.5px;">—</div>'; return; }
-        box.innerHTML = waBlockedCache.map(b => `<div class="wa-chat-row" style="cursor:default;"><div class="wa-avatar">${avatarHtml(null, '🚫', true)}</div><div style="flex:1;"><div style="font-size:14.5px; font-weight:700; color:#e9edef;">${esc(b.name)}</div></div><button onclick="unblockUser('${b.blocked_id}')" style="padding:7px 12px; border-radius:999px; border:none; background:var(--wa-green); color:#111b21; font-weight:800; font-size:12px; cursor:pointer;">Engeli Kaldır</button></div>`).join('');
+        box.innerHTML = !waBlockedCache.length ? '<div style="padding:36px;text-align:center;color:#8696a0;">Engelli yok.</div>' : waBlockedCache.map(b => `<div class="wa-chat-row" style="cursor:default;"><div class="wa-avatar">${avatarHtml(null, '🚫', true)}</div><div style="flex:1;font-weight:700;">${esc(b.name)}</div><button onclick="unblockUser('${b.blocked_id}')" style="padding:6px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#111b21;font-weight:800;">Kaldır</button></div>`).join('');
       }
     }
 
-    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); checkNotifications(); refreshFriendsData(); }
-    async function unblockUser(targetUserId) {
-      await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', targetUserId);
-      blockedIds = blockedIds.filter(id => id !== targetUserId);
-      localUndeliveredMsgs = localUndeliveredMsgs.filter(m => m.receiver_id !== targetUserId);
-      loadPins(); await refreshFriendsData(); switchWaTab('chats');
-    }
-    function toggleWaMenu() { const m = document.getElementById('waChatMenu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-    async function removeCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (!activeChatFriend || !activeChatFriend.friendshipId) return; await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId); backToChats(); }
-    async function blockCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (!activeChatFriend) return; if (!blockedIds.includes(activeChatFriend.id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]); blockedIds.push(activeChatFriend.id); } loadPins(); backToChats(); }
-    function backToChats() { closeChatModal(); openFriendsModal(); }
+    async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); refreshFriendsData(); checkNotifications(); }
+    async function unblockUser(id) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', id); blockedIds = blockedIds.filter(x => x !== id); loadPins(); refreshFriendsData(); }
+    function toggleWaMenu() { const m = document.getElementById('waChatMenu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+    async function removeCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (activeChatFriend?.friendshipId) await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId); closeChatModal(); openFriendsModal(); }
+    async function blockCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (!activeChatFriend) return; if (!blockedIds.includes(activeChatFriend.id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]); blockedIds.push(activeChatFriend.id); } loadPins(); closeChatModal(); openFriendsModal(); }
 
     async function openDirectChat(friendId) {
       await loadBlockedUsers();
-      const cached = waFriendsCache.find(x => x.friendId === friendId);
-      let prof = cached?.profile;
-      if (!prof) { const { data } = await sb.from('profiles').select('id, username, avatar_emoji, avatar_url, gender, age, birth_date').eq('id', friendId).single(); prof = data; }
-      const hideAvatar = blockedIds.includes(friendId) || blockedByIds.includes(friendId);
-      const liveName = prof?.username || cached?.name || 'Vibe User';
-      activeChatFriend = { id: friendId, name: liveName, ghostAlias: cached?.ghostAlias || null, profile: prof, friendshipId: cached?.friendshipId || null };
-
-      const ghostLabel = activeChatFriend.ghostAlias ? ` <span style="font-size:10.5px; color:#f472b6; margin-left:4px;">(👻 ${esc(activeChatFriend.ghostAlias)})</span>` : '';
-      document.getElementById('chatFriendTitle').innerHTML = `<span>${esc(liveName)}</span>${hideAvatar ? '' : renderDemoBadge(prof)}${ghostLabel}`;
-      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(prof, '🦊', hideAvatar);
-      document.getElementById('waChatMenu').style.display = 'none';
-      updateTypingIndicators();
-
-      closeFriendsModal(); openModal('chatModal'); loadDirectMessages();
-      if (chatPollTimer) clearInterval(chatPollTimer);
-      chatPollTimer = setInterval(loadDirectMessages, 2000);
+      const { data: prof } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').eq('id', friendId).single();
+      const hideAv = blockedIds.includes(friendId) || blockedByIds.includes(friendId);
+      activeChatFriend = { id: friendId, name: prof?.username || 'Vibe Üyesi', profile: prof, friendshipId: waFriendsCache.find(x => x.friendId === friendId)?.friendshipId || null };
+      document.getElementById('chatFriendTitle').textContent = activeChatFriend.name;
+      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(prof, '🦊', hideAv);
+      updateTypingUI(); closeFriendsModal(); openModal('chatModal'); loadDirectMessages();
+      if (chatPollTimer) clearInterval(chatPollTimer); chatPollTimer = setInterval(loadDirectMessages, 2000);
     }
 
-    function closeChatModal() { if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; } activeChatFriend = null; closeModal('chatModal'); checkNotifications(); }
+    function closeChatModal() { if (chatPollTimer) clearInterval(chatPollTimer); activeChatFriend = null; closeModal('chatModal'); checkNotifications(); }
 
     async function loadDirectMessages() {
       if (!activeChatFriend || !currentUser) return;
-      await loadBlockedUsers();
-      const hideAvatar = blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id);
-      document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(activeChatFriend.profile, '🦊', hideAvatar);
-      updateTypingIndicators();
-
+      const { data } = await sb.from('direct_messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true });
+      await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
       const box = document.getElementById('chatMessagesBox');
-      const { data } = await sb.from('direct_messages').select('*')
-        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatFriend.id}),and(sender_id.eq.${activeChatFriend.id},receiver_id.eq.${currentUser.id})`)
-        .order('created_at', { ascending: true });
-      const hasUnreadFromFriend = !hideAvatar && (data || []).some(m => m.sender_id === activeChatFriend.id && !m.is_read);
-      if (hasUnreadFromFriend) {
-        playNotifSound();
-        await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', activeChatFriend.id).eq('receiver_id', currentUser.id).eq('is_read', false);
-      }
-
-      const localMsgs = localUndeliveredMsgs.filter(m => m.receiver_id === activeChatFriend.id);
-      const allThread = [...(data || []), ...localMsgs].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
-      box.innerHTML = allThread.length === 0
-        ? '<div style="background:rgba(32,44,51,0.85); color:#8696a0; font-size:12px; padding:8px 14px; border-radius:10px; text-align:center; margin:auto;">🔒 End-to-end protected chat</div>'
-        : allThread.map(m => {
-            const isMine = (m.sender_id === currentUser.id);
-            let ticks = isMine ? (m.undelivered ? `<span style="color:rgba(233,237,239,0.65); font-weight:800;">✓</span>` : `<span style="color:${m.is_read ? '#53bdeb' : 'rgba(233,237,239,0.65)'}; font-weight:800;">✓✓</span>`) : '';
-            return `<div class="wa-bubble ${isMine ? 'wa-mine' : 'wa-theirs'}"><div>${esc(m.message_text)}</div><div class="wa-meta"><span>${formatTime(m.created_at)}</span>${ticks}</div></div>`;
-          }).join('');
+      box.innerHTML = !(data || []).length ? '<div style="text-align:center;color:#8696a0;margin:auto;font-size:12px;">Henüz mesaj yok</div>' : data.map(m => {
+        const mine = m.sender_id === currentUser.id;
+        const ticks = mine ? `<span style="color:${m.is_read ? '#53bdeb' : 'rgba(233,237,239,0.65)'};font-weight:800;">✓✓</span>` : '';
+        return `<div class="wa-bubble ${mine ? 'wa-mine' : 'wa-theirs'}"><div>${esc(m.message_text)}</div><div class="wa-meta"><span>${formatTime(m.created_at)}</span>${ticks}</div></div>`;
+      }).join('');
       box.scrollTop = box.scrollHeight;
     }
 
     async function sendDirectMessage() {
-      const input = document.getElementById('dmInput'), text = input.value.trim();
-      if (!text || !activeChatFriend || !currentUser) return;
+      const inp = document.getElementById('dmInput'), text = inp.value.trim();
+      if (!text || !activeChatFriend) return;
       await loadBlockedUsers();
-      if (blockedIds.includes(activeChatFriend.id)) return showToast('🚫 Bu kullanıcıyı engelledin.');
-      input.value = '';
-      if (blockedByIds.includes(activeChatFriend.id)) {
-        localUndeliveredMsgs.push({ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text, created_at: new Date().toISOString(), is_read: false, undelivered: true });
-        loadDirectMessages(); return;
-      }
-      const { error } = await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
-      if (error) return showToast(error.message);
+      if (blockedIds.includes(activeChatFriend.id) || blockedByIds.includes(activeChatFriend.id)) return showToast('🚫 Mesaj iletilemedi.');
+      inp.value = '';
+      await sb.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatFriend.id, message_text: text }]);
       loadDirectMessages();
     }
 
     async function submitSupportTicket() {
-      const category = document.getElementById('supportCat').value, message = document.getElementById('supportMsg').value.trim();
-      if (!message) return;
-      const { error } = await sb.from('support_tickets').insert([{ user_id: currentUser?.id, user_email: currentUser?.email, category, message }]);
-      if (error) return showToast(error.message);
-      document.getElementById('supportMsg').value = ''; closeModal('supportModal'); showToast('📨 Sent!');
+      const msg = document.getElementById('supportMsg').value.trim(); if (!msg) return;
+      await sb.from('support_tickets').insert([{ user_id: currentUser?.id, user_email: currentUser?.email, category: document.getElementById('supportCat').value, message: msg }]);
+      document.getElementById('supportMsg').value = ''; closeModal('supportModal'); showToast('📨 Gönderildi!');
     }
 
     async function openAdminTickets() {
       closeModal('profileModal'); openModal('adminTicketsModal');
       const { data } = await sb.from('support_tickets').select('*').order('created_at', { ascending: false });
-      const box = document.getElementById('ticketsContainer');
-      box.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:13px;">No tickets yet.</div>' :
-        data.map(t => `<div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.05); margin-bottom:10px; border:1px solid var(--border);">
-          <div style="font-size:11px; color:var(--accent); font-weight:700; margin-bottom:4px;">[${esc(t.category.toUpperCase())}] ${esc(t.user_email || 'Anon')}</div>
-          <div style="font-size:13px; line-height:1.4;">${esc(t.message)}</div>
-        </div>`).join('');
+      document.getElementById('ticketsContainer').innerHTML = !(data || []).length ? '<div style="color:var(--muted);">Kayıt yok.</div>' : data.map(t => `<div style="padding:10px;border-radius:12px;background:rgba(255,255,255,0.05);margin-bottom:8px;"><strong>[${esc(t.category)}] ${esc(t.user_email || '')}</strong><div>${esc(t.message)}</div></div>`).join('');
     }
 
     async function loadComments(pinId) {
-      const list = document.getElementById('commentsList');
-      const { data } = await sb.from('pin_comments').select('*, profiles(username, gender, age, birth_date)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      list.innerHTML = (!data || data.length === 0) ? '<div style="color:var(--muted); font-size:12px;">—</div>' : data.map(c => `<div style="padding:8px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:6px; font-size:13px;"><strong>${esc(c.profiles?.username || 'User')}</strong>${renderDemoBadge(c.profiles)}: ${esc(c.comment_text)}</div>`).join('');
+      const { data } = await sb.from('pin_comments').select('*,profiles(username)').eq('pin_id', pinId).order('created_at', { ascending: true });
+      document.getElementById('commentsList').innerHTML = !(data || []).length ? '<div style="color:var(--muted);font-size:12px;">Yorum yok.</div>' : data.map(c => `<div style="padding:8px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:13px;"><strong>${esc(c.profiles?.username || 'Kullanıcı')}:</strong> ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
-      const input = document.getElementById('commentInput'), text = input.value.trim();
-      if (!text || !activePin || !currentUser) return;
-      const { error } = await sb.from('pin_comments').insert([{ pin_id: activePin.id, user_id: currentUser.id, comment_text: text }]);
-      if (!error) {
-        input.value = ''; loadComments(activePin.id);
-        if (activePin.user_id && activePin.user_id !== currentUser.id) {
-          await sb.from('notifications').insert([{ user_id: activePin.user_id, type: 'pin_comment', title: '💬 Paylaşımına Yeni Yorum!', body: `${myProfile.username}: ${text.slice(0, 60)}`, pin_id: activePin.id }]);
-        }
-      }
+      const inp = document.getElementById('commentInput'), text = inp.value.trim();
+      if (!text || !activePin) return;
+      await sb.from('pin_comments').insert([{ pin_id: activePin.id, user_id: currentUser.id, comment_text: text }]);
+      inp.value = ''; loadComments(activePin.id);
     }
 
     window.addEventListener('DOMContentLoaded', initApp);
   </script>
+</body>
+</html>
