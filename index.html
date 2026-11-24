@@ -118,7 +118,7 @@
     .int-chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#cbd5e1; font-size:11.5px; font-weight:600; cursor:pointer; }
     .int-chip.selected { border-color:var(--vibe-cyan); background:rgba(0,245,212,0.18); color:#fff; }
 
-    /* 🎯 Taşmadan Tek Satıra Sığan Üst Bar */
+    /* Üst Bar */
     .top-bar {
       position:fixed; top:10px; left:6px; right:6px; z-index:1000;
       display:flex; align-items:center; justify-content:space-between; gap:3px;
@@ -266,6 +266,20 @@
     .stat-val { font-size:21px; font-weight:900; color:var(--vibe-cyan); margin-top:4px; }
     .stat-lbl { font-size:11.5px; color:#cbd5e1; font-weight:700; }
 
+    .user-search-card {
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border-radius:14px;
+      background:rgba(255,255,255,0.06); border:1px solid var(--border);
+      margin-bottom:8px;
+    }
+    .user-search-av {
+      width:42px; height:42px; border-radius:50%; background:#1e293b;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; overflow:hidden; flex-shrink:0; border:1.5px solid var(--vibe-cyan);
+      cursor:pointer;
+    }
+    .user-search-av img { width:100%; height:100%; object-fit:cover; }
+
     .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-light-bg); color:#111b21; border-top:1px solid rgba(0,0,0,0.12); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
     .wa-top { background:var(--wa-light-header); color:#111b21; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.08); }
     .wa-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--wa-light-header); border-bottom:1px solid rgba(0,0,0,0.08); }
@@ -395,7 +409,6 @@
     </div>
   </div>
 
-  <!-- Dil Seçimi -->
   <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🌍 Select Language / Tüm Diller</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
@@ -436,7 +449,6 @@
     </div>
   </div>
 
-  <!-- Harita & Üst Bar (💬 Mesajlaşma Butonu Görünür) -->
   <div id="map"></div>
   <button id="returnLocBtn" onclick="locateUser()">🧭 <span data-i18n="return_loc">Konumuma Dön</span></button>
 
@@ -482,14 +494,15 @@
     <div class="mm-tab" id="mm-street" onclick="setMapStyle('street')">🏙️ Sokak</div>
   </div>
 
+  <!-- Alt Bar: Harita • Ara & Keşfet • (+) • Etkinlik • Profil -->
   <div class="dock-bar">
     <button type="button" class="dock-item active" id="dockMapBtn" onclick="focusMapView()">
       <span class="ico">🗺️</span>
       <span data-i18n="dock_map">Harita</span>
     </button>
     <button type="button" class="dock-item" id="dockExploreBtn" onclick="openExploreSheet()">
-      <span class="ico">✨</span>
-      <span data-i18n="dock_explore">Keşfet</span>
+      <span class="ico">🔍</span>
+      <span data-i18n="dock_explore">Ara / Keşfet</span>
     </button>
     <button type="button" class="dock-center-btn" onclick="openCreatePin()" title="Paylaşım Bırak">+</button>
     <button type="button" class="dock-item" id="dockEventsBtn" onclick="openEventsSheet()">
@@ -500,6 +513,24 @@
       <span class="ico" id="dockProfileIcon">🦊</span>
       <span data-i18n="dock_profile">Profil</span>
     </button>
+  </div>
+
+  <!-- 🔍 Kullanıcı Arama & Keşfet Modalı -->
+  <div id="exploreSearchModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('exploreSearchModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:var(--vibe-cyan);">🔍 Kullanıcı Ara & Keşfet</div>
+          <div style="font-size:11.5px; color:var(--muted);">Kullanıcı adına göre kişileri bul, arkadaş ekle veya sohbet başlat</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('exploreSearchModal')">✕</button>
+      </div>
+      <input type="text" id="globalUserSearchInput" placeholder="🔎 Kullanıcı adı yazın (örn: ahmet, selin)..." oninput="searchUsersLive(this.value)" />
+      <div id="userSearchResultsBox" style="margin-bottom:14px;"></div>
+
+      <div style="font-size:12px; font-weight:800; color:#e2e8f0; margin-bottom:8px;">✨ Yakındaki Canlı Paylaşımlar:</div>
+      <div id="explorePinsListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
   </div>
 
   <!-- Kurucu Sayaç Paneli -->
@@ -774,7 +805,7 @@
         <div class="wa-tab" id="tabRequests" onclick="switchWaTab('requests')">İstekler <span id="reqCountBadge"></span></div>
         <div class="wa-tab" id="tabBlocked" onclick="switchWaTab('blocked')">Engelliler</div>
       </div>
-      <div class="wa-search-wrap" id="waSearchWrap"><input type="text" class="wa-search" id="waSearchInput" placeholder="🔍 Kişi veya sohbet ara..." oninput="renderWaChatList()" /></div>
+      <div class="wa-search-wrap" id="waSearchWrap"><input type="text" class="wa-search" id="waSearchInput" placeholder="🔍 Kişi ara veya sohbet bul..." oninput="renderWaChatList()" /></div>
       <div class="wa-list" id="waListContainer"></div>
     </div>
   </div>
@@ -850,8 +881,8 @@
     const CAT_META = { event: { emoji: '🎉', color: '#9b5de5' }, social: { emoji: '☕', color: '#00bbf9' }, question: { emoji: '❓', color: '#ffbe0b' }, deal: { emoji: '⚡', color: '#00f5d4' } };
 
     const LANG_DICT = {
-      tr: { live_badge: 'Şehrin Canlı Haritası', tagline: 'Şehrindeki anlık etkinlikleri, mekanları ve vibe\'ı gör', login_tab: 'Giriş Yap', signup_tab: 'Kayıt Ol', google_btn: 'Google ile Devam Et', or_email: 'veya e-posta', login_btn: 'Giriş Yap', return_loc: 'Konumuma Dön', cat_all: '🔥 Tümü', cat_sponsored: '🚩 İşletmeler', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat', dock_map: 'Harita', dock_explore: 'Keşfet', dock_events: 'Etkinlik', dock_profile: 'Profil' },
-      en: { live_badge: 'Live City Map', tagline: 'See live events, spots & vibes around your city', login_tab: 'Sign In', signup_tab: 'Sign Up', google_btn: 'Continue with Google', or_email: 'or email', login_btn: 'Sign In', return_loc: 'My Location', cat_all: '🔥 All', cat_sponsored: '🚩 Venues', cat_event: '🎉 Events', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals', dock_map: 'Map', dock_explore: 'Explore', dock_events: 'Events', dock_profile: 'Profile' }
+      tr: { live_badge: 'Şehrin Canlı Haritası', tagline: 'Şehrindeki anlık etkinlikleri, mekanları ve vibe\'ı gör', login_tab: 'Giriş Yap', signup_tab: 'Kayıt Ol', google_btn: 'Google ile Devam Et', or_email: 'veya e-posta', login_btn: 'Giriş Yap', return_loc: 'Konumuma Dön', cat_all: '🔥 Tümü', cat_sponsored: '🚩 İşletmeler', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat', dock_map: 'Harita', dock_explore: 'Ara / Keşfet', dock_events: 'Etkinlik', dock_profile: 'Profil' },
+      en: { live_badge: 'Live City Map', tagline: 'See live events, spots & vibes around your city', login_tab: 'Sign In', signup_tab: 'Sign Up', google_btn: 'Continue with Google', or_email: 'or email', login_btn: 'Sign In', return_loc: 'My Location', cat_all: '🔥 All', cat_sponsored: '🚩 Venues', cat_event: '🎉 Events', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals', dock_map: 'Map', dock_explore: 'Search', dock_events: 'Events', dock_profile: 'Profile' }
     };
 
     const GLOBAL_DAILY_VENUES = [
@@ -927,6 +958,7 @@
     let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let extraFriendQuota = 0, activeChatFriend = null, listPollTimer = null;
     let waTab = 'chats', waFriendsCache = [], waIncomingCache = [], waBlockedCache = [], realtimeChatChannel = null, typingUsersMap = {}, typingHideTimers = {}, lastTypingSentAt = 0;
+    let userSearchTimer = null;
     let sessionId = localStorage.getItem('vibepin_sid') || ('s_' + Math.random().toString(36).slice(2, 11));
     localStorage.setItem('vibepin_sid', sessionId);
     let sessionStartMs = Date.now();
@@ -945,17 +977,86 @@
 
     function focusMapView() { setActiveDock('dockMapBtn'); locateUser(); }
 
+    /* 🔍 Kullanıcı Arama & Keşfet Ekranı */
     function openExploreSheet() {
       setActiveDock('dockExploreBtn');
-      const hotList = [...allPins].sort((a, b) => getPinImportance(b).score - getPinImportance(a).score).slice(0, 12);
-      document.getElementById('clusterTitle').textContent = '✨ Yakındaki Canlı Akış';
-      document.getElementById('clusterListContainer').innerHTML = !hotList.length
-        ? '<div style="text-align:center;color:var(--muted);padding:16px;">Henüz canlı paylaşım yok.</div>'
-        : hotList.map(pin => `<div onclick="closeModal('clusterModal'); if(map) map.flyTo([${pin.latitude},${pin.longitude}],15); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;">
+      document.getElementById('globalUserSearchInput').value = '';
+      document.getElementById('userSearchResultsBox').innerHTML = '';
+      const hotList = [...allPins].sort((a, b) => getPinImportance(b).score - getPinImportance(a).score).slice(0, 10);
+      document.getElementById('explorePinsListContainer').innerHTML = !hotList.length
+        ? '<div style="text-align:center;color:var(--muted);padding:12px;font-size:12.5px;">Henüz canlı paylaşım yok.</div>'
+        : hotList.map(pin => `<div onclick="closeModal('exploreSearchModal'); if(map) map.flyTo([${pin.latitude},${pin.longitude}],15); openPinDetailById('${pin.id}')" style="padding:11px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;">
             <div style="font-size:13px;font-weight:800;color:var(--vibe-cyan);">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')}</div>
-            <div style="font-size:12.5px;color:#e2e8f0;margin-top:2px;">${esc(pin.content_text)}</div>
+            <div style="font-size:12px;color:#e2e8f0;margin-top:2px;">${esc(pin.content_text)}</div>
           </div>`).join('');
-      openModal('clusterModal');
+      openModal('exploreSearchModal');
+      refreshFriendsData();
+    }
+
+    function searchUsersLive(rawQuery) {
+      clearTimeout(userSearchTimer);
+      const q = (rawQuery || '').trim();
+      const box = document.getElementById('userSearchResultsBox');
+      if (q.length < 2) {
+        box.innerHTML = q.length === 1 ? '<div style="font-size:12px;color:var(--muted);padding:6px;">En az 2 harf yazın...</div>' : '';
+        return;
+      }
+      box.innerHTML = '<div style="font-size:12px;color:var(--vibe-cyan);padding:6px;">🔎 Kullanıcılar aranıyor...</div>';
+      userSearchTimer = setTimeout(async () => {
+        const { data, error } = await sb.from('profiles')
+          .select('id,username,avatar_emoji,avatar_url,trust_score')
+          .ilike('username', `%${q}%`)
+          .neq('id', currentUser.id)
+          .limit(15);
+
+        if (error) { box.innerHTML = `<div style="color:#f87171;font-size:12px;">${esc(error.message)}</div>`; return; }
+        const list = (data || []).filter(u => !blockedIds.includes(u.id) && !blockedByIds.includes(u.id));
+        if (!list.length) {
+          box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);padding:8px;text-align:center;">Eşleşen kullanıcı bulunamadı.</div>';
+          return;
+        }
+
+        box.innerHTML = list.map(u => {
+          const isFriend = waFriendsCache.some(f => f.friendId === u.id);
+          const safeName = esc(u.username || 'Vibe Üyesi');
+          const safeImg = u.avatar_url ? esc(u.avatar_url) : '';
+          const avInner = safeImg ? `<img src="${safeImg}" />` : esc(u.avatar_emoji || '🦊');
+          const actionBtn = isFriend
+            ? `<button onclick="closeModal('exploreSearchModal'); openDirectChat('${u.id}')" style="padding:7px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#fff;font-size:11.5px;font-weight:800;cursor:pointer;">💬 Mesaj</button>`
+            : `<button onclick="sendFriendRequestToUser('${u.id}', '${safeName.replace(/'/g, "\\'")}')" style="padding:7px 12px;border-radius:999px;border:none;background:var(--vibe-violet);color:#fff;font-size:11.5px;font-weight:800;cursor:pointer;">➕ Ekle</button>`;
+
+          return `<div class="user-search-card">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <div class="user-search-av" onclick="${safeImg ? `openLightbox('${safeImg}', '${safeName.replace(/'/g, "\\'")}')` : ''}">${avInner}</div>
+              <div style="min-width:0;">
+                <div style="font-size:13.5px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safeName}</div>
+                <div style="font-size:11px;color:var(--green);">🛡️ Güven: ${u.trust_score || 100}</div>
+              </div>
+            </div>
+            ${actionBtn}
+          </div>`;
+        }).join('');
+      }, 300);
+    }
+
+    async function sendFriendRequestToUser(targetUserId, targetUserName) {
+      if (!targetUserId || targetUserId === currentUser.id) return;
+      const sent = myProfile.friend_requests_sent || 0;
+      if (sent >= 10 + extraFriendQuota && !hasVipAccess()) {
+        if (extraFriendQuota < 3) openAdModal(); else showToast('İstek sınırına ulaştın.');
+        return;
+      }
+      const { error } = await sb.from('friendships').insert([{
+        sender_id: currentUser.id,
+        receiver_id: targetUserId,
+        sender_name: myProfile.username,
+        receiver_name: targetUserName || 'Kullanıcı',
+        status: 'pending'
+      }]);
+      if (error) return showToast('İstek zaten gönderilmiş veya hata oluştu.');
+      myProfile.friend_requests_sent = sent + 1;
+      await sb.from('profiles').update({ friend_requests_sent: myProfile.friend_requests_sent }).eq('id', currentUser.id);
+      showToast(`📨 ${targetUserName} kullanıcısına istek gönderildi!`);
     }
 
     function openEventsSheet() {
@@ -1141,7 +1242,7 @@
       applyLanguage(); initSwipeMapBar();
       if (!window.supabase) { document.getElementById('loginStatus').textContent = 'Connection error.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v29' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v30' }
       });
       document.getElementById('googleLoginBtn').addEventListener('click', () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } }));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
@@ -1179,7 +1280,7 @@
       document.getElementById('trEventsBtn').style.display = adminPerms.can_events ? 'flex' : 'none';
       document.getElementById('adminTicketsBtn').style.display = adminPerms.can_tickets ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
-      locateUser(); await loadBlockedUsers(); loadPins(); setupRealtime(); startSessionHeartbeat(); checkNotifications();
+      locateUser(); await loadBlockedUsers(); await refreshFriendsData(); loadPins(); setupRealtime(); startSessionHeartbeat(); checkNotifications();
       setInterval(checkNotifications, 10000);
     }
 
@@ -1613,7 +1714,7 @@
       if (waTab === 'chats') {
         const q = (document.getElementById('waSearchInput').value || '').toLowerCase();
         const list = waFriendsCache.filter(x => x.name.toLowerCase().includes(q));
-        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#667781;">Sohbet yok.</div>' : list.map(item => {
+        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#667781;">Sohbet yok. Alt bardaki 🔍 Ara/Keşfet ile kullanıcı bulabilirsin.</div>' : list.map(item => {
           const prev = typingUsersMap[item.friendId] ? '<span style="color:var(--wa-green);font-weight:700;">yazıyor...</span>' : (item.lastMsg ? esc(item.lastMsg.message_text || (item.lastMsg.audio_url ? '🎙️ Sesli mesaj' : '📷 Fotoğraf')) : 'Mesaj gönder 👋');
           return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')"><div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.blockedByThem)}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#111b21;">${esc(item.name)}</div><div style="font-size:13px;color:#54656f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${prev}</div></div>${item.unread ? `<span class="wa-badge">${item.unread}</span>` : ''}</div>`;
         }).join('');
