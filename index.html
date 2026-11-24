@@ -116,7 +116,6 @@
     .av-opt.selected { border-color:var(--accent); background:rgba(6,182,212,0.25); transform:scale(1.06); }
     .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid #ff7b39; color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:600; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
 
-    /* Büyük Resim Görüntüleyici (Lightbox) */
     #imageLightboxModal { position:fixed; inset:0; background:rgba(0,0,0,0.94); z-index:10050; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
     #imageLightboxModal.open { display:flex; }
     #lightboxImg { max-width:96%; max-height:80vh; border-radius:16px; object-fit:contain; box-shadow:0 16px 48px rgba(0,0,0,0.85); }
@@ -157,7 +156,6 @@
 <body>
   <div id="toast" class="toast"></div>
 
-  <!-- 🔍 Büyük Resim Görüntüleyici (Profil Fotoğrafı & Sohbet Görselleri) -->
   <div id="imageLightboxModal" onclick="closeLightbox()">
     <div style="width:100%; max-width:480px; display:flex; justify-content:flex-end; margin-bottom:10px;">
       <button class="close-btn" onclick="event.stopPropagation(); closeLightbox();" style="width:38px; height:38px; font-size:18px; background:rgba(255,255,255,0.16);">✕</button>
@@ -699,7 +697,6 @@
       closeModal('langModal');
     }
 
-    /* 🔍 Büyük Resim Aç / Kapat */
     function openLightbox(url, caption = '') {
       if (!url) return;
       document.getElementById('lightboxImg').src = url;
@@ -853,7 +850,7 @@
       document.getElementById('adminTicketsBtn').style.display = adminPerms.can_tickets ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
       locateUser(); await loadBlockedUsers(); loadPins(); setupRealtime(); checkNotifications();
-      setInterval(checkNotifications, 8000);
+      setInterval(checkNotifications, 10000);
     }
 
     async function openAdminRolesModal() { if (!isFounder()) return; closeModal('profileModal'); document.getElementById('newAdminEmailInput').value = ''; openModal('adminRolesModal'); loadAdminsList(); }
@@ -897,7 +894,9 @@
             if (activeChatFriend && (r.sender_id === activeChatFriend.id || r.receiver_id === activeChatFriend.id)) {
               delete typingUsersMap[activeChatFriend.id]; updateTypingUI(); loadDirectMessages();
             }
-            checkNotifications();
+            if (r.receiver_id === currentUser.id && r.sender_id !== currentUser.id) {
+              checkNotifications();
+            }
           }
         }).subscribe();
     }
@@ -1209,14 +1208,20 @@
     }
 
     async function checkNotifications() {
-      if (!currentUser) return; await loadBlockedUsers();
-      const [{ data: f }, { data: m }] = await Promise.all([sb.from('friendships').select('id,sender_id').eq('receiver_id', currentUser.id).eq('status', 'pending'), sb.from('direct_messages').select('id,sender_id').eq('receiver_id', currentUser.id).eq('is_read', false)]);
-      const cnt = (f || []).filter(x => !blockedIds.includes(x.sender_id)).length + (m || []).filter(x => !blockedIds.includes(x.sender_id)).length;
+      if (!currentUser) return;
+      await loadBlockedUsers();
+      const [{ data: f }, { data: m }] = await Promise.all([
+        sb.from('friendships').select('id,sender_id').eq('receiver_id', currentUser.id).eq('status', 'pending'),
+        sb.from('direct_messages').select('id,sender_id').eq('receiver_id', currentUser.id).eq('is_read', false)
+      ]);
+      const validF = (f || []).filter(x => x.sender_id !== currentUser.id && !blockedIds.includes(x.sender_id));
+      const validM = (m || []).filter(x => x.sender_id !== currentUser.id && !blockedIds.includes(x.sender_id));
+      const cnt = validF.length + validM.length;
       document.getElementById('notifDot').style.display = cnt > 0 ? 'block' : 'none';
     }
 
     function switchWaTab(tab) { waTab = tab; document.getElementById('tabChats').classList.toggle('active', tab === 'chats'); document.getElementById('tabRequests').classList.toggle('active', tab === 'requests'); document.getElementById('tabBlocked').classList.toggle('active', tab === 'blocked'); document.getElementById('waSearchWrap').style.display = tab === 'chats' ? 'block' : 'none'; renderWaChatList(); }
-    function openFriendsModal() { openModal('friendsModal'); refreshFriendsData(); if (listPollTimer) clearInterval(listPollTimer); listPollTimer = setInterval(refreshFriendsData, 6000); }
+    function openFriendsModal() { openModal('friendsModal'); refreshFriendsData(); if (listPollTimer) clearInterval(listPollTimer); listPollTimer = setInterval(refreshFriendsData, 8000); }
     function closeFriendsModal() { if (listPollTimer) { clearInterval(listPollTimer); listPollTimer = null; } closeModal('friendsModal'); }
 
     async function refreshFriendsData() {
@@ -1232,7 +1237,7 @@
       waFriendsCache = acc.map(f => {
         const fid = f.sender_id === currentUser.id ? f.receiver_id : f.sender_id;
         const last = (msgs || []).find(m => (m.sender_id === fid && m.receiver_id === currentUser.id) || (m.sender_id === currentUser.id && m.receiver_id === fid));
-        const unread = (msgs || []).filter(m => m.sender_id === fid && !m.is_read).length;
+        const unread = (msgs || []).filter(m => m.sender_id === fid && m.receiver_id === currentUser.id && !m.is_read).length;
         return { friendshipId: f.id, friendId: fid, name: pMap[fid]?.username || 'Vibe Üyesi', profile: pMap[fid], lastMsg: last, unread, blockedByThem: blockedByIds.includes(fid) };
       });
       renderWaChatList();
@@ -1257,8 +1262,8 @@
     async function respondFriend(id, status) { await sb.from('friendships').update({ status }).eq('id', id); refreshFriendsData(); checkNotifications(); }
     async function unblockUser(id) { await sb.from('blocked_users').delete().eq('blocker_id', currentUser.id).eq('blocked_id', id); blockedIds = blockedIds.filter(x => x !== id); loadPins(); refreshFriendsData(); }
     function toggleWaMenu() { const m = document.getElementById('waChatMenu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-    async function removeCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (activeChatFriend?.friendshipId) await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId); closeChatModal(); openFriendsModal(); }
-    async function blockCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (!activeChatFriend) return; if (!blockedIds.includes(activeChatFriend.id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]); blockedIds.push(activeChatFriend.id); } loadPins(); closeChatModal(); openFriendsModal(); }
+    async function removeCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (activeChatFriend?.friendshipId) await sb.from('friendships').delete().eq('id', activeChatFriend.friendshipId); closeModal('chatModal'); activeChatFriend = null; openFriendsModal(); }
+    async function blockCurrentChatFriend() { document.getElementById('waChatMenu').style.display = 'none'; if (!activeChatFriend) return; if (!blockedIds.includes(activeChatFriend.id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activeChatFriend.id }]); blockedIds.push(activeChatFriend.id); } loadPins(); closeModal('chatModal'); activeChatFriend = null; openFriendsModal(); }
 
     function handleDmPhotoSelect(input) {
       if (input.files?.[0]) {
@@ -1282,7 +1287,7 @@
       document.getElementById('chatFriendTitle').textContent = activeChatFriend.name;
       document.getElementById('chatHeaderAvatar').innerHTML = avatarHtml(activeChatFriend.profile, '🦊', hideAv);
       updateTypingUI();
-      closeFriendsModal();
+      closeModal('friendsModal');
       openModal('chatModal');
       loadDirectMessages();
 
@@ -1296,12 +1301,15 @@
       });
     }
 
-    /* ⚡ Donmadan Anında Geri Dönüş */
+    /* Sohbetten çıkınca doğrudan Sohbetler listesine (#friendsModal) dön */
     function closeChatModal() {
       document.getElementById('waChatMenu').style.display = 'none';
       clearPendingDmPhoto();
       activeChatFriend = null;
       closeModal('chatModal');
+      openModal('friendsModal');
+      switchWaTab('chats');
+      refreshFriendsData();
       checkNotifications();
     }
 
@@ -1321,9 +1329,10 @@
       }).join('');
       box.scrollTop = box.scrollHeight;
 
-      const hasUnread = (data || []).some(m => m.sender_id === fid && !m.is_read);
-      if (hasUnread) {
-        sb.from('direct_messages').update({ is_read: true }).eq('sender_id', fid).eq('receiver_id', currentUser.id).eq('is_read', false);
+      const hasUnreadFromThem = (data || []).some(m => m.sender_id === fid && m.receiver_id === currentUser.id && !m.is_read);
+      if (hasUnreadFromThem) {
+        await sb.from('direct_messages').update({ is_read: true }).eq('sender_id', fid).eq('receiver_id', currentUser.id).eq('is_read', false);
+        checkNotifications();
       }
     }
 
@@ -1351,12 +1360,14 @@
         sender_id: currentUser.id,
         receiver_id: activeChatFriend.id,
         message_text: text || (image_url ? '📷 Fotoğraf' : ''),
-        image_url
+        image_url,
+        is_read: false
       }]);
 
       sendBtn.disabled = false;
       if (error) return showToast('Mesaj gönderilemedi: ' + error.message);
-      loadDirectMessages();
+      await loadDirectMessages();
+      checkNotifications();
     }
 
     async function submitSupportTicket() {
