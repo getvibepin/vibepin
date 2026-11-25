@@ -49,10 +49,7 @@
       background: #070b17;
     }
 
-    .dark-tiles {
-      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%);
-    }
-
+    /* Korunan Medya Kalkanı */
     .protected-media {
       position: relative;
       display: inline-block;
@@ -73,6 +70,7 @@
       background: transparent;
     }
 
+    /* Auth Ekranı */
     #authScreen {
       position: fixed;
       inset: 0;
@@ -126,12 +124,12 @@
       -webkit-text-fill-color: transparent;
     }
 
-    /* ÜST HUD: ARAMA + DESTEK + KATEGORİ FİLTRELERİ */
+    /* Üst HUD Bar */
     .top-hud {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -142,29 +140,27 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
       pointer-events: auto;
     }
     .search-box {
       flex: 1;
-      min-width: 0;
       display: flex;
       align-items: center;
       background: var(--surface);
       backdrop-filter: blur(14px);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 6px 10px;
-      gap: 6px;
+      padding: 8px 14px;
+      gap: 8px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
     .search-box input {
       flex: 1;
-      min-width: 0;
       background: transparent;
       border: none;
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
       outline: none;
     }
     .hud-pill {
@@ -173,40 +169,34 @@
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 999px;
-      padding: 7px 11px;
-      font-size: 12.5px;
+      padding: 8px 13px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.3);
       position: relative;
       white-space: nowrap;
-      flex-shrink: 0;
     }
     .hud-pill:active { transform: scale(0.96); }
-    .hud-pill.active-cat {
-      background: var(--vibe-grad);
-      border-color: transparent;
-      color: #fff;
-    }
     .hud-pill.support-pinned {
-      border-color: rgba(34, 211, 238, 0.55);
-      background: linear-gradient(135deg, rgba(34,211,238,0.22), rgba(168,85,247,0.22));
+      border-color: rgba(34, 211, 238, 0.45);
+      background: linear-gradient(135deg, rgba(34,211,238,0.18), rgba(168,85,247,0.18));
     }
 
     .badge-dot {
       position: absolute;
       top: -4px;
       right: -4px;
-      min-width: 17px;
-      height: 17px;
-      padding: 0 4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
       border-radius: 999px;
       background: var(--danger);
       color: #fff;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       display: none;
       align-items: center;
@@ -214,43 +204,16 @@
     }
     .badge-dot.show { display: flex; }
 
-    /* KATEGORİ ŞERİDİ (ETKİNLİK, YEME-İÇME, MAĞAZA VB.) */
-    .category-bar {
+    /* Katman Seçici */
+    .layer-bar {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
-      padding-bottom: 2px;
     }
-    .category-bar::-webkit-scrollbar { display: none; }
+    .layer-bar::-webkit-scrollbar { display: none; }
 
-    /* SAĞ KENAR KOMPAKT HARİTA KONTROLLERİ (EKRANI KAPATMAZ) */
-    .side-map-controls {
-      position: fixed;
-      right: 10px;
-      top: 108px;
-      z-index: 950;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .mini-map-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: var(--surface);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-    }
-    .mini-map-btn:active { transform: scale(0.94); }
-
+    /* Alt Navigasyon */
     .bottom-dock {
       position: fixed;
       bottom: 16px;
@@ -292,6 +255,7 @@
       box-shadow: 0 6px 20px rgba(168,85,247,0.45);
     }
 
+    /* Modallar */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -345,21 +309,7 @@
       cursor: pointer;
     }
 
-    /* 24 SAATLİK GERİ SAYIM ROZETİ */
-    .countdown-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(249, 115, 22, 0.16);
-      border: 1px solid rgba(249, 115, 22, 0.45);
-      color: #fdba74;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 999px;
-      margin-bottom: 10px;
-    }
-
+    /* Form Elemanları */
     .field { margin-bottom: 12px; }
     .field label {
       display: block;
@@ -411,6 +361,7 @@
     .btn-wa { background: var(--wa-green); color: #fff; }
     .btn-sm { padding: 7px 11px; font-size: 12px; width: auto; border-radius: 10px; }
 
+    /* Harita Yönlendirme Butonları */
     .nav-route-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -446,6 +397,7 @@
       font-weight: 700;
     }
 
+    /* Profil İstatistik Sayaçları */
     .profile-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -465,6 +417,7 @@
     .stat-num { font-size: 18px; font-weight: 800; color: var(--cyan); }
     .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+    /* Kompakt Avatar Seçici & Modal */
     .avatar-preview-row {
       display: flex;
       align-items: center;
@@ -505,7 +458,12 @@
       justify-content: center;
       cursor: pointer;
     }
+    .avatar-opt.selected {
+      border-color: var(--cyan);
+      background: rgba(34,211,238,0.2);
+    }
 
+    /* Doğum Günü VIP Rozeti */
     .bday-banner {
       background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(168,85,247,0.25));
       border: 1px solid rgba(249,115,22,0.5);
@@ -519,6 +477,7 @@
     }
     .bday-banner.show { display: flex; }
 
+    /* Galeri Izgarası */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -552,6 +511,7 @@
       cursor: pointer;
     }
 
+    /* VibeChat & Sekmeler */
     .tabs {
       display: flex;
       gap: 6px;
@@ -624,9 +584,10 @@
       background: rgba(34,211,238,0.14);
     }
 
+    /* Toast Bildirimi */
     #toast {
       position: fixed;
-      top: 105px;
+      top: 76px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 99999;
@@ -643,6 +604,7 @@
       text-align: center;
     }
 
+    /* Harita Pin İkonları */
     .vibe-marker {
       display: flex;
       align-items: center;
@@ -665,7 +627,7 @@
 <div id="toast"></div>
 <div id="map"></div>
 
-<!-- GİRİŞ EKRANI -->
+<!-- GİRİŞ / KAYIT EKRANI (Kalıcı Oturum Kontrollü) -->
 <div id="authScreen">
   <div class="auth-card">
     <div class="brand-logo">
@@ -713,15 +675,16 @@
   </div>
 </div>
 
-<!-- ÜST HUD: ARAMA + SABİT DESTEK + BİLDİRİM + KATEGORİ FİLTRELERİ -->
+<!-- ÜST KONTROL ÇUBUĞU -->
 <div class="top-hud">
   <div class="hud-row">
     <div class="search-box">
       <span>🔍</span>
-      <input type="text" id="citySearchInput" placeholder="Şehir veya bölge ara..." onkeydown="if(event.key==='Enter') searchCity()" />
-      <button type="button" class="btn-sm btn-vibe" style="border:none; cursor:pointer; padding:5px 10px;" onclick="searchCity()">Git</button>
+      <input type="text" id="citySearchInput" placeholder="Şehir veya bölge ara (örn: İstanbul, Kadıköy)..." onkeydown="if(event.key==='Enter') searchCity()" />
+      <button type="button" class="btn-sm btn-vibe" style="border:none; cursor:pointer;" onclick="searchCity()">Git</button>
     </div>
 
+    <!-- ANA EKRANA SABİTLENMİŞ DESTEK & ÖNERİ BUTONU -->
     <button type="button" class="hud-pill support-pinned" onclick="openSupportModal()" title="Destek, Şikayet & Öneri">
       <span>🛟</span> <span>Destek</span>
       <span id="supportAdminBadge" class="badge-dot">0</span>
@@ -733,26 +696,15 @@
     </button>
   </div>
 
-  <!-- KATEGORİ FİLTRELERİ (ETKİNLİK, YEME-İÇME, MAĞAZA, HİZMET) -->
   <div class="hud-row">
-    <div class="category-bar" id="categoryFilterBar">
-      <button type="button" class="hud-pill active-cat" onclick="filterPinsByCategory('all', this)">🌍 Tümü</button>
-      <button type="button" class="hud-pill" onclick="filterPinsByCategory('cafe', this)">☕ Yeme & İçme</button>
-      <button type="button" class="hud-pill" onclick="filterPinsByCategory('event', this)">🎉 Etkinlik</button>
-      <button type="button" class="hud-pill" onclick="filterPinsByCategory('shop', this)">🛍️ Mağaza</button>
-      <button type="button" class="hud-pill" onclick="filterPinsByCategory('service', this)">🛠️ Hizmet & Oto</button>
-      <button type="button" class="hud-pill" onclick="filterPinsByCategory('general', this)">🔥 Genel Vibe</button>
+    <div class="layer-bar">
+      <button type="button" class="hud-pill" onclick="setMapLayer('street')">🗺️ Sokak</button>
+      <button type="button" class="hud-pill" onclick="setMapLayer('satellite')">🛰️ Uydu</button>
+      <button type="button" class="hud-pill" onclick="setMapLayer('dark')">🌙 Gece</button>
+      <button type="button" class="hud-pill" onclick="locateUser()">🎯 Konumum</button>
+      <button type="button" id="ghostModeBtn" class="hud-pill" style="display:none;" onclick="toggleGhostMode()">👻 Hayalet: Kapalı</button>
     </div>
   </div>
-</div>
-
-<!-- SAĞ KENAR KOMPAKT HARİTA KATMAN & KONUM BUTONLARI -->
-<div class="side-map-controls">
-  <button type="button" class="mini-map-btn" onclick="locateUser()" title="Konumum">🎯</button>
-  <button type="button" class="mini-map-btn" onclick="setMapLayer('street')" title="Sokak Haritası">🗺️</button>
-  <button type="button" class="mini-map-btn" onclick="setMapLayer('satellite')" title="Uydu Görünümü">🛰️</button>
-  <button type="button" class="mini-map-btn" onclick="setMapLayer('dark')" title="Gece Modu">🌙</button>
-  <button type="button" id="ghostModeBtn" class="mini-map-btn" style="display:none;" onclick="toggleGhostMode()" title="Hayalet Modu">👻</button>
 </div>
 
 <!-- ALT DOCK MENÜ -->
@@ -778,15 +730,13 @@
   </button>
 </div>
 
-<!-- 1. PİN OLUŞTURMA MODALI (24 SAAT SÜRELİ) -->
+<!-- 1. PİN OLUŞTURMA MODALI -->
 <div id="createPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
       <div class="modal-title">📍 Yeni VibePin Oluştur</div>
       <button type="button" class="close-btn" onclick="closeModal('createPinModal')">✕</button>
     </div>
-
-    <div class="countdown-pill">⏳ Tüm paylaşımlar yayınlandıktan 24 saat sonra otomatik kalkar</div>
 
     <div class="field">
       <label>Pin Türü</label>
@@ -800,10 +750,10 @@
       <label>Kategori</label>
       <select id="pinCategory">
         <option value="general">🔥 Genel Vibe</option>
-        <option value="cafe">☕ Yeme & İçme (Kafe / Restoran)</option>
-        <option value="event">🎉 Etkinlik & Buluşma</option>
+        <option value="cafe">☕ Kafe & Restoran</option>
         <option value="shop">🛍️ Mağaza & Alışveriş</option>
         <option value="service">🛠️ Hizmet & Oto</option>
+        <option value="event">🎉 Etkinlik & Buluşma</option>
       </select>
     </div>
 
@@ -828,20 +778,17 @@
       <input type="file" id="pinImagesInput" accept="image/*" multiple />
     </div>
 
-    <button type="button" class="btn btn-vibe" id="publishPinBtn" onclick="publishNewPin()">🚀 24 Saatliğine Yayınla</button>
+    <button type="button" class="btn btn-vibe" id="publishPinBtn" onclick="publishNewPin()">🚀 Haritada Yayınla</button>
   </div>
 </div>
 
-<!-- 2. PİN DETAY, 24 SAAT SAYAÇ & HARİTA YÖNLENDİRME MODALI -->
+<!-- 2. PİN DETAY & HARİTA YÖNLENDİRME MODALI -->
 <div id="pinDetailModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
       <div class="modal-title" id="detailPinTitle">Pin Detayı</div>
       <button type="button" class="close-btn" onclick="closeModal('pinDetailModal')">✕</button>
     </div>
-
-    <!-- CANLI 24 SAATLİK GERİ SAYIM SAYACI -->
-    <div id="detailCountdownBox" class="countdown-pill">⏳ Kalan Süre: Hesaplanıyor...</div>
 
     <div id="detailOwnerBar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
       <div id="detailAuthorInfo" style="font-size:13px; font-weight:700;"></div>
@@ -850,6 +797,7 @@
 
     <p id="detailContent" style="font-size:14px; line-height:1.5; margin-bottom:10px;"></p>
 
+    <!-- ADRES & GOOGLE HARİTALAR / YANDEX YÖNLENDİRME BUTONLARI -->
     <div id="detailAddressBox" style="background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:10px;">
       <div id="detailAddressText" style="font-size:12.5px; color:var(--muted);"></div>
       <div class="nav-route-group">
@@ -864,6 +812,7 @@
 
     <div id="detailGallery" class="gallery-grid" style="margin-bottom:12px;"></div>
 
+    <!-- Beğeni / Beğenmeme / Yorum Sayacı (Doğrula/Yalan Yok) -->
     <div style="display:flex; gap:8px; margin-bottom:14px;">
       <button type="button" class="btn btn-secondary btn-sm" onclick="likeCurrentPin()">👍 Beğen (<span id="detailLikes">0</span>)</button>
       <button type="button" class="btn btn-secondary btn-sm" onclick="dislikeCurrentPin()">👎 Beğenme (<span id="detailDislikes">0</span>)</button>
@@ -878,7 +827,7 @@
   </div>
 </div>
 
-<!-- 3. PİN DÜZENLEME MODALI -->
+<!-- 3. PİN DÜZENLEME MODALI (SORUNSUZ KAYDETME VE GÜNCELLEME) -->
 <div id="editPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -891,10 +840,10 @@
       <label>Kategori</label>
       <select id="editPinCategory">
         <option value="general">🔥 Genel Vibe</option>
-        <option value="cafe">☕ Yeme & İçme</option>
-        <option value="event">🎉 Etkinlik & Buluşma</option>
+        <option value="cafe">☕ Kafe & Restoran</option>
         <option value="shop">🛍️ Mağaza & Alışveriş</option>
         <option value="service">🛠️ Hizmet & Oto</option>
+        <option value="event">🎉 Etkinlik & Buluşma</option>
       </select>
     </div>
 
@@ -917,7 +866,7 @@
   </div>
 </div>
 
-<!-- 4. İŞLETMEM MODALI -->
+<!-- 4. İŞLETMEM PROFİLİ & PİN YÖNETİMİ MODALI -->
 <div id="businessModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -964,6 +913,7 @@
       <button type="button" class="close-btn" onclick="closeModal('profileModal')">✕</button>
     </div>
 
+    <!-- Doğum Günü Özel VIP Kutlama Banner'ı -->
     <div id="birthdayVipBanner" class="bday-banner">
       <span style="font-size:24px;">🎂</span>
       <div>
@@ -972,6 +922,7 @@
       </div>
     </div>
 
+    <!-- Kompakt Avatar Alanı (Kalabalık Izgara Kaldırıldı -> Modal Butonu Eklendi) -->
     <div class="avatar-preview-row">
       <div id="profileMainAvatarPreview" class="main-avatar-circle">😎</div>
       <div style="flex:1;">
@@ -986,6 +937,7 @@
       </div>
     </div>
 
+    <!-- Tıklanabilir Arkadaş / Gelen İstek / Takip Sayaçları -->
     <div class="profile-stats">
       <div class="stat-box" onclick="openProfileConnections('friends')">
         <div class="stat-num" id="statFriendsCount">0</div>
@@ -1001,9 +953,11 @@
       </div>
     </div>
 
+    <!-- 10 Gün Kısıtlamalı Kimlik Alanları -->
     <div class="field">
       <label>Kullanıcı Adı</label>
       <input type="text" id="profUsername" placeholder="Kullanıcı adın" />
+      <span id="usernameLockHint" class="lock-hint" style="display:none;"></span>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -1025,6 +979,7 @@
 
     <button type="button" class="btn btn-vibe" onclick="saveUserProfile()" style="margin-bottom:14px;">💾 Profil Bilgilerini Kaydet</button>
 
+    <!-- Kişisel Fotoğraf Galerisi (Ana Avatardan Tamamen Bağımsız) -->
     <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:14px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
         <strong style="font-size:13px;">🖼️ Kişisel Galerim</strong>
@@ -1040,7 +995,7 @@
   </div>
 </div>
 
-<!-- 6. AVATAR SEÇİCİ MODALI -->
+<!-- 6. AVATAR SEÇİCİ POPUP MODALI -->
 <div id="avatarPickerModal" class="modal-backdrop">
   <div class="modal-sheet" style="max-width:380px;">
     <div class="modal-header">
@@ -1052,7 +1007,7 @@
   </div>
 </div>
 
-<!-- 7. BAĞLANTILARIM MODALI -->
+<!-- 7. ARKADAŞLAR & TAKİP YÖNETİMİ MODALI (Sohbetlere Değil Doğrudan Buraya Açar) -->
 <div id="friendsModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1070,7 +1025,7 @@
   </div>
 </div>
 
-<!-- 8. DESTEK, ŞİKAYET & ÖNERİ MODALI -->
+<!-- 8. DESTEK, ŞİKAYET & ÖNERİ MODALI (Kullanıcı & Kurucu Çözüm Hattı) -->
 <div id="supportModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1092,6 +1047,7 @@
     </div>
     <button type="button" class="btn btn-vibe" onclick="submitSupportTicket()" style="margin-bottom:14px;">📨 Yönetime Gönder</button>
 
+    <!-- Kurucu / Admin İçin Gelen Talepler ve Doğrudan Kullanıcıya Çözüm Yanıtı -->
     <div id="adminTicketsSection" style="display:none; border-top:1px solid var(--border); padding-top:12px;">
       <div style="font-size:13px; font-weight:800; color:var(--orange); margin-bottom:8px;">👑 Kurucu Paneli — Gelen Bildirimler</div>
       <div id="adminTicketsList"></div>
@@ -1115,7 +1071,7 @@
   </div>
 </div>
 
-<!-- 10. VIBECHAT MODALI -->
+<!-- 10. VIBECHAT MESAJLAŞMA MODALI -->
 <div id="chatModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1136,8 +1092,11 @@
   </div>
 </div>
 <script>
-  const SUPABASE_URL = "https://xotxhjckccwvddahdvxo.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvdHhoamNrY2N3dmRkYWhkdnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzODg3ODcsImV4cCI6MjExMDk2NDc4N30.9ufTKWaPYK5G-gzcEQTd46BWrhuhCjGJLR9ZT2NUPU8";
+  // =========================================================
+  // 1. SUPABASE YAPILANDIRMASI & DURUM YÖNETİMİ
+  // =========================================================
+  const SUPABASE_URL = "YOUR_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
@@ -1154,18 +1113,16 @@
   let map = null;
   let currentTileLayer = null;
   let markersLayer = L.layerGroup();
-  let userLocation = [41.0082, 28.9784];
+  let userLocation = [41.0082, 28.9784]; // Varsayılan: İstanbul
   let allPins = [];
-  let selectedCategory = "all";
   let activeDetailPin = null;
-  let countdownInterval = null;
   let activeChatUserId = null;
   let currentLang = "tr";
 
   const TILE_URLS = {
     street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    dark: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
   };
 
   const BIZ_COLOR_MAP = {
@@ -1176,20 +1133,13 @@
     general: "#00a884"
   };
 
-  const CAT_EMOJI_MAP = {
-    cafe: "☕",
-    event: "🎉",
-    shop: "🛍️",
-    service: "🛠️",
-    general: "🔥"
-  };
-
   const AVATAR_EMOJIS = [
     "😎", "🦊", "🦁", "🐼", "🐨", "🐯",
     "🚀", "🔥", "⚡", "👑", "🎧", "🎮",
     "☕", "🍕", "🏎️", "🏍️", "🌍", "💎"
   ];
 
+  // 12 Dil Sözlüğü
   const LANG_DICT = {
     tr: { google_btn: "Google ile Devam Et", login_btn: "Giriş Yap", signup_btn: "Kayıt Ol" },
     en: { google_btn: "Continue with Google", login_btn: "Sign In", signup_btn: "Sign Up" },
@@ -1219,10 +1169,6 @@
 
   function closeModal(id) {
     document.getElementById(id).classList.remove("open");
-    if (id === "pinDetailModal" && countdownInterval) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
-    }
   }
 
   function changeLanguage(lang) {
@@ -1234,15 +1180,20 @@
     });
   }
 
+  // =========================================================
+  // 2. KALICI OTURUM YÖNETİMİ & KARŞILAMA E-POSTASI / DOĞUM GÜNÜ
+  // =========================================================
   async function initApp() {
     initMap();
     renderAvatarOptions();
 
+    // Mevcut oturumu kontrol et — kayıtlı kullanıcı tekrar giriş ekranı görmez
     const { data: { session } } = await sb.auth.getSession();
     if (session && session.user) {
       await handleAuthenticatedUser(session.user);
     }
 
+    // OAuth dönüşlerini veya oturum değişimlerini dinle
     sb.auth.onAuthStateChange(async (event, session) => {
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
         await handleAuthenticatedUser(session.user);
@@ -1252,16 +1203,14 @@
         document.getElementById("authScreen").classList.remove("hidden");
       }
     });
-
-    // Süresi dolan 24 saatlik pinleri her dakika haritadan otomatik temizle
-    setInterval(() => renderMapMarkers(), 60000);
   }
 
   async function handleAuthenticatedUser(user) {
     currentUser = user;
     document.getElementById("authScreen").classList.add("hidden");
 
-    let { data: profile } = await sb
+    // Profil kaydını getir veya yeni üye ise oluştur
+    let { data: profile, error } = await sb
       .from("profiles")
       .select("*")
       .eq("id", user.id)
@@ -1288,6 +1237,8 @@
         .single();
 
       profile = inserted || newProfilePayload;
+
+      // Yeni kaydolan kullanıcıya logolu hoş geldin bildirimi & Edge Function e-posta tetikleyicisi
       await triggerWelcomePackage(user, profile.username);
     } else {
       await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
@@ -1303,6 +1254,7 @@
 
   async function triggerWelcomePackage(user, username) {
     try {
+      // 1) Uygulama içi logolu hoş geldin bildirimi
       await sb.from("notifications").insert({
         user_id: user.id,
         type: "welcome",
@@ -1310,6 +1262,7 @@
         message: `Merhaba ${username}! VibePin ile çevrendeki canlı etkinlikleri, mekan fırsatlarını ve sosyal pinleri keşfedebilir, kendi işletmeni haritada öne çıkarabilirsin.`
       });
 
+      // 2) Supabase Edge Function tanımlıysa logolu HTML karşılama e-postası gönder
       await sb.functions.invoke("send-welcome-email", {
         body: {
           email: user.email,
@@ -1318,7 +1271,9 @@
           purpose: "Şehrindeki canlı sosyal enerjiyi ve yerel işletme kampanyalarını tek haritada buluşturuyoruz."
         }
       });
-    } catch (_) {}
+    } catch (_) {
+      // Edge function henüz deploy edilmemişse sessizce devam et
+    }
   }
 
   function checkBirthdayPrivileges() {
@@ -1383,6 +1338,9 @@
     showToast("Çıkış yapıldı.");
   }
 
+  // =========================================================
+  // 3. HARİTA MOTORU, ŞEHİR ARAMA & İŞLETME PİNLERİ
+  // =========================================================
   function initMap() {
     map = L.map("map", { zoomControl: false }).setView(userLocation, 13);
     setMapLayer("dark");
@@ -1394,8 +1352,7 @@
     if (currentTileLayer) map.removeLayer(currentTileLayer);
     currentTileLayer = L.tileLayer(TILE_URLS[type] || TILE_URLS.dark, {
       maxZoom: 19,
-      attribution: "© VibePin",
-      className: type === "dark" ? "dark-tiles" : ""
+      attribution: "© VibePin"
     }).addTo(map);
   }
 
@@ -1430,33 +1387,6 @@
     }
   }
 
-  // 24 SAATLİK SÜRE KONTROLÜ
-  function getPinExpiryTimestamp(pin) {
-    if (pin.expires_at) return new Date(pin.expires_at).getTime();
-    if (pin.created_at) return new Date(pin.created_at).getTime() + (24 * 60 * 60 * 1000);
-    return Date.now() + (24 * 60 * 60 * 1000);
-  }
-
-  function isPinStillActive(pin) {
-    return getPinExpiryTimestamp(pin) > Date.now();
-  }
-
-  function formatRemainingTime(expiryMs) {
-    const diff = expiryMs - Date.now();
-    if (diff <= 0) return "Süresi Doldu";
-    const hrs = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
-    return `${hrs}sa ${mins}dk ${secs}sn`;
-  }
-
-  function filterPinsByCategory(cat, btnEl) {
-    selectedCategory = cat;
-    document.querySelectorAll("#categoryFilterBar .hud-pill").forEach(b => b.classList.remove("active-cat"));
-    if (btnEl) btnEl.classList.add("active-cat");
-    renderMapMarkers();
-  }
-
   async function loadAllMapPins() {
     const { data, error } = await sb
       .from("pins")
@@ -1473,14 +1403,9 @@
     markersLayer.clearLayers();
     allPins.forEach(pin => {
       if (!pin.latitude || !pin.longitude) return;
-      // 24 saati dolmuş pinleri haritada gösterme
-      if (!isPinStillActive(pin)) return;
-      // Kategori filtresi uygula
-      if (selectedCategory !== "all" && pin.category !== selectedCategory) return;
-
       const isBiz = !!pin.is_sponsored;
       const borderColor = isBiz ? (BIZ_COLOR_MAP[pin.category] || "#f97316") : "#22d3ee";
-      const emoji = isBiz ? "🏪" : (CAT_EMOJI_MAP[pin.category] || pin.profiles?.avatar_emoji || "📍");
+      const emoji = isBiz ? "🏪" : (pin.profiles?.avatar_emoji || "📍");
 
       const icon = L.divIcon({
         className: "",
@@ -1495,6 +1420,9 @@
     });
   }
 
+  // =========================================================
+  // 4. PİN OLUŞTURMA, DÜZENLEME (BUG-FREE) & HARİTA YÖNLENDİRME
+  // =========================================================
   function openCreatePinModal(forceType = "social") {
     document.getElementById("pinTypeSelect").value = forceType;
     toggleBusinessPinFields();
@@ -1541,8 +1469,8 @@
     try {
       const center = map.getCenter();
       const uploadedUrls = files.length ? await uploadMultipleMedia(files, "pins") : [];
-      const expiresAt24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
+      // Adres bilgisini hem içerik metninde hem de varsa address sütununda güvenli sakla
       const formattedContent = addressText
         ? `${rawContent}\n📍 Adres: ${addressText}`
         : rawContent;
@@ -1556,10 +1484,10 @@
         is_sponsored: type === "business",
         image_url: uploadedUrls[0] || null,
         gallery_urls: uploadedUrls.length ? uploadedUrls : null,
-        website_url: websiteUrl || null,
-        expires_at: expiresAt24h
+        website_url: websiteUrl || null
       };
 
+      // İsteğe bağlı address sütunu varsa dene, yoksa güvenli fallback ile kaydet
       let { error } = await sb.from("pins").insert({ ...basePayload, address: addressText || null });
       if (error) {
         const retry = await sb.from("pins").insert(basePayload);
@@ -1567,13 +1495,13 @@
       }
 
       closeModal("createPinModal");
-      showToast("🚀 Pin 24 saatliğine haritada yayınlandı!");
+      showToast("🚀 Pin başarıyla haritada yayınlandı!");
       await loadAllMapPins();
     } catch (err) {
       showToast("Pin yayınlanırken hata oluştu: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = "🚀 24 Saatliğine Yayınla";
+      btn.textContent = "🚀 Haritada Yayınla";
     }
   }
 
@@ -1594,15 +1522,7 @@
     document.getElementById("detailPinTitle").textContent = pin.is_sponsored ? "🏪 İşletme Kampanya Pini" : "📍 Sosyal VibePin";
     document.getElementById("detailAuthorInfo").innerHTML = `${pin.profiles?.avatar_emoji || "👤"} ${authorName} ${isBdayAuthor ? "🎂 VIP" : ""}`;
 
-    // Canlı 24 saat geri sayım sayacı
-    const expiryMs = getPinExpiryTimestamp(pin);
-    const cdBox = document.getElementById("detailCountdownBox");
-    cdBox.textContent = `⏳ Kalan Süre: ${formatRemainingTime(expiryMs)}`;
-    if (countdownInterval) clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-      cdBox.textContent = `⏳ Kalan Süre: ${formatRemainingTime(expiryMs)}`;
-    }, 1000);
-
+    // Sahip ise Düzenle & Sil butonlarını göster
     const ownerActions = document.getElementById("detailOwnerActions");
     ownerActions.innerHTML = "";
     if (isOwner || isFounderOrAdmin) {
@@ -1612,9 +1532,11 @@
       `;
     }
 
+    // Temiz açıklama metni (Adres satırını ayrı kutuda göstereceğiz)
     const cleanText = (pin.content_text || "").replace(/\n?📍\s*Adres:\s*.+/i, "").trim();
     document.getElementById("detailContent").textContent = cleanText;
 
+    // ADRES & GOOGLE HARİTALAR / YANDEX NAVİGASYON LİNKLERİ
     const addr = extractAddressFromPin(pin);
     const addrBox = document.getElementById("detailAddressText");
     addrBox.textContent = addr
@@ -1630,6 +1552,7 @@
     document.getElementById("btnYandexMapsRoute").href =
       `https://yandex.com.tr/harita/?rtext=~${pin.latitude}%2C${pin.longitude}&rtt=auto`;
 
+    // Web sitesi bağlantısı
     const webBox = document.getElementById("detailWebsiteBox");
     if (pin.website_url) {
       webBox.style.display = "block";
@@ -1638,6 +1561,7 @@
       webBox.style.display = "none";
     }
 
+    // Korumalı Galeri Görselleri
     const galleryEl = document.getElementById("detailGallery");
     const imgs = (pin.gallery_urls && pin.gallery_urls.length)
       ? pin.gallery_urls
@@ -1657,6 +1581,7 @@
     openModal("pinDetailModal");
   }
 
+  // PİN DÜZENLEME MODALI — HATASIZ GÜNCELLEME
   function openEditPinModal(pinObj = activeDetailPin) {
     if (!pinObj) return;
     activeDetailPin = pinObj;
@@ -1692,6 +1617,7 @@
         website_url: websiteUrl || null
       };
 
+      // Önce address sütunuyla dene, sütun yoksa güvenli fallback yap
       let { error } = await sb
         .from("pins")
         .update({ ...baseUpdate, address: addressText || null })
@@ -1782,6 +1708,9 @@
     }
   }
 
+  // =========================================================
+  // 5. İŞLETMEM YÖNETİMİ
+  // =========================================================
   async function openBusinessModal() {
     const { data } = await sb
       .from("business_profiles")
@@ -1837,7 +1766,7 @@
           <div style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             ${(p.content_text || "").split("\n")[0]}
           </div>
-          <div style="font-size:11px; color:var(--muted);">⏳ ${formatRemainingTime(getPinExpiryTimestamp(p))}</div>
+          <div style="font-size:11px; color:var(--muted);">${extractAddressFromPin(p) || "Konum pinli"}</div>
         </div>
         <div style="display:flex; gap:6px;">
           <button type="button" class="btn btn-secondary btn-sm" onclick='openEditPinModal(${JSON.stringify(p).replace(/'/g, "&apos;")})'>✏️ Düzenle</button>
@@ -1847,6 +1776,9 @@
     `).join("");
   }
 
+  // =========================================================
+  // 6. PROFİL, 10 GÜN KISITLAMASI, MODAL AVATAR & BAĞLANTI SAYAÇLARI
+  // =========================================================
   function renderAvatarOptions() {
     const grid = document.getElementById("avatarOptionsGrid");
     grid.innerHTML = AVATAR_EMOJIS.map(em => `
@@ -1927,6 +1859,7 @@
     `).join("");
   }
 
+  // 10 Günlük Değişiklik Kilidi Kontrolü
   function getRemainingLockDays(lockKey) {
     const lastTs = localStorage.getItem(lockKey);
     if (!lastTs) return 0;
@@ -1950,6 +1883,7 @@
     genderEl.value = currentProfile.gender || "";
     birthEl.value = currentProfile.birth_date || "";
 
+    // 10 günlük kilit durumu (sunucu sütunu varsa veya yerel zaman damgasıyla)
     const serverLockTs = currentProfile.profile_locked_at ? new Date(currentProfile.profile_locked_at).getTime() : 0;
     if (serverLockTs) localStorage.setItem(`vp_id_lock_${currentUser.id}`, String(serverLockTs));
 
@@ -2022,6 +1956,7 @@
     openProfileModal();
   }
 
+  // ARKADAŞ / GELEN İSTEK / TAKİP SAYAÇLARI -> DOĞRUDAN İLGİLİ SEKMELERE GİDER
   async function refreshCountersAndBadges() {
     if (!currentUser) return;
 
@@ -2039,6 +1974,7 @@
     document.getElementById("statIncomingCount").textContent = incoming.length;
     document.getElementById("statSentCount").textContent = sent.length;
 
+    // Okunmamış bildirim sayısı
     const { count: notifCount } = await sb
       .from("notifications")
       .select("*", { count: "exact", head: true })
@@ -2053,6 +1989,7 @@
       nBadge.classList.remove("show");
     }
 
+    // Kurucu ise açık destek talebi rozeti
     if (isFounderOrAdmin) {
       const { count: openTickets } = await sb
         .from("support_tickets")
@@ -2150,6 +2087,9 @@
     switchFriendsTab("sent");
   }
 
+  // =========================================================
+  // 7. DESTEK, ŞİKAYET & KURUCU BİLDİRİM / ÇÖZÜM HATTI
+  // =========================================================
   async function checkAdminStatus() {
     const { data } = await sb
       .from("app_admins")
@@ -2158,12 +2098,13 @@
       .maybeSingle();
 
     isFounderOrAdmin = !!data;
-    document.getElementById("ghostModeBtn").style.display = isFounderOrAdmin ? "flex" : "none";
+    document.getElementById("ghostModeBtn").style.display = isFounderOrAdmin ? "inline-flex" : "none";
   }
 
   function toggleGhostMode() {
     ghostMode = !ghostMode;
-    showToast(ghostMode ? "👻 Hayalet modu aktif (haritada görünmezsin)." : "👻 Hayalet modu kapatıldı.");
+    document.getElementById("ghostModeBtn").textContent = ghostMode ? "👻 Hayalet: Açık" : "👻 Hayalet: Kapalı";
+    showToast(ghostMode ? "Hayalet modu aktif (haritada görünmezsin)." : "Hayalet modu kapatıldı.");
   }
 
   async function openSupportModal() {
@@ -2185,6 +2126,7 @@
 
     if (error) return showToast("Gönderilemedi: " + error.message);
 
+    // Tüm kurucu/admin hesaplarına anlık bildirim düşür
     const { data: admins } = await sb.from("app_admins").select("user_id");
     if (admins && admins.length) {
       const notifPayloads = admins.map(a => ({
@@ -2202,6 +2144,7 @@
   }
 
   async function loadSupportTickets() {
+    // Kullanıcının kendi talepleri
     const { data: myRows } = await sb
       .from("support_tickets")
       .select("*")
@@ -2220,6 +2163,7 @@
         `).join("")
       : `<div style="font-size:12px; color:var(--muted);">Henüz gönderilmiş bir talebiniz yok.</div>`;
 
+    // Kurucu Paneli
     const adminSec = document.getElementById("adminTicketsSection");
     if (!isFounderOrAdmin) {
       adminSec.style.display = "none";
@@ -2250,6 +2194,7 @@
     `).join("");
   }
 
+  // Kurucu sorunu çözdüğünde doğrudan kullanıcının mesaj kutusuna (VibeChat + Bildirim) iletir
   async function resolveTicketAndNotifyUser(ticketId, targetUserId) {
     const replyText = document.getElementById(`replyInput_${ticketId}`)?.value.trim();
     if (!replyText) return showToast("Lütfen kullanıcıya iletilecek çözüm açıklamasını yazın.");
@@ -2261,12 +2206,14 @@
       .update({ status: "resolved", admin_reply: replyText })
       .eq("id", ticketId);
 
+    // Doğrudan kullanıcının VibeChat mesaj kutusuna gönder
     await sb.from("direct_messages").insert({
       sender_id: currentUser.id,
       receiver_id: targetUserId,
       content: finalMessage
     });
 
+    // Kullanıcıya bildirim gönder
     await sb.from("notifications").insert({
       user_id: targetUserId,
       type: "support_resolved",
@@ -2279,6 +2226,9 @@
     await loadSupportTickets();
   }
 
+  // =========================================================
+  // 8. BİLDİRİMLER & VIBECHAT MESAJLAŞMA
+  // =========================================================
   async function openNotificationsModal() {
     openModal("notificationsModal");
     const { data } = await sb
@@ -2391,6 +2341,9 @@
     await loadConversationMessages();
   }
 
+  // =========================================================
+  // 9. CANLI REALTIME KANAL (ANLIK BİLDİRİM, MESAJ & PİN)
+  // =========================================================
   function setupRealtimeChannel() {
     sb.channel("vibepin-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "pins" }, () => {
