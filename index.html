@@ -49,6 +49,10 @@
       background: #070b17;
     }
 
+    .dark-tiles {
+      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%);
+    }
+
     .protected-media {
       position: relative;
       display: inline-block;
@@ -122,11 +126,12 @@
       -webkit-text-fill-color: transparent;
     }
 
+    /* ÜST HUD: ARAMA + DESTEK + KATEGORİ FİLTRELERİ */
     .top-hud {
       position: fixed;
-      top: 12px;
-      left: 12px;
-      right: 12px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
@@ -137,27 +142,29 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       pointer-events: auto;
     }
     .search-box {
       flex: 1;
+      min-width: 0;
       display: flex;
       align-items: center;
       background: var(--surface);
       backdrop-filter: blur(14px);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 8px 14px;
-      gap: 8px;
+      padding: 6px 10px;
+      gap: 6px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
     .search-box input {
       flex: 1;
+      min-width: 0;
       background: transparent;
       border: none;
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
     }
     .hud-pill {
@@ -166,34 +173,40 @@
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 999px;
-      padding: 8px 13px;
-      font-size: 13px;
+      padding: 7px 11px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.3);
       position: relative;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .hud-pill:active { transform: scale(0.96); }
+    .hud-pill.active-cat {
+      background: var(--vibe-grad);
+      border-color: transparent;
+      color: #fff;
+    }
     .hud-pill.support-pinned {
-      border-color: rgba(34, 211, 238, 0.45);
-      background: linear-gradient(135deg, rgba(34,211,238,0.18), rgba(168,85,247,0.18));
+      border-color: rgba(34, 211, 238, 0.55);
+      background: linear-gradient(135deg, rgba(34,211,238,0.22), rgba(168,85,247,0.22));
     }
 
     .badge-dot {
       position: absolute;
       top: -4px;
       right: -4px;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
       border-radius: 999px;
       background: var(--danger);
       color: #fff;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       display: none;
       align-items: center;
@@ -201,13 +214,42 @@
     }
     .badge-dot.show { display: flex; }
 
-    .layer-bar {
+    /* KATEGORİ ŞERİDİ (ETKİNLİK, YEME-İÇME, MAĞAZA VB.) */
+    .category-bar {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
+      padding-bottom: 2px;
     }
-    .layer-bar::-webkit-scrollbar { display: none; }
+    .category-bar::-webkit-scrollbar { display: none; }
+
+    /* SAĞ KENAR KOMPAKT HARİTA KONTROLLERİ (EKRANI KAPATMAZ) */
+    .side-map-controls {
+      position: fixed;
+      right: 10px;
+      top: 108px;
+      z-index: 950;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mini-map-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .mini-map-btn:active { transform: scale(0.94); }
 
     .bottom-dock {
       position: fixed;
@@ -301,6 +343,21 @@
       color: var(--text);
       font-size: 16px;
       cursor: pointer;
+    }
+
+    /* 24 SAATLİK GERİ SAYIM ROZETİ */
+    .countdown-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(249, 115, 22, 0.16);
+      border: 1px solid rgba(249, 115, 22, 0.45);
+      color: #fdba74;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
     }
 
     .field { margin-bottom: 12px; }
@@ -448,10 +505,6 @@
       justify-content: center;
       cursor: pointer;
     }
-    .avatar-opt.selected {
-      border-color: var(--cyan);
-      background: rgba(34,211,238,0.2);
-    }
 
     .bday-banner {
       background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(168,85,247,0.25));
@@ -573,7 +626,7 @@
 
     #toast {
       position: fixed;
-      top: 76px;
+      top: 105px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 99999;
@@ -612,6 +665,7 @@
 <div id="toast"></div>
 <div id="map"></div>
 
+<!-- GİRİŞ EKRANI -->
 <div id="authScreen">
   <div class="auth-card">
     <div class="brand-logo">
@@ -659,12 +713,13 @@
   </div>
 </div>
 
+<!-- ÜST HUD: ARAMA + SABİT DESTEK + BİLDİRİM + KATEGORİ FİLTRELERİ -->
 <div class="top-hud">
   <div class="hud-row">
     <div class="search-box">
       <span>🔍</span>
-      <input type="text" id="citySearchInput" placeholder="Şehir veya bölge ara (örn: İstanbul, Kadıköy)..." onkeydown="if(event.key==='Enter') searchCity()" />
-      <button type="button" class="btn-sm btn-vibe" style="border:none; cursor:pointer;" onclick="searchCity()">Git</button>
+      <input type="text" id="citySearchInput" placeholder="Şehir veya bölge ara..." onkeydown="if(event.key==='Enter') searchCity()" />
+      <button type="button" class="btn-sm btn-vibe" style="border:none; cursor:pointer; padding:5px 10px;" onclick="searchCity()">Git</button>
     </div>
 
     <button type="button" class="hud-pill support-pinned" onclick="openSupportModal()" title="Destek, Şikayet & Öneri">
@@ -678,17 +733,29 @@
     </button>
   </div>
 
+  <!-- KATEGORİ FİLTRELERİ (ETKİNLİK, YEME-İÇME, MAĞAZA, HİZMET) -->
   <div class="hud-row">
-    <div class="layer-bar">
-      <button type="button" class="hud-pill" onclick="setMapLayer('street')">🗺️ Sokak</button>
-      <button type="button" class="hud-pill" onclick="setMapLayer('satellite')">🛰️ Uydu</button>
-      <button type="button" class="hud-pill" onclick="setMapLayer('dark')">🌙 Gece</button>
-      <button type="button" class="hud-pill" onclick="locateUser()">🎯 Konumum</button>
-      <button type="button" id="ghostModeBtn" class="hud-pill" style="display:none;" onclick="toggleGhostMode()">👻 Hayalet: Kapalı</button>
+    <div class="category-bar" id="categoryFilterBar">
+      <button type="button" class="hud-pill active-cat" onclick="filterPinsByCategory('all', this)">🌍 Tümü</button>
+      <button type="button" class="hud-pill" onclick="filterPinsByCategory('cafe', this)">☕ Yeme & İçme</button>
+      <button type="button" class="hud-pill" onclick="filterPinsByCategory('event', this)">🎉 Etkinlik</button>
+      <button type="button" class="hud-pill" onclick="filterPinsByCategory('shop', this)">🛍️ Mağaza</button>
+      <button type="button" class="hud-pill" onclick="filterPinsByCategory('service', this)">🛠️ Hizmet & Oto</button>
+      <button type="button" class="hud-pill" onclick="filterPinsByCategory('general', this)">🔥 Genel Vibe</button>
     </div>
   </div>
 </div>
 
+<!-- SAĞ KENAR KOMPAKT HARİTA KATMAN & KONUM BUTONLARI -->
+<div class="side-map-controls">
+  <button type="button" class="mini-map-btn" onclick="locateUser()" title="Konumum">🎯</button>
+  <button type="button" class="mini-map-btn" onclick="setMapLayer('street')" title="Sokak Haritası">🗺️</button>
+  <button type="button" class="mini-map-btn" onclick="setMapLayer('satellite')" title="Uydu Görünümü">🛰️</button>
+  <button type="button" class="mini-map-btn" onclick="setMapLayer('dark')" title="Gece Modu">🌙</button>
+  <button type="button" id="ghostModeBtn" class="mini-map-btn" style="display:none;" onclick="toggleGhostMode()" title="Hayalet Modu">👻</button>
+</div>
+
+<!-- ALT DOCK MENÜ -->
 <div class="bottom-dock">
   <button type="button" class="dock-btn" onclick="openBusinessModal()">
     <span class="ico">🏪</span>
@@ -711,12 +778,15 @@
   </button>
 </div>
 
+<!-- 1. PİN OLUŞTURMA MODALI (24 SAAT SÜRELİ) -->
 <div id="createPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
       <div class="modal-title">📍 Yeni VibePin Oluştur</div>
       <button type="button" class="close-btn" onclick="closeModal('createPinModal')">✕</button>
     </div>
+
+    <div class="countdown-pill">⏳ Tüm paylaşımlar yayınlandıktan 24 saat sonra otomatik kalkar</div>
 
     <div class="field">
       <label>Pin Türü</label>
@@ -730,10 +800,10 @@
       <label>Kategori</label>
       <select id="pinCategory">
         <option value="general">🔥 Genel Vibe</option>
-        <option value="cafe">☕ Kafe & Restoran</option>
+        <option value="cafe">☕ Yeme & İçme (Kafe / Restoran)</option>
+        <option value="event">🎉 Etkinlik & Buluşma</option>
         <option value="shop">🛍️ Mağaza & Alışveriş</option>
         <option value="service">🛠️ Hizmet & Oto</option>
-        <option value="event">🎉 Etkinlik & Buluşma</option>
       </select>
     </div>
 
@@ -758,16 +828,20 @@
       <input type="file" id="pinImagesInput" accept="image/*" multiple />
     </div>
 
-    <button type="button" class="btn btn-vibe" id="publishPinBtn" onclick="publishNewPin()">🚀 Haritada Yayınla</button>
+    <button type="button" class="btn btn-vibe" id="publishPinBtn" onclick="publishNewPin()">🚀 24 Saatliğine Yayınla</button>
   </div>
 </div>
 
+<!-- 2. PİN DETAY, 24 SAAT SAYAÇ & HARİTA YÖNLENDİRME MODALI -->
 <div id="pinDetailModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
       <div class="modal-title" id="detailPinTitle">Pin Detayı</div>
       <button type="button" class="close-btn" onclick="closeModal('pinDetailModal')">✕</button>
     </div>
+
+    <!-- CANLI 24 SAATLİK GERİ SAYIM SAYACI -->
+    <div id="detailCountdownBox" class="countdown-pill">⏳ Kalan Süre: Hesaplanıyor...</div>
 
     <div id="detailOwnerBar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
       <div id="detailAuthorInfo" style="font-size:13px; font-weight:700;"></div>
@@ -804,6 +878,7 @@
   </div>
 </div>
 
+<!-- 3. PİN DÜZENLEME MODALI -->
 <div id="editPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -816,10 +891,10 @@
       <label>Kategori</label>
       <select id="editPinCategory">
         <option value="general">🔥 Genel Vibe</option>
-        <option value="cafe">☕ Kafe & Restoran</option>
+        <option value="cafe">☕ Yeme & İçme</option>
+        <option value="event">🎉 Etkinlik & Buluşma</option>
         <option value="shop">🛍️ Mağaza & Alışveriş</option>
         <option value="service">🛠️ Hizmet & Oto</option>
-        <option value="event">🎉 Etkinlik & Buluşma</option>
       </select>
     </div>
 
@@ -842,6 +917,7 @@
   </div>
 </div>
 
+<!-- 4. İŞLETMEM MODALI -->
 <div id="businessModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -880,6 +956,7 @@
   </div>
 </div>
 
+<!-- 5. PROFİLİM & AYARLAR MODALI -->
 <div id="profileModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -927,7 +1004,6 @@
     <div class="field">
       <label>Kullanıcı Adı</label>
       <input type="text" id="profUsername" placeholder="Kullanıcı adın" />
-      <span id="usernameLockHint" class="lock-hint" style="display:none;"></span>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -964,6 +1040,7 @@
   </div>
 </div>
 
+<!-- 6. AVATAR SEÇİCİ MODALI -->
 <div id="avatarPickerModal" class="modal-backdrop">
   <div class="modal-sheet" style="max-width:380px;">
     <div class="modal-header">
@@ -975,6 +1052,7 @@
   </div>
 </div>
 
+<!-- 7. BAĞLANTILARIM MODALI -->
 <div id="friendsModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -992,6 +1070,7 @@
   </div>
 </div>
 
+<!-- 8. DESTEK, ŞİKAYET & ÖNERİ MODALI -->
 <div id="supportModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1025,6 +1104,7 @@
   </div>
 </div>
 
+<!-- 9. BİLDİRİMLER MODALI -->
 <div id="notificationsModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1035,6 +1115,7 @@
   </div>
 </div>
 
+<!-- 10. VIBECHAT MODALI -->
 <div id="chatModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1075,14 +1156,16 @@
   let markersLayer = L.layerGroup();
   let userLocation = [41.0082, 28.9784];
   let allPins = [];
+  let selectedCategory = "all";
   let activeDetailPin = null;
+  let countdownInterval = null;
   let activeChatUserId = null;
   let currentLang = "tr";
 
   const TILE_URLS = {
     street: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    dark: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
   };
 
   const BIZ_COLOR_MAP = {
@@ -1091,6 +1174,14 @@
     service: "#22d3ee",
     event: "#ec4899",
     general: "#00a884"
+  };
+
+  const CAT_EMOJI_MAP = {
+    cafe: "☕",
+    event: "🎉",
+    shop: "🛍️",
+    service: "🛠️",
+    general: "🔥"
   };
 
   const AVATAR_EMOJIS = [
@@ -1128,6 +1219,10 @@
 
   function closeModal(id) {
     document.getElementById(id).classList.remove("open");
+    if (id === "pinDetailModal" && countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
   }
 
   function changeLanguage(lang) {
@@ -1157,6 +1252,9 @@
         document.getElementById("authScreen").classList.remove("hidden");
       }
     });
+
+    // Süresi dolan 24 saatlik pinleri her dakika haritadan otomatik temizle
+    setInterval(() => renderMapMarkers(), 60000);
   }
 
   async function handleAuthenticatedUser(user) {
@@ -1296,7 +1394,8 @@
     if (currentTileLayer) map.removeLayer(currentTileLayer);
     currentTileLayer = L.tileLayer(TILE_URLS[type] || TILE_URLS.dark, {
       maxZoom: 19,
-      attribution: "© VibePin"
+      attribution: "© VibePin",
+      className: type === "dark" ? "dark-tiles" : ""
     }).addTo(map);
   }
 
@@ -1331,6 +1430,33 @@
     }
   }
 
+  // 24 SAATLİK SÜRE KONTROLÜ
+  function getPinExpiryTimestamp(pin) {
+    if (pin.expires_at) return new Date(pin.expires_at).getTime();
+    if (pin.created_at) return new Date(pin.created_at).getTime() + (24 * 60 * 60 * 1000);
+    return Date.now() + (24 * 60 * 60 * 1000);
+  }
+
+  function isPinStillActive(pin) {
+    return getPinExpiryTimestamp(pin) > Date.now();
+  }
+
+  function formatRemainingTime(expiryMs) {
+    const diff = expiryMs - Date.now();
+    if (diff <= 0) return "Süresi Doldu";
+    const hrs = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${hrs}sa ${mins}dk ${secs}sn`;
+  }
+
+  function filterPinsByCategory(cat, btnEl) {
+    selectedCategory = cat;
+    document.querySelectorAll("#categoryFilterBar .hud-pill").forEach(b => b.classList.remove("active-cat"));
+    if (btnEl) btnEl.classList.add("active-cat");
+    renderMapMarkers();
+  }
+
   async function loadAllMapPins() {
     const { data, error } = await sb
       .from("pins")
@@ -1347,9 +1473,14 @@
     markersLayer.clearLayers();
     allPins.forEach(pin => {
       if (!pin.latitude || !pin.longitude) return;
+      // 24 saati dolmuş pinleri haritada gösterme
+      if (!isPinStillActive(pin)) return;
+      // Kategori filtresi uygula
+      if (selectedCategory !== "all" && pin.category !== selectedCategory) return;
+
       const isBiz = !!pin.is_sponsored;
       const borderColor = isBiz ? (BIZ_COLOR_MAP[pin.category] || "#f97316") : "#22d3ee";
-      const emoji = isBiz ? "🏪" : (pin.profiles?.avatar_emoji || "📍");
+      const emoji = isBiz ? "🏪" : (CAT_EMOJI_MAP[pin.category] || pin.profiles?.avatar_emoji || "📍");
 
       const icon = L.divIcon({
         className: "",
@@ -1410,6 +1541,7 @@
     try {
       const center = map.getCenter();
       const uploadedUrls = files.length ? await uploadMultipleMedia(files, "pins") : [];
+      const expiresAt24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const formattedContent = addressText
         ? `${rawContent}\n📍 Adres: ${addressText}`
@@ -1424,7 +1556,8 @@
         is_sponsored: type === "business",
         image_url: uploadedUrls[0] || null,
         gallery_urls: uploadedUrls.length ? uploadedUrls : null,
-        website_url: websiteUrl || null
+        website_url: websiteUrl || null,
+        expires_at: expiresAt24h
       };
 
       let { error } = await sb.from("pins").insert({ ...basePayload, address: addressText || null });
@@ -1434,13 +1567,13 @@
       }
 
       closeModal("createPinModal");
-      showToast("🚀 Pin başarıyla haritada yayınlandı!");
+      showToast("🚀 Pin 24 saatliğine haritada yayınlandı!");
       await loadAllMapPins();
     } catch (err) {
       showToast("Pin yayınlanırken hata oluştu: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = "🚀 Haritada Yayınla";
+      btn.textContent = "🚀 24 Saatliğine Yayınla";
     }
   }
 
@@ -1460,6 +1593,15 @@
 
     document.getElementById("detailPinTitle").textContent = pin.is_sponsored ? "🏪 İşletme Kampanya Pini" : "📍 Sosyal VibePin";
     document.getElementById("detailAuthorInfo").innerHTML = `${pin.profiles?.avatar_emoji || "👤"} ${authorName} ${isBdayAuthor ? "🎂 VIP" : ""}`;
+
+    // Canlı 24 saat geri sayım sayacı
+    const expiryMs = getPinExpiryTimestamp(pin);
+    const cdBox = document.getElementById("detailCountdownBox");
+    cdBox.textContent = `⏳ Kalan Süre: ${formatRemainingTime(expiryMs)}`;
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      cdBox.textContent = `⏳ Kalan Süre: ${formatRemainingTime(expiryMs)}`;
+    }, 1000);
 
     const ownerActions = document.getElementById("detailOwnerActions");
     ownerActions.innerHTML = "";
@@ -1695,7 +1837,7 @@
           <div style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             ${(p.content_text || "").split("\n")[0]}
           </div>
-          <div style="font-size:11px; color:var(--muted);">${extractAddressFromPin(p) || "Konum pinli"}</div>
+          <div style="font-size:11px; color:var(--muted);">⏳ ${formatRemainingTime(getPinExpiryTimestamp(p))}</div>
         </div>
         <div style="display:flex; gap:6px;">
           <button type="button" class="btn btn-secondary btn-sm" onclick='openEditPinModal(${JSON.stringify(p).replace(/'/g, "&apos;")})'>✏️ Düzenle</button>
@@ -2016,13 +2158,12 @@
       .maybeSingle();
 
     isFounderOrAdmin = !!data;
-    document.getElementById("ghostModeBtn").style.display = isFounderOrAdmin ? "inline-flex" : "none";
+    document.getElementById("ghostModeBtn").style.display = isFounderOrAdmin ? "flex" : "none";
   }
 
   function toggleGhostMode() {
     ghostMode = !ghostMode;
-    document.getElementById("ghostModeBtn").textContent = ghostMode ? "👻 Hayalet: Açık" : "👻 Hayalet: Kapalı";
-    showToast(ghostMode ? "Hayalet modu aktif (haritada görünmezsin)." : "Hayalet modu kapatıldı.");
+    showToast(ghostMode ? "👻 Hayalet modu aktif (haritada görünmezsin)." : "👻 Hayalet modu kapatıldı.");
   }
 
   async function openSupportModal() {
