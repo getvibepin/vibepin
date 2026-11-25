@@ -49,7 +49,6 @@
       background: #070b17;
     }
 
-    /* Korunan Medya Kalkanı */
     .protected-media {
       position: relative;
       display: inline-block;
@@ -70,7 +69,6 @@
       background: transparent;
     }
 
-    /* Auth Ekranı */
     #authScreen {
       position: fixed;
       inset: 0;
@@ -124,7 +122,6 @@
       -webkit-text-fill-color: transparent;
     }
 
-    /* Üst HUD Bar */
     .top-hud {
       position: fixed;
       top: 12px;
@@ -204,7 +201,6 @@
     }
     .badge-dot.show { display: flex; }
 
-    /* Katman Seçici */
     .layer-bar {
       display: flex;
       gap: 6px;
@@ -213,7 +209,6 @@
     }
     .layer-bar::-webkit-scrollbar { display: none; }
 
-    /* Alt Navigasyon */
     .bottom-dock {
       position: fixed;
       bottom: 16px;
@@ -255,7 +250,6 @@
       box-shadow: 0 6px 20px rgba(168,85,247,0.45);
     }
 
-    /* Modallar */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -309,7 +303,6 @@
       cursor: pointer;
     }
 
-    /* Form Elemanları */
     .field { margin-bottom: 12px; }
     .field label {
       display: block;
@@ -361,7 +354,6 @@
     .btn-wa { background: var(--wa-green); color: #fff; }
     .btn-sm { padding: 7px 11px; font-size: 12px; width: auto; border-radius: 10px; }
 
-    /* Harita Yönlendirme Butonları */
     .nav-route-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -397,7 +389,6 @@
       font-weight: 700;
     }
 
-    /* Profil İstatistik Sayaçları */
     .profile-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -417,7 +408,6 @@
     .stat-num { font-size: 18px; font-weight: 800; color: var(--cyan); }
     .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* Kompakt Avatar Seçici & Modal */
     .avatar-preview-row {
       display: flex;
       align-items: center;
@@ -463,7 +453,6 @@
       background: rgba(34,211,238,0.2);
     }
 
-    /* Doğum Günü VIP Rozeti */
     .bday-banner {
       background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(168,85,247,0.25));
       border: 1px solid rgba(249,115,22,0.5);
@@ -477,7 +466,6 @@
     }
     .bday-banner.show { display: flex; }
 
-    /* Galeri Izgarası */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -511,7 +499,6 @@
       cursor: pointer;
     }
 
-    /* VibeChat & Sekmeler */
     .tabs {
       display: flex;
       gap: 6px;
@@ -584,7 +571,6 @@
       background: rgba(34,211,238,0.14);
     }
 
-    /* Toast Bildirimi */
     #toast {
       position: fixed;
       top: 76px;
@@ -604,7 +590,6 @@
       text-align: center;
     }
 
-    /* Harita Pin İkonları */
     .vibe-marker {
       display: flex;
       align-items: center;
@@ -627,7 +612,6 @@
 <div id="toast"></div>
 <div id="map"></div>
 
-<!-- GİRİŞ / KAYIT EKRANI (Kalıcı Oturum Kontrollü) -->
 <div id="authScreen">
   <div class="auth-card">
     <div class="brand-logo">
@@ -675,7 +659,6 @@
   </div>
 </div>
 
-<!-- ÜST KONTROL ÇUBUĞU -->
 <div class="top-hud">
   <div class="hud-row">
     <div class="search-box">
@@ -684,7 +667,6 @@
       <button type="button" class="btn-sm btn-vibe" style="border:none; cursor:pointer;" onclick="searchCity()">Git</button>
     </div>
 
-    <!-- ANA EKRANA SABİTLENMİŞ DESTEK & ÖNERİ BUTONU -->
     <button type="button" class="hud-pill support-pinned" onclick="openSupportModal()" title="Destek, Şikayet & Öneri">
       <span>🛟</span> <span>Destek</span>
       <span id="supportAdminBadge" class="badge-dot">0</span>
@@ -707,7 +689,6 @@
   </div>
 </div>
 
-<!-- ALT DOCK MENÜ -->
 <div class="bottom-dock">
   <button type="button" class="dock-btn" onclick="openBusinessModal()">
     <span class="ico">🏪</span>
@@ -730,7 +711,6 @@
   </button>
 </div>
 
-<!-- 1. PİN OLUŞTURMA MODALI -->
 <div id="createPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -782,7 +762,6 @@
   </div>
 </div>
 
-<!-- 2. PİN DETAY & HARİTA YÖNLENDİRME MODALI -->
 <div id="pinDetailModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -797,7 +776,6 @@
 
     <p id="detailContent" style="font-size:14px; line-height:1.5; margin-bottom:10px;"></p>
 
-    <!-- ADRES & GOOGLE HARİTALAR / YANDEX YÖNLENDİRME BUTONLARI -->
     <div id="detailAddressBox" style="background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:10px;">
       <div id="detailAddressText" style="font-size:12.5px; color:var(--muted);"></div>
       <div class="nav-route-group">
@@ -812,7 +790,6 @@
 
     <div id="detailGallery" class="gallery-grid" style="margin-bottom:12px;"></div>
 
-    <!-- Beğeni / Beğenmeme / Yorum Sayacı (Doğrula/Yalan Yok) -->
     <div style="display:flex; gap:8px; margin-bottom:14px;">
       <button type="button" class="btn btn-secondary btn-sm" onclick="likeCurrentPin()">👍 Beğen (<span id="detailLikes">0</span>)</button>
       <button type="button" class="btn btn-secondary btn-sm" onclick="dislikeCurrentPin()">👎 Beğenme (<span id="detailDislikes">0</span>)</button>
@@ -827,7 +804,6 @@
   </div>
 </div>
 
-<!-- 3. PİN DÜZENLEME MODALI (SORUNSUZ KAYDETME VE GÜNCELLEME) -->
 <div id="editPinModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -866,7 +842,6 @@
   </div>
 </div>
 
-<!-- 4. İŞLETMEM PROFİLİ & PİN YÖNETİMİ MODALI -->
 <div id="businessModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -905,7 +880,6 @@
   </div>
 </div>
 
-<!-- 5. PROFİLİM & AYARLAR MODALI -->
 <div id="profileModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -913,7 +887,6 @@
       <button type="button" class="close-btn" onclick="closeModal('profileModal')">✕</button>
     </div>
 
-    <!-- Doğum Günü Özel VIP Kutlama Banner'ı -->
     <div id="birthdayVipBanner" class="bday-banner">
       <span style="font-size:24px;">🎂</span>
       <div>
@@ -922,7 +895,6 @@
       </div>
     </div>
 
-    <!-- Kompakt Avatar Alanı (Kalabalık Izgara Kaldırıldı -> Modal Butonu Eklendi) -->
     <div class="avatar-preview-row">
       <div id="profileMainAvatarPreview" class="main-avatar-circle">😎</div>
       <div style="flex:1;">
@@ -937,7 +909,6 @@
       </div>
     </div>
 
-    <!-- Tıklanabilir Arkadaş / Gelen İstek / Takip Sayaçları -->
     <div class="profile-stats">
       <div class="stat-box" onclick="openProfileConnections('friends')">
         <div class="stat-num" id="statFriendsCount">0</div>
@@ -953,7 +924,6 @@
       </div>
     </div>
 
-    <!-- 10 Gün Kısıtlamalı Kimlik Alanları -->
     <div class="field">
       <label>Kullanıcı Adı</label>
       <input type="text" id="profUsername" placeholder="Kullanıcı adın" />
@@ -979,7 +949,6 @@
 
     <button type="button" class="btn btn-vibe" onclick="saveUserProfile()" style="margin-bottom:14px;">💾 Profil Bilgilerini Kaydet</button>
 
-    <!-- Kişisel Fotoğraf Galerisi (Ana Avatardan Tamamen Bağımsız) -->
     <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:14px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
         <strong style="font-size:13px;">🖼️ Kişisel Galerim</strong>
@@ -995,7 +964,6 @@
   </div>
 </div>
 
-<!-- 6. AVATAR SEÇİCİ POPUP MODALI -->
 <div id="avatarPickerModal" class="modal-backdrop">
   <div class="modal-sheet" style="max-width:380px;">
     <div class="modal-header">
@@ -1007,7 +975,6 @@
   </div>
 </div>
 
-<!-- 7. ARKADAŞLAR & TAKİP YÖNETİMİ MODALI (Sohbetlere Değil Doğrudan Buraya Açar) -->
 <div id="friendsModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1025,7 +992,6 @@
   </div>
 </div>
 
-<!-- 8. DESTEK, ŞİKAYET & ÖNERİ MODALI (Kullanıcı & Kurucu Çözüm Hattı) -->
 <div id="supportModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1047,7 +1013,6 @@
     </div>
     <button type="button" class="btn btn-vibe" onclick="submitSupportTicket()" style="margin-bottom:14px;">📨 Yönetime Gönder</button>
 
-    <!-- Kurucu / Admin İçin Gelen Talepler ve Doğrudan Kullanıcıya Çözüm Yanıtı -->
     <div id="adminTicketsSection" style="display:none; border-top:1px solid var(--border); padding-top:12px;">
       <div style="font-size:13px; font-weight:800; color:var(--orange); margin-bottom:8px;">👑 Kurucu Paneli — Gelen Bildirimler</div>
       <div id="adminTicketsList"></div>
@@ -1060,7 +1025,6 @@
   </div>
 </div>
 
-<!-- 9. BİLDİRİMLER MODALI -->
 <div id="notificationsModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1071,7 +1035,6 @@
   </div>
 </div>
 
-<!-- 10. VIBECHAT MESAJLAŞMA MODALI -->
 <div id="chatModal" class="modal-backdrop">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -1092,9 +1055,6 @@
   </div>
 </div>
 <script>
-  // =========================================================
-  // 1. SUPABASE YAPILANDIRMASI & DURUM YÖNETİMİ
-  // =========================================================
   const SUPABASE_URL = "YOUR_SUPABASE_URL";
   const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1113,7 +1073,7 @@
   let map = null;
   let currentTileLayer = null;
   let markersLayer = L.layerGroup();
-  let userLocation = [41.0082, 28.9784]; // Varsayılan: İstanbul
+  let userLocation = [41.0082, 28.9784];
   let allPins = [];
   let activeDetailPin = null;
   let activeChatUserId = null;
@@ -1139,7 +1099,6 @@
     "☕", "🍕", "🏎️", "🏍️", "🌍", "💎"
   ];
 
-  // 12 Dil Sözlüğü
   const LANG_DICT = {
     tr: { google_btn: "Google ile Devam Et", login_btn: "Giriş Yap", signup_btn: "Kayıt Ol" },
     en: { google_btn: "Continue with Google", login_btn: "Sign In", signup_btn: "Sign Up" },
@@ -1180,20 +1139,15 @@
     });
   }
 
-  // =========================================================
-  // 2. KALICI OTURUM YÖNETİMİ & KARŞILAMA E-POSTASI / DOĞUM GÜNÜ
-  // =========================================================
   async function initApp() {
     initMap();
     renderAvatarOptions();
 
-    // Mevcut oturumu kontrol et — kayıtlı kullanıcı tekrar giriş ekranı görmez
     const { data: { session } } = await sb.auth.getSession();
     if (session && session.user) {
       await handleAuthenticatedUser(session.user);
     }
 
-    // OAuth dönüşlerini veya oturum değişimlerini dinle
     sb.auth.onAuthStateChange(async (event, session) => {
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
         await handleAuthenticatedUser(session.user);
@@ -1209,8 +1163,7 @@
     currentUser = user;
     document.getElementById("authScreen").classList.add("hidden");
 
-    // Profil kaydını getir veya yeni üye ise oluştur
-    let { data: profile, error } = await sb
+    let { data: profile } = await sb
       .from("profiles")
       .select("*")
       .eq("id", user.id)
@@ -1237,8 +1190,6 @@
         .single();
 
       profile = inserted || newProfilePayload;
-
-      // Yeni kaydolan kullanıcıya logolu hoş geldin bildirimi & Edge Function e-posta tetikleyicisi
       await triggerWelcomePackage(user, profile.username);
     } else {
       await sb.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
@@ -1254,7 +1205,6 @@
 
   async function triggerWelcomePackage(user, username) {
     try {
-      // 1) Uygulama içi logolu hoş geldin bildirimi
       await sb.from("notifications").insert({
         user_id: user.id,
         type: "welcome",
@@ -1262,7 +1212,6 @@
         message: `Merhaba ${username}! VibePin ile çevrendeki canlı etkinlikleri, mekan fırsatlarını ve sosyal pinleri keşfedebilir, kendi işletmeni haritada öne çıkarabilirsin.`
       });
 
-      // 2) Supabase Edge Function tanımlıysa logolu HTML karşılama e-postası gönder
       await sb.functions.invoke("send-welcome-email", {
         body: {
           email: user.email,
@@ -1271,9 +1220,7 @@
           purpose: "Şehrindeki canlı sosyal enerjiyi ve yerel işletme kampanyalarını tek haritada buluşturuyoruz."
         }
       });
-    } catch (_) {
-      // Edge function henüz deploy edilmemişse sessizce devam et
-    }
+    } catch (_) {}
   }
 
   function checkBirthdayPrivileges() {
@@ -1338,9 +1285,6 @@
     showToast("Çıkış yapıldı.");
   }
 
-  // =========================================================
-  // 3. HARİTA MOTORU, ŞEHİR ARAMA & İŞLETME PİNLERİ
-  // =========================================================
   function initMap() {
     map = L.map("map", { zoomControl: false }).setView(userLocation, 13);
     setMapLayer("dark");
@@ -1420,9 +1364,6 @@
     });
   }
 
-  // =========================================================
-  // 4. PİN OLUŞTURMA, DÜZENLEME (BUG-FREE) & HARİTA YÖNLENDİRME
-  // =========================================================
   function openCreatePinModal(forceType = "social") {
     document.getElementById("pinTypeSelect").value = forceType;
     toggleBusinessPinFields();
@@ -1470,7 +1411,6 @@
       const center = map.getCenter();
       const uploadedUrls = files.length ? await uploadMultipleMedia(files, "pins") : [];
 
-      // Adres bilgisini hem içerik metninde hem de varsa address sütununda güvenli sakla
       const formattedContent = addressText
         ? `${rawContent}\n📍 Adres: ${addressText}`
         : rawContent;
@@ -1487,7 +1427,6 @@
         website_url: websiteUrl || null
       };
 
-      // İsteğe bağlı address sütunu varsa dene, yoksa güvenli fallback ile kaydet
       let { error } = await sb.from("pins").insert({ ...basePayload, address: addressText || null });
       if (error) {
         const retry = await sb.from("pins").insert(basePayload);
@@ -1522,7 +1461,6 @@
     document.getElementById("detailPinTitle").textContent = pin.is_sponsored ? "🏪 İşletme Kampanya Pini" : "📍 Sosyal VibePin";
     document.getElementById("detailAuthorInfo").innerHTML = `${pin.profiles?.avatar_emoji || "👤"} ${authorName} ${isBdayAuthor ? "🎂 VIP" : ""}`;
 
-    // Sahip ise Düzenle & Sil butonlarını göster
     const ownerActions = document.getElementById("detailOwnerActions");
     ownerActions.innerHTML = "";
     if (isOwner || isFounderOrAdmin) {
@@ -1532,11 +1470,9 @@
       `;
     }
 
-    // Temiz açıklama metni (Adres satırını ayrı kutuda göstereceğiz)
     const cleanText = (pin.content_text || "").replace(/\n?📍\s*Adres:\s*.+/i, "").trim();
     document.getElementById("detailContent").textContent = cleanText;
 
-    // ADRES & GOOGLE HARİTALAR / YANDEX NAVİGASYON LİNKLERİ
     const addr = extractAddressFromPin(pin);
     const addrBox = document.getElementById("detailAddressText");
     addrBox.textContent = addr
@@ -1552,7 +1488,6 @@
     document.getElementById("btnYandexMapsRoute").href =
       `https://yandex.com.tr/harita/?rtext=~${pin.latitude}%2C${pin.longitude}&rtt=auto`;
 
-    // Web sitesi bağlantısı
     const webBox = document.getElementById("detailWebsiteBox");
     if (pin.website_url) {
       webBox.style.display = "block";
@@ -1561,7 +1496,6 @@
       webBox.style.display = "none";
     }
 
-    // Korumalı Galeri Görselleri
     const galleryEl = document.getElementById("detailGallery");
     const imgs = (pin.gallery_urls && pin.gallery_urls.length)
       ? pin.gallery_urls
@@ -1581,7 +1515,6 @@
     openModal("pinDetailModal");
   }
 
-  // PİN DÜZENLEME MODALI — HATASIZ GÜNCELLEME
   function openEditPinModal(pinObj = activeDetailPin) {
     if (!pinObj) return;
     activeDetailPin = pinObj;
@@ -1617,7 +1550,6 @@
         website_url: websiteUrl || null
       };
 
-      // Önce address sütunuyla dene, sütun yoksa güvenli fallback yap
       let { error } = await sb
         .from("pins")
         .update({ ...baseUpdate, address: addressText || null })
@@ -1708,9 +1640,6 @@
     }
   }
 
-  // =========================================================
-  // 5. İŞLETMEM YÖNETİMİ
-  // =========================================================
   async function openBusinessModal() {
     const { data } = await sb
       .from("business_profiles")
@@ -1776,9 +1705,6 @@
     `).join("");
   }
 
-  // =========================================================
-  // 6. PROFİL, 10 GÜN KISITLAMASI, MODAL AVATAR & BAĞLANTI SAYAÇLARI
-  // =========================================================
   function renderAvatarOptions() {
     const grid = document.getElementById("avatarOptionsGrid");
     grid.innerHTML = AVATAR_EMOJIS.map(em => `
@@ -1859,7 +1785,6 @@
     `).join("");
   }
 
-  // 10 Günlük Değişiklik Kilidi Kontrolü
   function getRemainingLockDays(lockKey) {
     const lastTs = localStorage.getItem(lockKey);
     if (!lastTs) return 0;
@@ -1883,7 +1808,6 @@
     genderEl.value = currentProfile.gender || "";
     birthEl.value = currentProfile.birth_date || "";
 
-    // 10 günlük kilit durumu (sunucu sütunu varsa veya yerel zaman damgasıyla)
     const serverLockTs = currentProfile.profile_locked_at ? new Date(currentProfile.profile_locked_at).getTime() : 0;
     if (serverLockTs) localStorage.setItem(`vp_id_lock_${currentUser.id}`, String(serverLockTs));
 
@@ -1956,7 +1880,6 @@
     openProfileModal();
   }
 
-  // ARKADAŞ / GELEN İSTEK / TAKİP SAYAÇLARI -> DOĞRUDAN İLGİLİ SEKMELERE GİDER
   async function refreshCountersAndBadges() {
     if (!currentUser) return;
 
@@ -1974,7 +1897,6 @@
     document.getElementById("statIncomingCount").textContent = incoming.length;
     document.getElementById("statSentCount").textContent = sent.length;
 
-    // Okunmamış bildirim sayısı
     const { count: notifCount } = await sb
       .from("notifications")
       .select("*", { count: "exact", head: true })
@@ -1989,7 +1911,6 @@
       nBadge.classList.remove("show");
     }
 
-    // Kurucu ise açık destek talebi rozeti
     if (isFounderOrAdmin) {
       const { count: openTickets } = await sb
         .from("support_tickets")
@@ -2087,9 +2008,6 @@
     switchFriendsTab("sent");
   }
 
-  // =========================================================
-  // 7. DESTEK, ŞİKAYET & KURUCU BİLDİRİM / ÇÖZÜM HATTI
-  // =========================================================
   async function checkAdminStatus() {
     const { data } = await sb
       .from("app_admins")
@@ -2126,7 +2044,6 @@
 
     if (error) return showToast("Gönderilemedi: " + error.message);
 
-    // Tüm kurucu/admin hesaplarına anlık bildirim düşür
     const { data: admins } = await sb.from("app_admins").select("user_id");
     if (admins && admins.length) {
       const notifPayloads = admins.map(a => ({
@@ -2144,7 +2061,6 @@
   }
 
   async function loadSupportTickets() {
-    // Kullanıcının kendi talepleri
     const { data: myRows } = await sb
       .from("support_tickets")
       .select("*")
@@ -2163,7 +2079,6 @@
         `).join("")
       : `<div style="font-size:12px; color:var(--muted);">Henüz gönderilmiş bir talebiniz yok.</div>`;
 
-    // Kurucu Paneli
     const adminSec = document.getElementById("adminTicketsSection");
     if (!isFounderOrAdmin) {
       adminSec.style.display = "none";
@@ -2194,7 +2109,6 @@
     `).join("");
   }
 
-  // Kurucu sorunu çözdüğünde doğrudan kullanıcının mesaj kutusuna (VibeChat + Bildirim) iletir
   async function resolveTicketAndNotifyUser(ticketId, targetUserId) {
     const replyText = document.getElementById(`replyInput_${ticketId}`)?.value.trim();
     if (!replyText) return showToast("Lütfen kullanıcıya iletilecek çözüm açıklamasını yazın.");
@@ -2206,14 +2120,12 @@
       .update({ status: "resolved", admin_reply: replyText })
       .eq("id", ticketId);
 
-    // Doğrudan kullanıcının VibeChat mesaj kutusuna gönder
     await sb.from("direct_messages").insert({
       sender_id: currentUser.id,
       receiver_id: targetUserId,
       content: finalMessage
     });
 
-    // Kullanıcıya bildirim gönder
     await sb.from("notifications").insert({
       user_id: targetUserId,
       type: "support_resolved",
@@ -2226,9 +2138,6 @@
     await loadSupportTickets();
   }
 
-  // =========================================================
-  // 8. BİLDİRİMLER & VIBECHAT MESAJLAŞMA
-  // =========================================================
   async function openNotificationsModal() {
     openModal("notificationsModal");
     const { data } = await sb
@@ -2341,9 +2250,6 @@
     await loadConversationMessages();
   }
 
-  // =========================================================
-  // 9. CANLI REALTIME KANAL (ANLIK BİLDİRİM, MESAJ & PİN)
-  // =========================================================
   function setupRealtimeChannel() {
     sb.channel("vibepin-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "pins" }, () => {
