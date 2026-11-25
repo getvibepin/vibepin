@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>VibePin — Şehrin Dijital Yaşam Katmanı</title>
+  <title>VibePin — Your city. Your moment.</title>
   <link rel="manifest" href="manifest.json" />
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,244 +11,257 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg:#090b12;
-      --panel:rgba(16,20,34,0.92);
-      --border:rgba(255,255,255,0.14);
-      --brand-grad:linear-gradient(135deg,#00f5d4 0%,#9b5de5 52%,#ff5400 100%);
-      --vibe-cyan:#00f5d4;
-      --vibe-violet:#9b5de5;
-      --vibe-coral:#ff5400;
-      --snap-yellow:#ffe600;
+      --bg:#0b1021;
+      --header-bg:rgba(13,18,36,0.92);
+      --card-bg:rgba(19,26,48,0.94);
+      --border:rgba(255,255,255,0.12);
+      --vibe-grad:linear-gradient(135deg,#22d3ee 0%,#a855f7 52%,#f97316 100%);
+      --cyan:#22d3ee;
+      --purple:#a855f7;
+      --orange:#f97316;
+      --gold:#facc15;
       --wa-green:#00a884;
       --wa-light-bg:#efeae2;
       --wa-light-header:#f0f2f5;
       --wa-light-mine:#d9fdd3;
       --wa-light-theirs:#ffffff;
-      --gold:#fbbf24;
       --danger:#ef4444;
       --green:#10b981;
-      --accent:#00f5d4;
       --text:#f8fafc;
       --muted:#94a3b8;
     }
     * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-tap-highlight-color:transparent; }
     body, html { width:100%; height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
-    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:var(--bg); }
-    .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(84%) contrast(88%) saturate(38%); }
+    #map { position:fixed; inset:0; width:100%; height:100%; z-index:1; background:#e5e7eb; }
+    .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(86%) contrast(88%) saturate(38%); }
     .leaflet-control-attribution { display:none !important; }
 
-    .my-loc-wrap { position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
-    .my-loc-pulse { position:absolute; inset:0; border-radius:50%; background:rgba(0,245,212,0.42); animation:locPulse 2s infinite ease-out; }
-    .my-loc-dot { position:relative; width:14px; height:14px; border-radius:50%; background:#00f5d4; border:2.5px solid #090b12; box-shadow:0 0 12px #00f5d4; }
-    @keyframes locPulse { 0% { transform:scale(0.6); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
+    /* Konum Noktası */
+    .my-loc-wrap { position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
+    .my-loc-pulse { position:absolute; inset:0; border-radius:50%; background:rgba(37,99,235,0.28); animation:locPulse 2.2s infinite ease-out; }
+    .my-loc-dot { position:relative; width:15px; height:15px; border-radius:50%; background:#2563eb; border:3px solid #ffffff; box-shadow:0 0 12px rgba(37,99,235,0.8); }
+    @keyframes locPulse { 0% { transform:scale(0.65); opacity:0.95; } 100% { transform:scale(2.1); opacity:0; } }
 
-    #returnLocBtn { position:fixed; bottom:94px; right:14px; z-index:1001; display:none; align-items:center; gap:6px; padding:9px 14px; border-radius:999px; border:1px solid var(--vibe-cyan); background:rgba(16,20,34,0.94); color:var(--vibe-cyan); font-size:12px; font-weight:800; box-shadow:0 10px 25px rgba(0,0,0,0.6); cursor:pointer; }
-    #flagPlaceBar { position:fixed; bottom:94px; left:14px; right:14px; z-index:1002; display:none; align-items:center; justify-content:space-between; gap:8px; background:rgba(16,20,34,0.97); border:1.5px solid var(--snap-yellow); border-radius:18px; padding:10px 12px; box-shadow:0 12px 32px rgba(0,0,0,0.75); }
-
+    /* 🌟 Görseldeki Giriş Ekranı */
     #authGate {
       position:fixed; inset:0; z-index:9999;
       background:
-        radial-gradient(circle at 15% 15%, rgba(0,245,212,0.22) 0%, transparent 45%),
-        radial-gradient(circle at 85% 20%, rgba(155,93,229,0.26) 0%, transparent 45%),
-        radial-gradient(circle at 50% 88%, rgba(255,84,0,0.22) 0%, transparent 50%),
-        #090b12;
-      display:flex; flex-direction:column; justify-content:center; align-items:center; padding:18px 16px; overflow-y:auto;
+        radial-gradient(circle at 50% 24%, rgba(34,211,238,0.18) 0%, rgba(168,85,247,0.16) 34%, transparent 65%),
+        linear-gradient(180deg, rgba(11,16,33,0.72) 0%, rgba(11,16,33,0.48) 52%, rgba(11,16,33,0.96) 84%),
+        url('https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=900&q=75') center 62%/cover no-repeat;
+      display:flex; flex-direction:column; justify-content:space-between; padding:18px 20px 22px; overflow-y:auto;
     }
-    .social-auth-shell {
-      width:100%; max-width:410px;
-      background:rgba(17,22,36,0.9);
-      backdrop-filter:blur(22px);
-      border:1px solid rgba(255,255,255,0.13);
-      border-radius:28px;
-      padding:20px 18px 18px;
-      box-shadow:0 20px 60px rgba(0,0,0,0.72);
-    }
-    .auth-top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-    .snap-live-pill {
-      display:inline-flex; align-items:center; gap:6px;
-      background:var(--snap-yellow); color:#111111;
-      font-size:11px; font-weight:900; padding:5px 11px; border-radius:999px;
-    }
-    .lang-pill { background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.18); color:#fff; border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:800; cursor:pointer; }
+    .gate-top { display:flex; justify-content:flex-end; align-items:center; }
+    .lang-pill { background:rgba(15,23,42,0.75); border:1px solid rgba(255,255,255,0.24); color:#fff; border-radius:999px; padding:6px 13px; font-size:12px; font-weight:700; cursor:pointer; backdrop-filter:blur(10px); }
 
-    .ig-story-brand { display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:16px; }
-    .ig-story-ring {
-      width:78px; height:78px; border-radius:26px; padding:3px;
-      background:var(--brand-grad);
-      display:flex; align-items:center; justify-content:center;
-      box-shadow:0 10px 30px rgba(155,93,229,0.38);
-      margin-bottom:8px;
-    }
-    .ig-story-inner {
-      width:100%; height:100%; border-radius:23px; background:#0f1117;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .brand-logo-text { font-size:30px; font-weight:900; letter-spacing:-0.8px; color:#fff; }
-    .brand-logo-text span { background:var(--brand-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .brand-sub-text { font-size:12.5px; color:#cbd5e1; margin-top:3px; font-weight:500; }
+    .gate-center-hero { display:flex; flex-direction:column; align-items:center; text-align:center; margin:auto 0; padding:16px 0; }
+    .gate-logo-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; }
+    .gate-brand-title { font-size:38px; font-weight:900; letter-spacing:-0.8px; color:#ffffff; text-shadow:0 4px 20px rgba(0,0,0,0.5); }
+    .gate-brand-title span { background:var(--vibe-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .gate-headline { font-size:24px; font-weight:800; color:#ffffff; margin-bottom:6px; text-shadow:0 2px 14px rgba(0,0,0,0.6); }
+    .gate-subline { font-size:13.5px; color:#cbd5e1; max-width:290px; line-height:1.4; }
 
-    .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:15px; margin-bottom:14px; }
-    .auth-tab-btn { padding:9px; border-radius:12px; border:none; background:transparent; color:#94a3b8; font-size:13px; font-weight:800; cursor:pointer; }
-    .auth-tab-btn.active { background:#ffffff; color:#090b12; }
-
-    .btn-google-social {
-      width:100%; padding:12px 14px; border-radius:14px;
+    .gate-bottom-actions { width:100%; max-width:390px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+    .btn-auth-google {
+      width:100%; padding:13px 16px; border-radius:999px;
       background:#ffffff; color:#0f172a; border:none;
-      font-weight:800; font-size:14px; cursor:pointer;
+      font-weight:800; font-size:14.5px; cursor:pointer;
       display:flex; align-items:center; justify-content:center; gap:10px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.35);
     }
-    .divider { display:flex; align-items:center; gap:10px; margin:12px 0; color:#94a3b8; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; }
-    .divider::before, .divider::after { content:""; flex:1; height:1px; background:rgba(255,255,255,0.12); }
-
-    .ig-input {
-      width:100%; background:rgba(255,255,255,0.06) !important;
-      border:1px solid rgba(255,255,255,0.14) !important;
-      border-radius:14px !important; padding:12px 14px !important;
-      color:#fff !important; font-size:13.5px !important; outline:none; margin-bottom:9px !important;
+    .btn-auth-email-outline {
+      width:100%; padding:13px 16px; border-radius:999px;
+      background:rgba(15,23,42,0.72); color:#ffffff;
+      border:1.5px solid rgba(168,85,247,0.75);
+      font-weight:700; font-size:14.5px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      backdrop-filter:blur(10px);
     }
-    .ig-input:focus { border-color:var(--vibe-cyan) !important; background:rgba(255,255,255,0.1) !important; }
-
-    .btn-ig-snap {
-      width:100%; padding:13px; border-radius:15px; border:none;
-      background:var(--brand-grad); color:#090b12; font-weight:900; font-size:14.5px;
-      cursor:pointer; box-shadow:0 10px 26px rgba(155,93,229,0.35);
+    .email-auth-drawer {
+      display:none; background:rgba(15,23,42,0.94); border:1px solid var(--border);
+      border-radius:22px; padding:14px; margin-top:4px; backdrop-filter:blur(16px);
     }
+    .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:12px; margin-bottom:10px; }
+    .auth-tab-btn { padding:8px; border-radius:9px; border:none; background:transparent; color:#94a3b8; font-size:12.5px; font-weight:800; cursor:pointer; }
+    .auth-tab-btn.active { background:#ffffff; color:#0f172a; }
 
-    .interest-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-    .int-chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#cbd5e1; font-size:11.5px; font-weight:600; cursor:pointer; }
-    .int-chip.selected { border-color:var(--vibe-cyan); background:rgba(0,245,212,0.18); color:#fff; }
-
-    /* Üst Bar */
-    .top-bar {
-      position:fixed; top:10px; left:6px; right:6px; z-index:1000;
-      display:flex; align-items:center; justify-content:space-between; gap:3px;
+    /* 🗺️ Görseldeki Gibi Üst Başlık, Arama & Kategori Hapları */
+    .map-top-panel {
+      position:fixed; top:0; left:0; right:0; z-index:1000;
+      background:linear-gradient(180deg, rgba(11,16,33,0.95) 0%, rgba(11,16,33,0.84) 78%, rgba(11,16,33,0) 100%);
+      padding:10px 12px 14px;
       pointer-events:none;
     }
-    .top-bar > * { pointer-events:auto; }
-    .top-left-group { display:flex; gap:3px; align-items:center; min-width:0; }
-    .top-right-group { display:flex; gap:3px; align-items:center; flex-shrink:0; }
-    .pill {
-      background:var(--panel); border:1px solid var(--border); border-radius:999px;
-      padding:5px 7px; display:flex; align-items:center; gap:2px;
-      font-size:10px; font-weight:800; cursor:pointer; white-space:nowrap;
+    .map-top-panel > * { pointer-events:auto; }
+    .brand-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+    .header-logo { display:flex; align-items:center; gap:7px; font-size:20px; font-weight:900; letter-spacing:-0.5px; color:#fff; }
+    .header-logo span { background:var(--vibe-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .header-actions { display:flex; align-items:center; gap:8px; }
+    .hdr-icon-btn {
+      position:relative; width:36px; height:36px; border-radius:50%;
+      background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.14);
+      color:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:16px; cursor:pointer; overflow:visible;
     }
-    .icon-btn {
-      position:relative; width:30px; height:30px; border-radius:50%;
-      border:1px solid var(--border); background:var(--panel); color:var(--text);
-      display:flex; align-items:center; justify-content:center; font-size:13px;
-      cursor:pointer; overflow:visible; flex-shrink:0;
+    .hdr-avatar-btn {
+      width:36px; height:36px; border-radius:50%;
+      border:2px solid var(--cyan); background:#1e293b;
+      color:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:16px; cursor:pointer; overflow:hidden;
     }
-    .icon-btn img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-    .notif-dot { position:absolute; top:1px; right:1px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:1.5px solid #090c12; display:none; }
-    .ghost-active { border-color:var(--snap-yellow); background:rgba(255,230,0,0.22); }
+    .hdr-avatar-btn img { width:100%; height:100%; object-fit:cover; }
+    .notif-dot { position:absolute; top:1px; right:1px; width:9px; height:9px; border-radius:50%; background:var(--danger); border:1.5px solid #0b1021; display:none; }
 
-    .friends-events-strip {
-      position:fixed; top:46px; left:8px; right:8px; z-index:999;
-      display:flex; align-items:flex-start; gap:10px;
-      overflow-x:auto; scrollbar-width:none; padding:4px 4px 6px;
+    .search-pill-bar {
+      display:flex; align-items:center; gap:8px;
+      background:rgba(30,41,59,0.88); backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,0.14); border-radius:999px;
+      padding:8px 14px; margin-bottom:9px;
     }
-    .friends-events-strip::-webkit-scrollbar { display:none; }
-    .event-ring-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; flex-shrink:0; width:62px; }
-    .event-ring-border {
-      width:52px; height:52px; border-radius:50%; padding:2.5px;
-      background:linear-gradient(135deg,#00f5d4 0%,#9b5de5 55%,#ff5400 100%);
+    .search-pill-bar input {
+      flex:1; background:transparent !important; border:none !important;
+      color:#fff !important; font-size:13.5px !important; padding:0 !important;
+      margin:0 !important; outline:none;
+    }
+
+    .filter-chips-row { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; }
+    .filter-chips-row::-webkit-scrollbar { display:none; }
+    .chip {
+      background:rgba(15,23,42,0.88); border:1px solid rgba(255,255,255,0.14);
+      border-radius:999px; padding:6px 13px; font-size:12px; font-weight:700;
+      white-space:nowrap; color:#e2e8f0; cursor:pointer;
+    }
+    .chip.active { background:linear-gradient(90deg,#c026d3,#9333ea); color:#ffffff; border-color:transparent; }
+
+    /* Sağ Alt Katman & Konumuma Dön Butonları */
+    .map-floating-controls {
+      position:fixed; right:12px; bottom:185px; z-index:1000;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .float-circle-btn {
+      width:40px; height:40px; border-radius:50%;
+      background:#ffffff; color:#0f172a; border:none;
+      box-shadow:0 4px 16px rgba(0,0,0,0.28);
       display:flex; align-items:center; justify-content:center;
-      box-shadow:0 4px 14px rgba(0,0,0,0.45);
-    }
-    .event-ring-inner {
-      width:100%; height:100%; border-radius:50%; background:#111622;
-      display:flex; align-items:center; justify-content:center; font-size:20px; overflow:hidden;
-    }
-    .event-ring-inner img { width:100%; height:100%; object-fit:cover; }
-    .event-ring-label {
-      width:62px; font-size:10px; font-weight:700; color:#f8fafc;
-      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      text-shadow:0 1px 4px rgba(0,0,0,0.85);
+      font-size:17px; cursor:pointer;
     }
 
-    .filter-row { position:fixed; top:114px; left:8px; right:8px; z-index:999; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
-    .chip { background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:5px 10px; font-size:11px; font-weight:700; white-space:nowrap; color:var(--muted); cursor:pointer; }
-    .chip.active { background:var(--brand-grad); color:#090b12; font-weight:800; border-color:transparent; }
+    /* Alt Canlı Kart Şeridi (Live nearby) */
+    .live-nearby-dock {
+      position:fixed; left:10px; right:10px; bottom:78px; z-index:999;
+      pointer-events:none;
+    }
+    .live-nearby-dock > * { pointer-events:auto; }
+    .live-pill-tag {
+      display:inline-flex; align-items:center; gap:6px;
+      background:#ffffff; color:#0f172a;
+      padding:5px 12px; border-radius:999px;
+      font-size:11.5px; font-weight:800; margin-bottom:7px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.25); cursor:pointer;
+    }
+    .live-cards-row { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+    .live-cards-row::-webkit-scrollbar { display:none; }
+    .live-mini-card {
+      min-width:195px; max-width:215px; background:rgba(15,23,42,0.94);
+      border:1px solid rgba(255,255,255,0.14); border-radius:16px;
+      padding:9px 11px; color:#fff; cursor:pointer; flex-shrink:0;
+      box-shadow:0 8px 20px rgba(0,0,0,0.45);
+    }
 
-    .map-mode-swipe { position:fixed; top:148px; left:50%; transform:translateX(-50%); z-index:999; display:flex; align-items:center; gap:3px; background:rgba(16,20,34,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.16); border-radius:999px; padding:3px; box-shadow:0 6px 20px rgba(0,0,0,0.45); touch-action:pan-y; user-select:none; }
-    .mm-tab { padding:4px 10px; border-radius:999px; font-size:10.5px; font-weight:800; color:#94a3b8; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-    .mm-tab.active { background:var(--brand-grad); color:#090b12; }
-
-    .dock-bar {
-      position:fixed; bottom:12px; left:10px; right:10px; z-index:1000;
-      height:64px;
-      background:rgba(16,20,34,0.95);
-      backdrop-filter:blur(18px);
-      border:1px solid rgba(255,255,255,0.14);
-      border-radius:24px;
-      padding:0 10px;
+    /* 🎯 Görseldeki Gibi 5'li Alt Bar: Harita • Keşfet • (+) • İşletme • Profil */
+    .bottom-nav {
+      position:fixed; bottom:0; left:0; right:0; z-index:1000;
+      height:66px; background:#0b1021;
+      border-top:1px solid rgba(255,255,255,0.1);
       display:flex; align-items:center; justify-content:space-around;
-      box-shadow:0 14px 36px rgba(0,0,0,0.65);
+      padding:0 8px 4px;
     }
-    .dock-item {
+    .nav-btn {
       background:none; border:none; color:#94a3b8;
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
-      font-size:10.5px; font-weight:700; cursor:pointer; min-width:54px;
+      font-size:10.5px; font-weight:700; cursor:pointer; min-width:56px;
     }
-    .dock-item.active { color:var(--vibe-cyan); }
-    .dock-item span.ico { font-size:18px; line-height:1; }
-    .dock-center-btn {
-      width:52px; height:52px; border-radius:50%; border:2.5px solid #ffffff;
-      background:var(--brand-grad); color:#090b12;
-      font-size:26px; font-weight:900;
+    .nav-btn.active { color:var(--cyan); }
+    .nav-btn span.ico { font-size:18px; line-height:1; }
+    .nav-plus-btn {
+      width:52px; height:52px; border-radius:50%;
+      background:var(--vibe-grad); color:#0b1021;
+      border:3px solid #0b1021;
+      font-size:28px; font-weight:900;
       display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transform:translateY(-8px);
-      box-shadow:0 10px 26px rgba(155,93,229,0.55);
-      flex-shrink:0;
+      cursor:pointer; transform:translateY(-10px);
+      box-shadow:0 8px 24px rgba(168,85,247,0.55);
     }
 
-    .vibe-marker { position:relative; width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,0.55); }
-    .vibe-marker span { transform:rotate(45deg); font-size:19px; }
+    /* 👤 1. Kullanıcı Avatarı / Profil Resmi ile Damla Pin */
+    .user-avatar-pin {
+      position:relative; width:46px; height:54px;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .user-pin-circle {
+      width:44px; height:44px; border-radius:50%;
+      background:#1e293b; border:3px solid #ffffff;
+      box-shadow:0 6px 16px rgba(0,0,0,0.45);
+      overflow:hidden; display:flex; align-items:center; justify-content:center;
+      font-size:21px;
+    }
+    .user-pin-circle img { width:100%; height:100%; object-fit:cover; }
+    .user-pin-tip {
+      width:0; height:0;
+      border-left:7px solid transparent;
+      border-right:7px solid transparent;
+      border-top:9px solid #ffffff;
+      margin-top:-1px;
+    }
 
-    .venue-flag-pin { position:relative; display:flex; flex-direction:column; align-items:center; }
-    .venue-flag-card {
-      background:linear-gradient(135deg,#ffe600 0%,#ffbe0b 55%,#fb5607 100%);
-      color:#090b12;
+    /* 🏪 3. İşletme Kategori Sembolü + Sponsorlu Rozeti (Bayraksız) */
+    .biz-cat-pin {
+      position:relative; display:flex; flex-direction:column; align-items:center;
+    }
+    .biz-cat-bubble {
+      width:44px; height:44px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg);
+      display:flex; align-items:center; justify-content:center;
       border:2.5px solid #ffffff;
-      border-radius:14px;
-      padding:6px 11px;
-      font-size:11.5px;
-      font-weight:900;
-      white-space:nowrap;
-      max-width:165px;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      box-shadow:0 8px 22px rgba(251,191,36,0.65);
-      display:flex; align-items:center; gap:5px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.45);
     }
-    .venue-flag-pole { width:4px; height:12px; background:#ffffff; border-radius:0 0 4px 4px; box-shadow:0 3px 8px rgba(0,0,0,0.45); }
+    .biz-cat-bubble span { transform:rotate(45deg); font-size:20px; }
+    .biz-sponsored-pill {
+      margin-top:3px;
+      background:#facc15; color:#0f172a;
+      font-size:9.5px; font-weight:900;
+      padding:2px 7px; border-radius:999px;
+      border:1.5px solid #ffffff;
+      box-shadow:0 3px 8px rgba(0,0,0,0.35);
+      white-space:nowrap;
+    }
 
-    .cluster-pin { width:48px; height:48px; border-radius:50%; background:var(--brand-grad); border:3px solid #fff; color:#090b12; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(155,93,229,0.55); font-weight:900; }
+    .cluster-pin { width:46px; height:46px; border-radius:50%; background:var(--vibe-grad); border:3px solid #fff; color:#0b1021; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,0.45); font-weight:900; }
 
+    /* Modallar & Form Elemanları */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:10005; display:none; align-items:flex-end; justify-content:center; }
     .modal-backdrop.open { display:flex; }
-    .sheet { width:100%; max-width:480px; background:#111622; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:18px 18px 28px; max-height:90vh; overflow-y:auto; }
+    .sheet { width:100%; max-width:480px; background:#111827; border-top:1px solid var(--border); border-radius:24px 24px 0 0; padding:18px 18px 28px; max-height:90vh; overflow-y:auto; }
     .sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
     .sheet-title { font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     .close-btn { background:rgba(255,255,255,0.08); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0; }
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
     .cat-opt { padding:9px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; text-align:left; }
-    .cat-opt.selected { border-color:var(--vibe-cyan); background:rgba(0,245,212,0.16); }
+    .cat-opt.selected { border-color:var(--cyan); background:rgba(34,211,238,0.16); }
     textarea, input[type="email"], input[type="password"], input[type="text"], input[type="number"], input[type="date"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:13px; padding:11px 13px; color:#fff; font-size:13.5px; outline:none; margin-bottom:9px; }
-    select option { background:#111622; color:#fff; }
-    textarea:focus, input:focus, select:focus { border-color:var(--vibe-cyan); background:rgba(255,255,255,0.09); }
+    select option { background:#111827; color:#fff; }
+    textarea:focus, input:focus, select:focus { border-color:var(--cyan); background:rgba(255,255,255,0.09); }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
     .media-btn { padding:10px 8px; border-radius:13px; border:1px dashed rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); color:#fff; font-size:12px; font-weight:600; cursor:pointer; text-align:center; display:block; }
-    .btn-primary { width:100%; padding:12px; border-radius:13px; border:none; background:var(--brand-grad); color:#090b12; font-weight:900; font-size:14px; cursor:pointer; }
-    .btn-gold { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(135deg,#ffe600,#ffbe0b); color:#090b12; font-weight:900; font-size:14px; cursor:pointer; }
+    .btn-primary { width:100%; padding:12px; border-radius:13px; border:none; background:var(--vibe-grad); color:#0b1021; font-weight:900; font-size:14px; cursor:pointer; }
+    .btn-gold { width:100%; padding:12px; border-radius:13px; border:none; background:linear-gradient(135deg,#facc15,#f59e0b); color:#0f172a; font-weight:900; font-size:14px; cursor:pointer; }
     .btn-secondary { width:100%; padding:11px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
     .btn-danger { width:100%; padding:11px; border-radius:13px; border:1px solid rgba(239,68,68,0.45); background:rgba(239,68,68,0.16); color:#fca5a5; font-weight:700; font-size:13px; cursor:pointer; margin-top:8px; }
     .action-bar { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
     .act-pill { padding:10px 6px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
     .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:10px; max-height:135px; overflow-y:auto; padding:4px; }
     .av-opt { height:40px; border-radius:11px; border:1px solid var(--border); background:rgba(255,255,255,0.05); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-    .av-opt.selected { border-color:var(--vibe-cyan); background:rgba(0,245,212,0.22); transform:scale(1.06); }
-    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--vibe-cyan); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:700; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
+    .av-opt.selected { border-color:var(--cyan); background:rgba(34,211,238,0.22); transform:scale(1.06); }
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--cyan); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:700; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
 
     #imageLightboxModal { position:fixed; inset:0; background:rgba(0,0,0,0.94); z-index:10050; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
     #imageLightboxModal.open { display:flex; }
@@ -256,14 +269,14 @@
 
     .lang-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .lang-opt { display:flex; align-items:center; justify-content:space-between; padding:11px 13px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.04); cursor:pointer; font-size:13.5px; font-weight:700; }
-    .lang-opt.active { border-color:var(--vibe-cyan); background:rgba(0,245,212,0.18); }
+    .lang-opt.active { border-color:var(--cyan); background:rgba(34,211,238,0.18); }
 
     .perm-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.05); margin-bottom:7px; font-size:13px; font-weight:600; cursor:pointer; }
-    .perm-row input { width:18px; height:18px; margin:0; accent-color:var(--vibe-cyan); }
+    .perm-row input { width:18px; height:18px; margin:0; accent-color:var(--cyan); }
 
     .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
     .stat-card { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:16px; padding:12px; }
-    .stat-val { font-size:21px; font-weight:900; color:var(--vibe-cyan); margin-top:4px; }
+    .stat-val { font-size:21px; font-weight:900; color:var(--cyan); margin-top:4px; }
     .stat-lbl { font-size:11.5px; color:#cbd5e1; font-weight:700; }
 
     .user-search-card {
@@ -275,11 +288,12 @@
     .user-search-av {
       width:42px; height:42px; border-radius:50%; background:#1e293b;
       display:flex; align-items:center; justify-content:center;
-      font-size:20px; overflow:hidden; flex-shrink:0; border:1.5px solid var(--vibe-cyan);
+      font-size:20px; overflow:hidden; flex-shrink:0; border:1.5px solid var(--cyan);
       cursor:pointer;
     }
     .user-search-av img { width:100%; height:100%; object-fit:cover; }
 
+    /* WhatsApp Tarzı Ferah Mesajlaşma */
     .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-light-bg); color:#111b21; border-top:1px solid rgba(0,0,0,0.12); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
     .wa-top { background:var(--wa-light-header); color:#111b21; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.08); }
     .wa-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; background:var(--wa-light-header); border-bottom:1px solid rgba(0,0,0,0.08); }
@@ -289,7 +303,6 @@
     .wa-search { width:100%; background:#f0f2f5 !important; color:#111b21 !important; border:none !important; border-radius:12px !important; padding:9px 14px !important; font-size:13.5px; outline:none; margin-bottom:0 !important; }
     .wa-list { flex:1; overflow-y:auto; padding:4px 0; background:#ffffff; color:#111b21; }
     .wa-chat-row { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(0,0,0,0.05); }
-    .wa-chat-row:active { background:#f0f2f5; }
     .wa-avatar { width:46px; height:46px; border-radius:50%; background:#e2e8f0; color:#111b21; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(0,0,0,0.1); }
     .wa-avatar img { width:100%; height:100%; object-fit:cover; }
     .wa-badge { background:var(--wa-green); color:#ffffff; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; }
@@ -324,91 +337,74 @@
     <div id="lightboxCaption" style="margin-top:10px; font-size:13px; color:#e2e8f0; font-weight:700;"></div>
   </div>
 
-  <!-- Giriş Ekranı -->
+  <!-- 🌟 Görseldeki Giriş Ekranı -->
   <div id="authGate">
-    <div class="social-auth-shell">
-      <div class="auth-top-bar">
-        <div class="snap-live-pill">⚡ <span data-i18n="live_badge">Şehrin Canlı Haritası</span></div>
-        <button type="button" class="lang-pill" id="gateLangBtn" onclick="openModal('langModal')">🌐 TR</button>
-      </div>
+    <div class="gate-top">
+      <button type="button" class="lang-pill" id="gateLangBtn" onclick="openModal('langModal')">🌐 TR ▾</button>
+    </div>
 
-      <div class="ig-story-brand">
-        <div class="ig-story-ring">
-          <div class="ig-story-inner">
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
-              <defs>
-                <linearGradient id="vibePinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#00f5d4" />
-                  <stop offset="52%" stop-color="#9b5de5" />
-                  <stop offset="100%" stop-color="#ff5400" />
-                </linearGradient>
-              </defs>
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#vibePinGrad)"/>
-            </svg>
+    <div class="gate-center-hero">
+      <div class="gate-logo-row">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="vibePinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#22d3ee" />
+              <stop offset="52%" stop-color="#a855f7" />
+              <stop offset="100%" stop-color="#f97316" />
+            </linearGradient>
+          </defs>
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#vibePinGrad)"/>
+        </svg>
+        <div class="gate-brand-title">Vibe<span>Pin</span></div>
+      </div>
+      <div class="gate-headline" data-i18n="headline">Şehrin. Senin anın.</div>
+      <div class="gate-subline" data-i18n="tagline">Çevrende şu an neler yaşandığını anında keşfet.</div>
+    </div>
+
+    <div class="gate-bottom-actions">
+      <button type="button" class="btn-auth-google" id="googleLoginBtn">
+        <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span data-i18n="google_btn">Google ile Devam Et</span>
+      </button>
+
+      <button type="button" class="btn-auth-email-outline" onclick="toggleEmailDrawer()">
+        <span>✉️</span> <span data-i18n="email_btn">E-posta ile Devam Et</span>
+      </button>
+
+      <div class="email-auth-drawer" id="emailAuthDrawer">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tabLoginMode" onclick="switchAuthMode('login')" data-i18n="login_tab">Giriş Yap</button>
+          <button type="button" class="auth-tab-btn" id="tabSignupMode" onclick="switchAuthMode('signup')" data-i18n="signup_tab">Kayıt Ol</button>
+        </div>
+
+        <div id="loginSection">
+          <input type="email" id="gateEmail" placeholder="E-posta adresin" />
+          <div style="position:relative; margin-bottom:6px;">
+            <input type="password" id="gatePass" placeholder="Şifren" style="padding-right:42px; margin-bottom:0;" />
+            <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:15px; cursor:pointer; color:#94a3b8;">👁️</button>
           </div>
+          <div style="text-align:right; margin-bottom:10px;">
+            <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:11.5px; color:var(--cyan); text-decoration:none; font-weight:700;">Şifremi Unuttum</a>
+          </div>
+          <button type="button" class="btn-primary" id="loginBtn" data-i18n="login_btn">Giriş Yap</button>
         </div>
-        <div class="brand-logo-text">Vibe<span>Pin</span></div>
-        <div class="brand-sub-text" data-i18n="tagline">Şehrindeki anlık etkinlikleri, mekanları ve vibe'ı gör</div>
+
+        <div id="signupSection" style="display:none;">
+          <input type="text" id="regUsername" placeholder="Kullanıcı adı (örn: istanbul_vibe)" />
+          <input type="email" id="regEmail" placeholder="E-posta adresin" />
+          <input type="password" id="regPass" placeholder="Şifre (en az 6 karakter)" />
+          <button type="button" class="btn-primary" id="signupBtn">Hesap Oluştur ve Başla</button>
+        </div>
+        <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:6px; text-align:center;"></p>
       </div>
 
-      <div class="auth-tabs">
-        <button type="button" class="auth-tab-btn active" id="tabLoginMode" onclick="switchAuthMode('login')" data-i18n="login_tab">Giriş Yap</button>
-        <button type="button" class="auth-tab-btn" id="tabSignupMode" onclick="switchAuthMode('signup')" data-i18n="signup_tab">Kayıt Ol</button>
-      </div>
-
-      <div id="loginSection">
-        <button type="button" class="btn-google-social" id="googleLoginBtn">
-          <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          <span data-i18n="google_btn">Google ile Devam Et</span>
-        </button>
-
-        <div class="divider" data-i18n="or_email">veya e-posta</div>
-
-        <input type="email" id="gateEmail" class="ig-input" placeholder="E-posta veya kullanıcı adı" />
-        <div style="position:relative; margin-bottom:6px;">
-          <input type="password" id="gatePass" class="ig-input" placeholder="Şifre" style="padding-right:42px !important; margin-bottom:0 !important;" />
-          <button type="button" onclick="const p=document.getElementById('gatePass'); p.type=p.type==='password'?'text':'password'; this.textContent=p.type==='password'?'👁️':'🙈';" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:15px; cursor:pointer; color:#94a3b8;">👁️</button>
-        </div>
-
-        <div style="text-align:right; margin-bottom:12px;">
-          <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:12px; color:var(--vibe-cyan); text-decoration:none; font-weight:700;">Şifreni mi unuttun?</a>
-        </div>
-
-        <button type="button" class="btn-ig-snap" id="loginBtn" data-i18n="login_btn">Giriş Yap</button>
-      </div>
-
-      <div id="signupSection" style="display:none;">
-        <input type="text" id="regUsername" class="ig-input" placeholder="Kullanıcı adı (örn: istanbul_vibe)" />
-        <input type="email" id="regEmail" class="ig-input" placeholder="E-posta adresin" />
-        <input type="password" id="regPass" class="ig-input" placeholder="Şifre (en az 6 karakter)" />
-        <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
-          <select id="regGender" class="ig-input"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
-          <input type="date" id="regBirthDate" class="ig-input" />
-        </div>
-        <div class="interest-grid" id="regInterestsGrid">
-          <div class="int-chip" data-val="food" onclick="this.classList.toggle('selected')">☕ Yeme & İçme</div>
-          <div class="int-chip" data-val="travel" onclick="this.classList.toggle('selected')">✈️ Gezme & Keşif</div>
-          <div class="int-chip" data-val="sport" onclick="this.classList.toggle('selected')">⚽ Spor</div>
-          <div class="int-chip" data-val="party" onclick="this.classList.toggle('selected')">🎉 Etkinlik</div>
-          <div class="int-chip" data-val="friends" onclick="this.classList.toggle('selected')">🤝 Arkadaşlık</div>
-          <div class="int-chip" data-val="music" onclick="this.classList.toggle('selected')">🎵 Müzik</div>
-        </div>
-        <button type="button" class="btn-ig-snap" id="signupBtn">Hesabı Oluştur ve Haritaya Gir</button>
-      </div>
-
-      <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:8px; text-align:center; min-height:14px;"></p>
-
-      <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:center;">
-        <p style="font-size:11px; color:#94a3b8; margin-bottom:6px;">
-          Devam ederek <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="color:#e2e8f0; text-decoration:underline; font-weight:600;">Koşullar ve Gizlilik</a> metnini kabul edersin.
-        </p>
-        <div style="font-size:10px; letter-spacing:1.1px; color:#94a3b8; font-weight:800;">
-          VIBELABS TECHNOLOGIES • <a href="mailto:getvibepin@gmail.com" style="color:var(--vibe-cyan); text-decoration:none;">getvibepin@gmail.com</a>
-        </div>
+      <div style="text-align:center; margin-top:6px;">
+        <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="font-size:11.5px; color:#cbd5e1; text-decoration:none;">Kullanım Koşulları & Gizlilik</a>
       </div>
     </div>
   </div>
 
+  <!-- Dil Seçimi -->
   <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🌍 Select Language / Tüm Diller</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
@@ -432,7 +428,6 @@
   <div id="forgotModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('forgotModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🔑 Şifre Sıfırlama</div><button class="close-btn" onclick="closeModal('forgotModal')">✕</button></div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Kayıtlı e-posta adresini yaz, şifre sıfırlama bağlantısını gönderelim.</p>
       <input type="email" id="forgotEmailInput" placeholder="E-posta adresin" />
       <button class="btn-primary" onclick="sendPasswordReset()">📨 Sıfırlama Bağlantısı Gönder</button>
     </div>
@@ -449,70 +444,115 @@
     </div>
   </div>
 
+  <!-- Harita & Görseldeki Gibi Üst Bar -->
   <div id="map"></div>
-  <button id="returnLocBtn" onclick="locateUser()">🧭 <span data-i18n="return_loc">Konumuma Dön</span></button>
 
-  <div id="flagPlaceBar">
-    <div style="font-size:12px; font-weight:700; color:#fef08a; line-height:1.3;">🚩 İşletme bayrağını konumun tam üzerine sürükle</div>
-    <div style="display:flex; gap:6px; flex-shrink:0;">
-      <button onclick="cancelFlagPlacement()" style="padding:8px 11px; border-radius:11px; border:1px solid var(--border); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">İptal</button>
-      <button onclick="confirmFlagPlacement()" style="padding:8px 13px; border-radius:11px; border:none; background:var(--snap-yellow); color:#111827; font-size:12px; font-weight:900; cursor:pointer;">✅ Onayla</button>
+  <div class="map-top-panel">
+    <div class="brand-header-row">
+      <div class="header-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <defs>
+            <linearGradient id="hdrPinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#22d3ee" />
+              <stop offset="52%" stop-color="#a855f7" />
+              <stop offset="100%" stop-color="#f97316" />
+            </linearGradient>
+          </defs>
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="url(#hdrPinGrad)"/>
+        </svg>
+        <div>Vibe<span>Pin</span></div>
+      </div>
+
+      <div class="header-actions">
+        <button class="hdr-icon-btn" id="founderStatsBtn" style="display:none; border-color:var(--cyan);" onclick="openFounderStatsModal()" title="Kurucu Sayacı">📊</button>
+        <button class="hdr-icon-btn" onclick="openFriendsModal()" title="Mesajlar">💬<span id="notifDot" class="notif-dot"></span></button>
+        <button class="hdr-icon-btn" onclick="openNotificationsModal()" title="Bildirimler">🔔<span id="bellDot" class="notif-dot"></span></button>
+        <button class="hdr-icon-btn" id="ghostBtn" style="display:none;" onclick="toggleGhostMode()" title="Kurucu Modu">👑</button>
+        <button class="hdr-avatar-btn" id="myAvatarBtn" onclick="openProfileModal()">🦊</button>
+      </div>
+    </div>
+
+    <!-- Arama Çubuğu (Kullanıcı & Mekan Arama) -->
+    <div class="search-pill-bar" onclick="openExploreSheet()">
+      <span style="font-size:15px; color:#94a3b8;">🔍</span>
+      <input type="text" readonly placeholder="Yakında keşfet veya kullanıcı ara..." style="cursor:pointer;" />
+      <span style="font-size:14px; color:#94a3b8;">🎛️</span>
+    </div>
+
+    <!-- Kategori Hapları -->
+    <div class="filter-chips-row">
+      <div class="chip active" onclick="setFilter('all', this)" data-i18n="cat_all">⭐ Sana Özel</div>
+      <div class="chip" onclick="setFilter('event', this)" data-i18n="cat_event">📅 Etkinlik</div>
+      <div class="chip" onclick="setFilter('social', this)" data-i18n="cat_social">🍴 Yeme & İçme</div>
+      <div class="chip" onclick="setFilter('deal', this)" data-i18n="cat_deal">🏷️ Fırsatlar</div>
+      <div class="chip" onclick="setFilter('sponsored', this)" data-i18n="cat_sponsored">🏪 İşletmeler</div>
+      <div class="chip" onclick="setFilter('question', this)" data-i18n="cat_question">❓ Durum / Soru</div>
     </div>
   </div>
 
-  <div class="top-bar">
-    <div class="top-left-group">
-      <div class="pill" onclick="locateUser()">📍</div>
-      <div class="pill" id="heatmapToggleBtn" onclick="toggleHeatmap()" style="border-color:rgba(255,84,0,0.55); color:#ffb599;">🌡️ Yoğun</div>
-      <div class="pill" onclick="openBusinessSetupModal()" style="border-color:var(--snap-yellow); color:#fef08a;">🏪 İşletme</div>
-      <div class="pill" id="venueFlagQuickBtn" style="display:none; border-color:var(--snap-yellow); color:#fef08a;" onclick="startFlagPlacement()">🚩</div>
-      <div class="pill" id="trEventsBtn" style="display:none; border-color:var(--vibe-cyan); color:var(--vibe-cyan);" onclick="openGlobalEventsStudio()">🌍</div>
+  <!-- Sağ Alt Katman & Konumuma Dön Butonları -->
+  <div class="map-floating-controls">
+    <button class="float-circle-btn" onclick="cycleMapStyle()" title="Harita Görünümü (Sokak / Uydu / Gece)">🗂️</button>
+    <button class="float-circle-btn" onclick="locateUser()" title="Konumuma Dön">🧭</button>
+  </div>
+
+  <!-- Alt Canlı Kart Şeridi (Live nearby) -->
+  <div class="live-nearby-dock">
+    <div class="live-pill-tag" onclick="openExploreSheet()">
+      <span style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+      <span>Yakında canlı ›</span>
     </div>
-    <div class="top-right-group">
-      <button class="icon-btn" id="founderStatsBtn" style="display:none; border-color:var(--vibe-cyan); color:var(--vibe-cyan);" onclick="openFounderStatsModal()" title="Kurucu Sayacı">📊</button>
-      <button class="icon-btn" onclick="openModal('langModal')" id="topLangBtn" style="font-size:9.5px; font-weight:800;">TR</button>
-      <button class="icon-btn" id="chatOpenBtn" onclick="openFriendsModal()" title="Mesajlaşma">💬<span id="notifDot" class="notif-dot"></span></button>
-      <button class="icon-btn" id="bellOpenBtn" onclick="openNotificationsModal()" title="Bildirimler">🔔<span id="bellDot" class="notif-dot"></span></button>
-      <button id="ghostBtn" class="icon-btn" style="display:none;" onclick="toggleGhostMode()">👑</button>
-    </div>
+    <div class="live-cards-row" id="liveNearbyCardsRow"></div>
   </div>
 
-  <div class="friends-events-strip" id="friendsEventBar" title="Etkinlik paylaşımları"></div>
-
-  <div class="filter-row">
-    <div class="chip active" onclick="setFilter('all', this)" data-i18n="cat_all">🔥 Tümü</div>
-    <div class="chip" onclick="setFilter('sponsored', this)" data-i18n="cat_sponsored">🚩 İşletmeler</div>
-    <div class="chip" onclick="setFilter('event', this)" data-i18n="cat_event">🎉 Etkinlik</div>
-    <div class="chip" onclick="setFilter('social', this)" data-i18n="cat_social">☕ Yeme & İçme</div>
-    <div class="chip" onclick="setFilter('question', this)" data-i18n="cat_question">❓ Durum / Soru</div>
-    <div class="chip" onclick="setFilter('deal', this)" data-i18n="cat_deal">⚡ Fırsat</div>
-  </div>
-
-  <div class="map-mode-swipe" id="mapModeSwipeBar">
-    <div class="mm-tab active" id="mm-dark" onclick="setMapStyle('dark')">🌑 Harita</div>
-    <div class="mm-tab" id="mm-satellite" onclick="setMapStyle('satellite')">🛰️ Uydu</div>
-    <div class="mm-tab" id="mm-street" onclick="setMapStyle('street')">🏙️ Sokak</div>
-  </div>
-
-  <!-- Alt Bar: Harita • Ara & Keşfet • (+) • Etkinlik • Profil -->
-  <div class="dock-bar">
-    <button type="button" class="dock-item active" id="dockMapBtn" onclick="focusMapView()">
-      <span class="ico">🗺️</span>
+  <!-- 🎯 Alt Navigasyon Barı: Harita • Keşfet • (+) • İşletme • Profil -->
+  <div class="bottom-nav">
+    <button type="button" class="nav-btn active" id="navMapBtn" onclick="focusMapView()">
+      <span class="ico">📍</span>
       <span data-i18n="dock_map">Harita</span>
     </button>
-    <button type="button" class="dock-item" id="dockExploreBtn" onclick="openExploreSheet()">
-      <span class="ico">🔍</span>
-      <span data-i18n="dock_explore">Ara / Keşfet</span>
+    <button type="button" class="nav-btn" id="navExploreBtn" onclick="openExploreSheet()">
+      <span class="ico">🧭</span>
+      <span data-i18n="dock_explore">Keşfet</span>
     </button>
-    <button type="button" class="dock-center-btn" onclick="openCreatePin()" title="Paylaşım Bırak">+</button>
-    <button type="button" class="dock-item" id="dockEventsBtn" onclick="openEventsSheet()">
-      <span class="ico">🎟️</span>
-      <span data-i18n="dock_events">Etkinlik</span>
+    <button type="button" class="nav-plus-btn" onclick="openCreatePin()" title="Paylaşım Bırak">+</button>
+    <button type="button" class="nav-btn" id="navBizBtn" onclick="openBusinessSetupModal()">
+      <span class="ico">🏪</span>
+      <span data-i18n="dock_biz">İşletme</span>
     </button>
-    <button type="button" class="dock-item" id="dockProfileBtn" onclick="openProfileModal()">
-      <span class="ico" id="dockProfileIcon">🦊</span>
+    <button type="button" class="nav-btn" id="navProfileBtn" onclick="openProfileModal()">
+      <span class="ico">👤</span>
       <span data-i18n="dock_profile">Profil</span>
     </button>
+  </div>
+
+  <!-- 🏪 4. İşletme Paylaşım & Kampanya Ekleme Ekranı (Kategori Sembolüyle Haritaya Düşer) -->
+  <div id="businessSetupModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('businessSetupModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#facc15;">🏪 İşletme Paylaşımı & Kampanya</div>
+          <div style="font-size:11.5px; color:var(--muted);">Adresini, kategorini ve kampanyanı gir; haritaya kendi sembolünle düşsün</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('businessSetupModal')">✕</button>
+      </div>
+      <input type="text" id="bizNameInput" placeholder="İşletme Adı (örn: Moda Sahil Kahve)" />
+      <select id="bizCategorySelect">
+        <option value="☕">☕ Kafe / Kahve & Tatlı</option>
+        <option value="🍴">🍴 Restoran / Yeme-İçme</option>
+        <option value="🎶">🎶 Eğlence / Konser / Sahne</option>
+        <option value="🛍️">🛍️ Mağaza / Butik / Alışveriş</option>
+        <option value="💇">💇 Güzellik / Bakım / Spor</option>
+        <option value="⚡">⚡ Diğer İşletme / Hizmet</option>
+      </select>
+      <input type="text" id="bizAddressInput" placeholder="Tam Adres (örn: Caferağa Mah. Moda Cad. No:42 Kadıköy)" />
+      <textarea id="bizSellingInput" rows="2" placeholder="Ne satıyorsunuz? (örn: Özel kahve, tatlı, akşam yemekleri)"></textarea>
+      <textarea id="bizCampaignDetailInput" rows="2" placeholder="Kampanya veya fırsatınız nedir? (örn: 16:00-19:00 arası 2. kahve ikram)"></textarea>
+      <label class="media-btn" for="bizPhotoInput" id="bizPhotoLabel" style="margin-bottom:10px; border-color:#facc15; color:#fef08a;">📸 Mekan / Kampanya Fotoğrafı Ekle (İsteğe Bağlı)</label>
+      <input type="file" id="bizPhotoInput" accept="image/*" style="display:none;" onchange="handleVenuePhoto(this)" />
+      <img id="venuePhotoPreview" style="display:none; width:100%; max-height:150px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
+      <button class="btn-gold" id="saveBizBtn" onclick="saveBusinessProfile()">📍 İşletme Kampanyasını Haritaya Pinle</button>
+    </div>
   </div>
 
   <!-- 🔍 Kullanıcı Arama & Keşfet Modalı -->
@@ -520,7 +560,7 @@
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title" style="color:var(--vibe-cyan);">🔍 Kullanıcı Ara & Keşfet</div>
+          <div class="sheet-title" style="color:var(--cyan);">🔍 Kullanıcı Ara & Yakındakiler</div>
           <div style="font-size:11.5px; color:var(--muted);">Kullanıcı adına göre kişileri bul, arkadaş ekle veya sohbet başlat</div>
         </div>
         <button class="close-btn" onclick="closeModal('exploreSearchModal')">✕</button>
@@ -538,7 +578,7 @@
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title" style="color:var(--vibe-cyan);">📊 Kurucu Canlı Sayaç & Analitik</div>
+          <div class="sheet-title" style="color:var(--cyan);">📊 Kurucu Canlı Sayaç & Analitik</div>
           <div style="font-size:11.5px; color:var(--muted);">Yalnızca kurucu hesabına özel platform metrikleri</div>
         </div>
         <button class="close-btn" onclick="closeModal('founderStatsModal')">✕</button>
@@ -554,61 +594,6 @@
     </div>
   </div>
 
-  <!-- İşletme Kurulum & Kampanya -->
-  <div id="businessSetupModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('businessSetupModal')">
-    <div class="sheet">
-      <div class="sheet-header">
-        <div>
-          <div class="sheet-title" style="color:#fef08a;">🏪 İşletme Kurulum & Kampanya</div>
-          <div style="font-size:11.5px; color:var(--muted);">Tam adresini ve ne sattığını/paylaşacağını belirle</div>
-        </div>
-        <button class="close-btn" onclick="closeModal('businessSetupModal')">✕</button>
-      </div>
-      <input type="text" id="bizNameInput" placeholder="İşletme Adı (örn: Moda Sahil Kahve)" />
-      <select id="bizCategorySelect">
-        <option value="cafe_food">☕ Kafe / Restoran / Yeme-İçme</option>
-        <option value="event_venue">🎉 Etkinlik / Sahne / Eğlence Mekanı</option>
-        <option value="retail_shop">🛍️ Mağaza / Butik / Perakende</option>
-        <option value="service_spot">⚡ Hizmet / Diğer İşletme</option>
-      </select>
-      <input type="text" id="bizAddressInput" placeholder="Tam Adres (örn: Caferağa Mah. Moda Cad. No:42 Kadıköy)" />
-      <textarea id="bizSellingInput" rows="2" placeholder="Ne satıyorsunuz? (örn: Özel kahve, tatlı, akşam yemekleri)"></textarea>
-      <select id="bizCampaignTypeSelect">
-        <option value="flash_offer">⚡ Anlık Fırsat / Günün Kampanyası</option>
-        <option value="daily_menu">🍽️ Günün Menüsü / Özel Seçki</option>
-        <option value="live_event">🎶 Canlı Etkinlik / Özel Buluşma</option>
-        <option value="new_arrival">✨ Yeni Ürün / Sezon Duyurusu</option>
-      </select>
-      <textarea id="bizCampaignDetailInput" rows="2" placeholder="Kampanya veya duyuru metni..."></textarea>
-      <button class="btn-gold" id="saveBizBtn" onclick="saveBusinessProfile()">💾 İşletme Profilini Kaydet & Haritada Göster</button>
-    </div>
-  </div>
-
-  <!-- Global Etkinlik Stüdyosu -->
-  <div id="globalEventsModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('globalEventsModal')">
-    <div class="sheet">
-      <div class="sheet-header">
-        <div>
-          <div class="sheet-title" style="color:var(--vibe-cyan);">🌍 Global Etkinlik Rehberi Stüdyosu</div>
-          <div style="font-size:11.5px; color:var(--muted);">Türkiye ve dünya metropollerindeki etkinlikleri yayar</div>
-        </div>
-        <button class="close-btn" onclick="closeModal('globalEventsModal')">✕</button>
-      </div>
-      <div style="padding:12px; border-radius:15px; background:rgba(0,245,212,0.08); border:1px solid rgba(0,245,212,0.3); margin-bottom:12px;">
-        <div id="dailyPackStatusNote" style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px;">Aynı paket haritada aktifken ikinci kez üst üste eklenmez.</div>
-        <button class="btn-primary" id="publishDailyPackBtn" onclick="publishDailyGlobalPack()" style="margin-bottom:8px;">🌍 Bugünün Dünya Etkinliklerini Haritaya Yay</button>
-        <button class="btn-danger" id="clearGuidePinsBtn" onclick="clearExistingGuidePins()" style="margin-top:0;">🧹 Mevcut Rehber Etkinliklerini Temizle</button>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <input type="text" id="glCountryInput" placeholder="Ülke" value="Türkiye" />
-        <input type="text" id="glCityInput" placeholder="Şehir" />
-      </div>
-      <input type="text" id="glVenueAddressInput" placeholder="Tam Mekan / Adres" />
-      <textarea id="glEventDescInput" rows="2" placeholder="Etkinlik adı ve detayı..."></textarea>
-      <button class="btn-gold" id="publishSingleGlBtn" onclick="publishSingleGlobalEvent()">📌 Tam Adresini Bul & Haritaya Ekle</button>
-    </div>
-  </div>
-
   <!-- Admin Yetki Yönetimi -->
   <div id="adminRolesModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adminRolesModal')">
     <div class="sheet">
@@ -618,36 +603,9 @@
       </div>
       <input type="email" id="newAdminEmailInput" placeholder="Admin yapılacak kullanıcının e-postası" />
       <label class="perm-row"><span>📬 Gelen İstek & Şikayetleri Değerlendirme</span><input type="checkbox" id="permTickets" checked /></label>
-      <label class="perm-row"><span>🌍 Global Etkinlik Yayınlama</span><input type="checkbox" id="permEvents" /></label>
-      <label class="perm-row"><span>🚩 Sponsorlu Mekan Bayrağı Dikme</span><input type="checkbox" id="permFlags" /></label>
       <label class="perm-row"><span>🗑️ Zararlı / Yalan Paylaşımları Silme</span><input type="checkbox" id="permDeletePins" /></label>
       <button class="btn-gold" style="margin-top:6px; margin-bottom:14px;" onclick="saveAdminPermissions()">💾 Admin Yetkisini Kaydet</button>
       <div id="adminsListContainer"></div>
-    </div>
-  </div>
-
-  <!-- Sponsorlu Bayrak Modalı -->
-  <div id="venueFlagModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('venueFlagModal')">
-    <div class="sheet">
-      <div class="sheet-header">
-        <div>
-          <div class="sheet-title" style="color:#fef08a;">🚩 İşletme Bayrağı & Kampanya</div>
-          <div id="venueSelectedCoordsText" style="font-size:11.5px; color:#6ee7b7;">📍 Seçilen mekan koordinatı hazır</div>
-        </div>
-        <button class="close-btn" onclick="closeModal('venueFlagModal')">✕</button>
-      </div>
-      <input type="text" id="venueNameInput" placeholder="Mekan / İşletme Adı" />
-      <input type="text" id="venueOfferBadgeInput" placeholder="Kısa Kampanya Etiketi (örn: 2 Kahve 1 Arada)" />
-      <textarea id="venueCampaignDescInput" rows="3" placeholder="Kampanya veya menü detaylarını yazın..."></textarea>
-      <select id="venueDurationSelect">
-        <option value="24">⏳ 1 Gün (24 Saat)</option>
-        <option value="72">🔥 3 Gün</option>
-        <option value="168" selected>🚩 7 Gün (Öne Çıkan Bayrak)</option>
-      </select>
-      <label class="media-btn" for="venuePhotoInput" id="venuePhotoLabel" style="margin-bottom:10px; border-color:var(--snap-yellow); color:#fef08a;">📸 Mekan / Menü Fotoğrafı Ekle</label>
-      <input type="file" id="venuePhotoInput" accept="image/*" style="display:none;" onchange="handleVenuePhoto(this)" />
-      <img id="venuePhotoPreview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
-      <button class="btn-gold" id="publishVenueBtn" onclick="submitVenueFlag()">🚩 Haritaya İşletme Bayrağı Dik</button>
     </div>
   </div>
 
@@ -663,7 +621,7 @@
       <div class="sheet-header">
         <div>
           <div class="sheet-title">📍 Yeni VibePin</div>
-          <div style="font-size:11.5px; color:var(--vibe-cyan); margin-top:2px;">⏳ 24s canlı • Günde max 3 paylaşım • ~150m gizlilik</div>
+          <div style="font-size:11.5px; color:var(--cyan); margin-top:2px;">⏳ 24s canlı • Profil resminle haritaya pinlenir</div>
         </div>
         <button class="close-btn" onclick="closeModal('createModal')">✕</button>
       </div>
@@ -674,21 +632,19 @@
         <button class="cat-opt" onclick="selectCat('deal', this)">⚡ Fırsat</button>
       </div>
 
-      <div id="ghostFields" style="display:none; padding:11px; border-radius:15px; background:rgba(155,93,229,0.14); border:1px solid rgba(155,93,229,0.42); margin-bottom:10px;">
+      <div id="ghostFields" style="display:none; padding:11px; border-radius:15px; background:rgba(168,85,247,0.14); border:1px solid rgba(168,85,247,0.42); margin-bottom:10px;">
         <div style="font-size:11.5px; color:#d8b4fe; font-weight:800; margin-bottom:8px;">👻 Kurucu Hayalet Karakter</div>
         <input type="text" id="ghostNameInput" placeholder="Hayalet İsim" />
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
-          <select id="ghostGenderInput" style="margin-bottom:0; padding:9px;"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
-          <input type="number" id="ghostAgeInput" min="13" max="99" placeholder="Yaş" style="margin-bottom:0; padding:9px;" />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
           <input type="text" id="ghostEmojiInput" placeholder="🦊" maxlength="4" style="margin-bottom:0; padding:9px; text-align:center;" />
+          <label class="media-btn" for="ghostAvatarFileInput" id="ghostAvLabel" style="margin-bottom:0; border-color:var(--purple);">🎭 Profil Fotoğrafı</label>
         </div>
-        <label class="media-btn" for="ghostAvatarFileInput" id="ghostAvLabel" style="margin-bottom:4px; border-color:var(--vibe-violet);">🎭 Hayalet Profil Fotoğrafı</label>
         <input type="file" id="ghostAvatarFileInput" accept="image/*" style="display:none;" onchange="handleGhostAvatarFile(this)" />
       </div>
 
       <textarea id="pinText" rows="2" placeholder="Şu an tam burada ne oluyor? Paylaş..."></textarea>
       <div class="media-row">
-        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--vibe-cyan);">📸 Kamera</label>
+        <label class="media-btn" for="cameraInput" id="cameraLabel" style="border-color:var(--cyan);">📸 Kamera</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(this, 'camera')" />
         <label class="media-btn" for="galleryInput" id="galleryLabel">🖼️ Galeri</label>
         <input type="file" id="galleryInput" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this, 'gallery')" />
@@ -708,17 +664,17 @@
           <div id="detailTrustBadge" style="font-size:11px; color:var(--green); margin-top:2px;">🛡️ Güven: 100 • ⏳ 24s</div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
-          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--vibe-violet); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
+          <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--purple); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
           <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
           <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
         </div>
       </div>
-      <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(255,230,0,0.14); border:1px solid var(--snap-yellow); color:#fef08a; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
+      <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(250,204,21,0.16); border:1px solid var(--gold); color:#fef08a; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
       <img id="detailImg" onclick="openLightbox(this.src, document.getElementById('detailAuthor').textContent)" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px; cursor:pointer;" />
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:12px;"></p>
 
-      <button id="goingEventBtn" onclick="upvoteCurrentPin()" style="width:100%; padding:11px; border-radius:13px; border:1px solid rgba(0,245,212,0.5); background:rgba(0,245,212,0.14); color:var(--vibe-cyan); font-size:13.5px; font-weight:800; cursor:pointer; margin-bottom:10px;">🎟️ Ben de Gidiyorum / Katılacağım (<span id="detailGoingCount">1</span> Kişi)</button>
+      <button id="goingEventBtn" onclick="upvoteCurrentPin()" style="width:100%; padding:11px; border-radius:13px; border:1px solid rgba(34,211,238,0.5); background:rgba(34,211,238,0.14); color:var(--cyan); font-size:13.5px; font-weight:800; cursor:pointer; margin-bottom:10px;">🎟️ Ben de Gidiyorum / Katılacağım (<span id="detailGoingCount">1</span> Kişi)</button>
 
       <div class="action-bar">
         <button class="act-pill" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
@@ -743,7 +699,7 @@
         <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
       </div>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-        <div id="profilePhotoPreview" onclick="viewMyProfilePhoto()" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; border:2px solid var(--vibe-cyan); cursor:pointer;">🦊</div>
+        <div id="profilePhotoPreview" onclick="viewMyProfilePhoto()" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; border:2px solid var(--cyan); cursor:pointer;">🦊</div>
         <label class="media-btn" for="avatarFileInput" style="flex:1;" id="avatarUploadLabel">📸 Galeriden Fotoğraf Yükle</label>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)" />
       </div>
@@ -761,14 +717,11 @@
         <div class="av-opt" onclick="pickAvatar('🔥', this)">🔥</div>
         <div class="av-opt" onclick="pickAvatar('✨', this)">✨</div>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
-        <select id="profileGenderInput" style="margin-bottom:8px;"><option value="">Cinsiyet</option><option value="female">👩 Kadın</option><option value="male">👨 Erkek</option><option value="other">🧑 Diğer</option></select>
-        <input type="date" id="profileBirthInput" style="margin-bottom:8px;" />
-      </div>
       <input type="text" id="profileNameInput" placeholder="Kullanıcı Adın" style="margin-bottom:8px;" />
       <button class="btn-primary" style="margin-bottom:8px;" onclick="saveProfile()">💾 Profili Kaydet</button>
-      <button id="manageAdminsBtn" class="btn-gold" style="display:none; margin-bottom:8px;" onclick="openAdminRolesModal()">👑 Admin & Yetki Yönetimi (Kurucu)</button>
-      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:8px; border-color:var(--gold); color:#fef08a;" onclick="openAdminTickets()">📬 Gelen Destek & Şikayet Talepleri</button>
+      <button class="btn-secondary" style="margin-bottom:8px;" onclick="closeModal('profileModal'); openModal('langModal');">🌐 Dil Seçimi</button>
+      <button id="manageAdminsBtn" class="btn-gold" style="display:none; margin-bottom:8px;" onclick="openAdminRolesModal()">👑 Admin & Yetki Yönetimi</button>
+      <button id="adminTicketsBtn" class="btn-secondary" style="display:none; margin-bottom:8px; border-color:var(--gold); color:#fef08a;" onclick="openAdminTickets()">📬 Gelen Destek Talepleri</button>
       <button class="btn-secondary" style="margin-bottom:8px; color:#f87171;" onclick="signOutUser()">Çıkış Yap</button>
       <button class="btn-danger" onclick="openDeleteAccountModal()">🗑️ Hesabımı Kalıcı Olarak Sil</button>
     </div>
@@ -850,8 +803,8 @@
   <div id="supportModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('supportModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🆘 Sorun Bildir & Sponsorluk</div><button class="close-btn" onclick="closeModal('supportModal')">✕</button></div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:10px;">İletişim: <strong style="color:var(--vibe-cyan);">getvibepin@gmail.com</strong></p>
-      <select id="supportCat"><option value="business">🚩 Mekan Sponsorluğu</option><option value="bug">🐞 Teknik Sorun</option><option value="abuse">🚨 Şikayet</option></select>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:10px;">İletişim: <strong style="color:var(--cyan);">getvibepin@gmail.com</strong></p>
+      <select id="supportCat"><option value="business">🏪 Mekan Sponsorluğu</option><option value="bug">🐞 Teknik Sorun</option><option value="abuse">🚨 Şikayet</option></select>
       <textarea id="supportMsg" rows="3" placeholder="Mesajını yaz..."></textarea>
       <button class="btn-primary" onclick="submitSupportTicket()">📨 Gönder</button>
     </div>
@@ -866,11 +819,11 @@
 
   <div id="adModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('adModal')">
     <div class="sheet" style="text-align:center;">
-      <div class="sheet-header"><div class="sheet-title">🚩 Sponsorlu Mekan Tanıtımı</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
-      <div id="sponsorAdCardText" style="padding:14px; border-radius:14px; background:rgba(255,230,0,0.12); border:1px solid var(--snap-yellow); margin-bottom:12px; font-size:13.5px;">Semtindeki öne çıkan mekan kampanyalarını incele!</div>
+      <div class="sheet-header"><div class="sheet-title">🏪 Sponsorlu Mekan Tanıtımı</div><button class="close-btn" onclick="closeModal('adModal')">✕</button></div>
+      <div id="sponsorAdCardText" style="padding:14px; border-radius:14px; background:rgba(250,204,21,0.12); border:1px solid var(--gold); margin-bottom:12px; font-size:13.5px;">Semtindeki öne çıkan mekan kampanyalarını incele!</div>
       <p id="adModalDesc" style="font-size:13px; color:var(--muted); margin-bottom:14px;">10 istek hakkın doldu. +1 ek istek hakkı için sponsorlu tanıtımı izle.</p>
       <div id="adCountdownBox" style="display:none; padding:14px; font-weight:800; font-size:16px;">⏳ <span id="adSec">5</span> s...</div>
-      <button class="btn-gold" id="watchAdBtn" onclick="startRewardAd()">🚩 Tanıtımı İzle (+1 İstek Aç)</button>
+      <button class="btn-gold" id="watchAdBtn" onclick="startRewardAd()">Tanıtımı İzle (+1 İstek Aç)</button>
     </div>
   </div>
   <script>
@@ -878,26 +831,12 @@
     const SUPA_URL = 'https://xotxhjckccwvddahdvxo.supabase.co';
     const SUPA_KEY = 'sb_publishable_ZXCOMpaIBJJYQnASuBJqGA_uYPM3tXA';
     const IMPORTANT_KEYWORDS = ['kaza', 'yangın', 'yangin', 'acil', 'önemli', 'onemli', 'ünlü', 'unlu', 'görüldü', 'goruldu', 'konser', 'olay', 'yardım', 'yardim', 'ambulans', 'polis', 'trafik', 'accident', 'fire', 'emergency', 'concert'];
-    const CAT_META = { event: { emoji: '🎉', color: '#9b5de5' }, social: { emoji: '☕', color: '#00bbf9' }, question: { emoji: '❓', color: '#ffbe0b' }, deal: { emoji: '⚡', color: '#00f5d4' } };
+    const BIZ_COLOR_MAP = { '☕': '#d97706', '🍴': '#f97316', '🎶': '#9333ea', '🛍️': '#ec4899', '💇': '#06b6d4', '⚡': '#10b981' };
 
     const LANG_DICT = {
-      tr: { live_badge: 'Şehrin Canlı Haritası', tagline: 'Şehrindeki anlık etkinlikleri, mekanları ve vibe\'ı gör', login_tab: 'Giriş Yap', signup_tab: 'Kayıt Ol', google_btn: 'Google ile Devam Et', or_email: 'veya e-posta', login_btn: 'Giriş Yap', return_loc: 'Konumuma Dön', cat_all: '🔥 Tümü', cat_sponsored: '🚩 İşletmeler', cat_event: '🎉 Etkinlik', cat_social: '☕ Yeme & İçme', cat_question: '❓ Durum / Soru', cat_deal: '⚡ Fırsat', dock_map: 'Harita', dock_explore: 'Ara / Keşfet', dock_events: 'Etkinlik', dock_profile: 'Profil' },
-      en: { live_badge: 'Live City Map', tagline: 'See live events, spots & vibes around your city', login_tab: 'Sign In', signup_tab: 'Sign Up', google_btn: 'Continue with Google', or_email: 'or email', login_btn: 'Sign In', return_loc: 'My Location', cat_all: '🔥 All', cat_sponsored: '🚩 Venues', cat_event: '🎉 Events', cat_social: '☕ Food & Drink', cat_question: '❓ Status / Q&A', cat_deal: '⚡ Deals', dock_map: 'Map', dock_explore: 'Search', dock_events: 'Events', dock_profile: 'Profile' }
+      tr: { headline: 'Şehrin. Senin anın.', tagline: 'Çevrende şu an neler yaşandığını anında keşfet.', google_btn: 'Google ile Devam Et', email_btn: 'E-posta ile Devam Et', login_tab: 'Giriş Yap', signup_tab: 'Kayıt Ol', login_btn: 'Giriş Yap', cat_all: '⭐ Sana Özel', cat_event: '📅 Etkinlik', cat_social: '🍴 Yeme & İçme', cat_deal: '🏷️ Fırsatlar', cat_sponsored: '🏪 İşletmeler', cat_question: '❓ Durum / Soru', dock_map: 'Harita', dock_explore: 'Keşfet', dock_biz: 'İşletme', dock_profile: 'Profil' },
+      en: { headline: 'Your city. Your moment.', tagline: 'Discover what\'s happening around you.', google_btn: 'Continue with Google', email_btn: 'Continue with email', login_tab: 'Sign In', signup_tab: 'Sign Up', login_btn: 'Sign In', cat_all: '⭐ For you', cat_event: '📅 Events', cat_social: '🍴 Food & drink', cat_deal: '🏷️ Deals', cat_sponsored: '🏪 Venues', cat_question: '❓ Status / Q&A', dock_map: 'Map', dock_explore: 'Explore', dock_biz: 'Business', dock_profile: 'Profile' }
     };
-
-    const GLOBAL_DAILY_VENUES = [
-      { city: "İstanbul, Türkiye", venue: "Zorlu PSM — Beşiktaş", lat: 41.0664, lng: 29.0172, text: "🎭 Zorlu PSM Sahne Etkinliği & Akşam Konseri" },
-      { city: "İstanbul, Türkiye", venue: "Moda Sahnesi — Kadıköy", lat: 40.9856, lng: 29.0268, text: "🎬 Kadıköy Moda Sahnesi Tiyatro & Akustik Gece" },
-      { city: "Ankara, Türkiye", venue: "CSO Ada Ankara", lat: 39.9365, lng: 32.8510, text: "🎻 CSO Ada Ankara Senfoni & Kültür Sanat Etkinliği" },
-      { city: "İzmir, Türkiye", venue: "Alsancak Kordon", lat: 38.4278, lng: 27.1436, text: "🌊 İzmir Kordon Gün Batımı Müzik & Sosyal Buluşma" },
-      { city: "Antalya, Türkiye", venue: "Antalya Kültür Merkezi (AKM)", lat: 36.8856, lng: 30.6778, text: "🎭 AKM Kültür Sanat Gösterisi & Akşam Etkinliği" },
-      { city: "Bursa, Türkiye", venue: "Merinos Kültür Merkezi", lat: 40.1958, lng: 29.0487, text: "🎪 Merinos AKKM Konser & Gençlik Etkinliği" },
-      { city: "Malatya, Türkiye", venue: "Malatya Kongre Kültür Merkezi", lat: 38.3489, lng: 38.3186, text: "🏛️ Malatya Kültür Merkezi Akşam Etkinliği" },
-      { city: "London, UK", venue: "Southbank Centre", lat: 51.5058, lng: -0.1168, text: "🇬🇧 London Southbank Live Music & Cultural Evening" },
-      { city: "Paris, France", venue: "Place de la République", lat: 48.8675, lng: 2.3638, text: "🇫🇷 Paris Evening Street Art & Live Session" },
-      { city: "Berlin, Germany", venue: "Alexanderplatz", lat: 52.5219, lng: 13.4132, text: "🇩🇪 Berlin Night Culture & Music Gathering" },
-      { city: "New York, USA", venue: "Times Square & Bryant Park", lat: 40.7536, lng: -73.9832, text: "🇺🇸 NYC Bryant Park Live Evening Event" }
-    ];
 
     let currentLang = localStorage.getItem('vibepin_lang') || ((navigator.language || '').toLowerCase().slice(0, 2));
     if (!LANG_DICT[currentLang]) currentLang = 'en';
@@ -910,8 +849,7 @@
         if (dict[k]) el.textContent = dict[k];
       });
       const code = currentLang.toUpperCase();
-      document.getElementById('gateLangBtn').textContent = '🌐 ' + code;
-      document.getElementById('topLangBtn').textContent = code;
+      document.getElementById('gateLangBtn').textContent = '🌐 ' + code + ' ▾';
       document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active'));
       const activeEl = document.getElementById('langOpt-' + currentLang);
       if (activeEl) activeEl.classList.add('active');
@@ -922,6 +860,11 @@
       localStorage.setItem('vibepin_lang', currentLang);
       applyLanguage();
       closeModal('langModal');
+    }
+
+    function toggleEmailDrawer() {
+      const d = document.getElementById('emailAuthDrawer');
+      d.style.display = d.style.display === 'block' ? 'none' : 'block';
     }
 
     function openLightbox(url, caption = '') {
@@ -946,13 +889,12 @@
       else showToast(`${activeChatFriend.name} (${activeChatFriend.profile?.avatar_emoji || '🦊'})`);
     }
 
-    let sb = null, map = null, tileLayerObj = null, currentMapMode = 'dark';
+    let sb = null, map = null, tileLayerObj = null, currentMapMode = 'street';
     let realGpsCoords = [41.0082, 28.9784], userCoords = [41.0082, 28.9784], selectedCoords = null;
     let currentFilter = 'all', selectedCategory = 'event', ghostMode = false, currentUser = null, isBirthdayToday = false;
     let adminPerms = { isFounder: false, can_tickets: false, can_events: false, can_flags: false, can_delete_pins: false };
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, trust_score: 100, is_banned: false, friend_requests_sent: 0 };
-    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, heatmapLayer = null, heatmapVisible = false, myLocationMarker = null;
-    let draggableFlagMarker = null, pendingFlagCoords = null;
+    let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, myLocationMarker = null;
     let selectedPhotoFile = null, selectedAvatarFile = null, selectedGhostAvatarFile = null, selectedVenuePhotoFile = null;
     let selectedDmPhotoFile = null, dmAudioBlob = null, dmRecorder = null, dmAudioChunks = [], speechRecognizer = null, isListeningStt = false;
     let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
@@ -969,24 +911,24 @@
     function hasVipAccess() { return isFounder() || adminPerms.can_events || isBirthdayToday; }
     function formatTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-    function setActiveDock(btnId) {
-      document.querySelectorAll('.dock-item').forEach(b => b.classList.remove('active'));
+    function setActiveNav(btnId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       const el = document.getElementById(btnId);
       if (el) el.classList.add('active');
     }
 
-    function focusMapView() { setActiveDock('dockMapBtn'); locateUser(); }
+    function focusMapView() { setActiveNav('navMapBtn'); locateUser(); }
 
     /* 🔍 Kullanıcı Arama & Keşfet Ekranı */
     function openExploreSheet() {
-      setActiveDock('dockExploreBtn');
+      setActiveNav('navExploreBtn');
       document.getElementById('globalUserSearchInput').value = '';
       document.getElementById('userSearchResultsBox').innerHTML = '';
       const hotList = [...allPins].sort((a, b) => getPinImportance(b).score - getPinImportance(a).score).slice(0, 10);
       document.getElementById('explorePinsListContainer').innerHTML = !hotList.length
         ? '<div style="text-align:center;color:var(--muted);padding:12px;font-size:12.5px;">Henüz canlı paylaşım yok.</div>'
         : hotList.map(pin => `<div onclick="closeModal('exploreSearchModal'); if(map) map.flyTo([${pin.latitude},${pin.longitude}],15); openPinDetailById('${pin.id}')" style="padding:11px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;">
-            <div style="font-size:13px;font-weight:800;color:var(--vibe-cyan);">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')}</div>
+            <div style="font-size:13px;font-weight:800;color:var(--cyan);">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')}</div>
             <div style="font-size:12px;color:#e2e8f0;margin-top:2px;">${esc(pin.content_text)}</div>
           </div>`).join('');
       openModal('exploreSearchModal');
@@ -1001,7 +943,7 @@
         box.innerHTML = q.length === 1 ? '<div style="font-size:12px;color:var(--muted);padding:6px;">En az 2 harf yazın...</div>' : '';
         return;
       }
-      box.innerHTML = '<div style="font-size:12px;color:var(--vibe-cyan);padding:6px;">🔎 Kullanıcılar aranıyor...</div>';
+      box.innerHTML = '<div style="font-size:12px;color:var(--cyan);padding:6px;">🔎 Kullanıcılar aranıyor...</div>';
       userSearchTimer = setTimeout(async () => {
         const { data, error } = await sb.from('profiles')
           .select('id,username,avatar_emoji,avatar_url,trust_score')
@@ -1023,7 +965,7 @@
           const avInner = safeImg ? `<img src="${safeImg}" />` : esc(u.avatar_emoji || '🦊');
           const actionBtn = isFriend
             ? `<button onclick="closeModal('exploreSearchModal'); openDirectChat('${u.id}')" style="padding:7px 12px;border-radius:999px;border:none;background:var(--wa-green);color:#fff;font-size:11.5px;font-weight:800;cursor:pointer;">💬 Mesaj</button>`
-            : `<button onclick="sendFriendRequestToUser('${u.id}', '${safeName.replace(/'/g, "\\'")}')" style="padding:7px 12px;border-radius:999px;border:none;background:var(--vibe-violet);color:#fff;font-size:11.5px;font-weight:800;cursor:pointer;">➕ Ekle</button>`;
+            : `<button onclick="sendFriendRequestToUser('${u.id}', '${safeName.replace(/'/g, "\\'")}')" style="padding:7px 12px;border-radius:999px;border:none;background:var(--purple);color:#fff;font-size:11.5px;font-weight:800;cursor:pointer;">➕ Ekle</button>`;
 
           return `<div class="user-search-card">
             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
@@ -1047,11 +989,8 @@
         return;
       }
       const { error } = await sb.from('friendships').insert([{
-        sender_id: currentUser.id,
-        receiver_id: targetUserId,
-        sender_name: myProfile.username,
-        receiver_name: targetUserName || 'Kullanıcı',
-        status: 'pending'
+        sender_id: currentUser.id, receiver_id: targetUserId,
+        sender_name: myProfile.username, receiver_name: targetUserName || 'Kullanıcı', status: 'pending'
       }]);
       if (error) return showToast('İstek zaten gönderilmiş veya hata oluştu.');
       myProfile.friend_requests_sent = sent + 1;
@@ -1059,38 +998,20 @@
       showToast(`📨 ${targetUserName} kullanıcısına istek gönderildi!`);
     }
 
-    function openEventsSheet() {
-      setActiveDock('dockEventsBtn');
-      const events = allPins.filter(p => p.category === 'event');
-      document.getElementById('clusterTitle').textContent = `🎟️ Etkinlik Paylaşımları (${events.length})`;
-      document.getElementById('clusterListContainer').innerHTML = !events.length
-        ? '<div style="text-align:center;color:var(--muted);padding:16px;">Şu an aktif etkinlik paylaşımı yok.</div>'
-        : events.map(pin => `<div onclick="closeModal('clusterModal'); if(map) map.flyTo([${pin.latitude},${pin.longitude}],15); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(155,93,229,0.12);border:1px solid rgba(155,93,229,0.4);cursor:pointer;">
-            <div style="font-size:13px;font-weight:800;color:#e9d5ff;">🎉 ${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')}</div>
-            <div style="font-size:12.5px;color:#f8fafc;margin-top:2px;">${esc(pin.content_text)}</div>
-          </div>`).join('');
-      openModal('clusterModal');
-    }
-
-    function renderEventRings() {
-      const strip = document.getElementById('friendsEventBar');
-      if (!strip) return;
-      const eventPins = allPins.filter(p => p.category === 'event').slice(0, 14);
-      if (!eventPins.length) {
-        strip.innerHTML = `<div class="event-ring-item" onclick="openCreatePin()">
-          <div class="event-ring-border"><div class="event-ring-inner">🎉</div></div>
-          <div class="event-ring-label">Etkinlik Aç</div>
-        </div>`;
-        return;
-      }
-      strip.innerHTML = eventPins.map(pin => {
-        const name = pin.ghost_author_name || pin.profiles?.username || 'Etkinlik';
-        const avContent = pin.ghost_avatar_url
-          ? `<img src="${esc(pin.ghost_avatar_url)}" />`
-          : (pin.profiles?.avatar_url ? `<img src="${esc(pin.profiles.avatar_url)}" />` : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🎉'));
-        return `<div class="event-ring-item" onclick="if(map) map.flyTo([${pin.latitude},${pin.longitude}],15); openPinDetailById('${pin.id}')">
-          <div class="event-ring-border"><div class="event-ring-inner">${avContent}</div></div>
-          <div class="event-ring-label">${esc(name)}</div>
+    function renderLiveNearbyCards() {
+      const row = document.getElementById('liveNearbyCardsRow');
+      if (!row) return;
+      const list = allPins.slice(0, 8);
+      row.innerHTML = list.map(pin => {
+        const title = esc(pin.ghost_author_name || pin.profiles?.username || 'Canlı Vibe');
+        const desc = esc(pin.content_text || '');
+        const badge = pin.is_sponsored ? (pin.ghost_avatar_emoji || '🏪') : (pin.category === 'event' ? '📅' : (pin.category === 'social' ? '🍴' : '✨'));
+        return `<div class="live-mini-card" onclick="if(map) map.flyTo([${pin.latitude},${pin.longitude}],16); openPinDetailById('${pin.id}')">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;">
+            <div style="font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+            <span style="font-size:13px;">${badge}</span>
+          </div>
+          <div style="font-size:11px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${desc}</div>
         </div>`;
       }).join('');
     }
@@ -1133,39 +1054,6 @@
       document.getElementById('statTotalComments').textContent = cmtCnt || 0;
     }
 
-    function toggleHeatmap() {
-      heatmapVisible = !heatmapVisible;
-      const btn = document.getElementById('heatmapToggleBtn');
-      btn.style.background = heatmapVisible ? 'rgba(255,84,0,0.28)' : 'var(--panel)';
-      btn.style.color = heatmapVisible ? '#ffffff' : '#ffb599';
-      renderHeatmap();
-      showToast(heatmapVisible ? '🌡️ Bölge yoğunluk katmanı açıldı' : '🌡️ Yoğunluk katmanı kapatıldı');
-    }
-
-    function renderHeatmap() {
-      if (!map) return;
-      if (heatmapLayer) { map.removeLayer(heatmapLayer); heatmapLayer = null; }
-      if (!heatmapVisible || !allPins.length) return;
-      heatmapLayer = L.layerGroup();
-
-      const cells = [];
-      allPins.forEach(p => {
-        let hit = cells.find(c => getDistanceKm(c.lat, c.lng, p.latitude, p.longitude) <= 0.65);
-        if (hit) { hit.count += 1; hit.lat = (hit.lat + p.latitude) / 2; hit.lng = (hit.lng + p.longitude) / 2; }
-        else cells.push({ lat: p.latitude, lng: p.longitude, count: 1 });
-      });
-
-      const maxCount = Math.max(...cells.map(c => c.count), 1);
-      cells.forEach(cell => {
-        const ratio = cell.count / maxCount;
-        let fillColor = '#bae6fd', strokeColor = '#00bbf9', fillOpacity = 0.2;
-        if (ratio >= 0.66) { fillColor = '#ef4444'; strokeColor = '#dc2626'; fillOpacity = 0.44; }
-        else if (ratio >= 0.34) { fillColor = '#ff5400'; strokeColor = '#ea580c'; fillOpacity = 0.32; }
-        heatmapLayer.addLayer(L.circle([cell.lat, cell.lng], { radius: 260 + cell.count * 65, color: strokeColor, weight: 1.5, fillColor, fillOpacity }));
-      });
-      heatmapLayer.addTo(map);
-    }
-
     async function loadUserPermissions() {
       if (!currentUser || !currentUser.email) return;
       if (isFounder()) { adminPerms = { isFounder: true, can_tickets: true, can_events: true, can_flags: true, can_delete_pins: true }; return; }
@@ -1198,27 +1086,19 @@
       return esc((profile && profile.avatar_emoji) || fallbackEmoji);
     }
 
+    function cycleMapStyle() {
+      const order = ['street', 'satellite', 'dark'];
+      const next = order[(order.indexOf(currentMapMode) + 1) % order.length];
+      setMapStyle(next);
+      showToast(next === 'street' ? '🏙️ Sokak Haritası' : (next === 'satellite' ? '🛰️ Uydu Görünümü' : '🌑 Gece Haritası'));
+    }
+
     function setMapStyle(mode) {
       if (!map || !tileLayerObj) return;
       currentMapMode = mode; map.removeLayer(tileLayerObj);
-      document.querySelectorAll('.mm-tab').forEach(el => el.classList.remove('active'));
-      const active = document.getElementById('mm-' + mode); if (active) active.classList.add('active');
       if (mode === 'satellite') tileLayerObj = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
-      else if (mode === 'street') tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      else tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
-    }
-
-    function initSwipeMapBar() {
-      const bar = document.getElementById('mapModeSwipeBar'); if (!bar) return;
-      let startX = 0; const modes = ['dark', 'satellite', 'street'];
-      bar.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-      bar.addEventListener('touchend', (e) => {
-        const diff = e.changedTouches[0].clientX - startX;
-        if (Math.abs(diff) < 25) return;
-        const idx = modes.indexOf(currentMapMode);
-        if (diff < 0 && idx < modes.length - 1) setMapStyle(modes[idx + 1]);
-        else if (diff > 0 && idx > 0) setMapStyle(modes[idx - 1]);
-      }, { passive: true });
+      else if (mode === 'dark') tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
+      else tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
     }
 
     function switchAuthMode(mode) {
@@ -1239,28 +1119,23 @@
     }
 
     function initApp() {
-      applyLanguage(); initSwipeMapBar();
+      applyLanguage();
       if (!window.supabase) { document.getElementById('loginStatus').textContent = 'Connection error.'; return; }
       sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v30' }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'vibepin_auth_v31' }
       });
       document.getElementById('googleLoginBtn').addEventListener('click', () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://getvibepin.github.io/vibepin/' } }));
       document.getElementById('loginBtn').addEventListener('click', gateSignIn);
       document.getElementById('signupBtn').addEventListener('click', gateSignUp);
 
       if (window.L) {
-        map = L.map('map', { zoomControl: false }).setView(userCoords, 13);
-        tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'dark-tiles' }).addTo(map);
+        map = L.map('map', { zoomControl: false }).setView(userCoords, 14);
+        tileLayerObj = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
         markersLayer = L.layerGroup().addTo(map);
-        const myLocIcon = L.divIcon({ className: '', html: `<div class="my-loc-wrap"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
+        const myLocIcon = L.divIcon({ className: '', html: `<div class="my-loc-wrap"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>`, iconSize: [34, 34], iconAnchor: [17, 17] });
         myLocationMarker = L.marker(realGpsCoords, { icon: myLocIcon, zIndexOffset: 1000 }).addTo(map);
         map.on('zoomend', () => renderPins());
-        map.on('moveend', () => {
-          const c = map.getCenter();
-          document.getElementById('returnLocBtn').style.display = getDistanceKm(realGpsCoords[0], realGpsCoords[1], c.lat, c.lng) > 0.6 ? 'flex' : 'none';
-        });
         map.on('click', (e) => {
-          if (draggableFlagMarker) { draggableFlagMarker.setLatLng(e.latlng); pendingFlagCoords = [e.latlng.lat, e.latlng.lng]; return; }
           if (ghostMode && isFounder()) { selectedCoords = [e.latlng.lat, e.latlng.lng]; openCreatePin(true); }
         });
       }
@@ -1276,21 +1151,34 @@
       document.getElementById('founderStatsBtn').style.display = isFounder() ? 'flex' : 'none';
       document.getElementById('ghostBtn').style.display = isFounder() ? 'flex' : 'none';
       document.getElementById('manageAdminsBtn').style.display = isFounder() ? 'block' : 'none';
-      document.getElementById('venueFlagQuickBtn').style.display = adminPerms.can_flags ? 'flex' : 'none';
-      document.getElementById('trEventsBtn').style.display = adminPerms.can_events ? 'flex' : 'none';
       document.getElementById('adminTicketsBtn').style.display = adminPerms.can_tickets ? 'block' : 'none';
       if (map) setTimeout(() => map.invalidateSize(), 200);
       locateUser(); await loadBlockedUsers(); await refreshFriendsData(); loadPins(); setupRealtime(); startSessionHeartbeat(); checkNotifications();
       setInterval(checkNotifications, 10000);
     }
 
-    function openBusinessSetupModal() { openModal('businessSetupModal'); }
+    /* 🏪 4. İşletme Paylaşımı & Kampanya Ekleme (Kategori Sembolüyle Haritaya Pinlenir) */
+    function openBusinessSetupModal() {
+      setActiveNav('navBizBtn');
+      selectedVenuePhotoFile = null;
+      document.getElementById('venuePhotoPreview').style.display = 'none';
+      openModal('businessSetupModal');
+    }
+
+    function handleVenuePhoto(input) {
+      if (input.files?.[0]) {
+        selectedVenuePhotoFile = input.files[0];
+        const img = document.getElementById('venuePhotoPreview');
+        img.src = URL.createObjectURL(selectedVenuePhotoFile);
+        img.style.display = 'block';
+      }
+    }
+
     async function saveBusinessProfile() {
       const bizName = document.getElementById('bizNameInput').value.trim();
-      const bizCat = document.getElementById('bizCategorySelect').value;
+      const bizCatSymbol = document.getElementById('bizCategorySelect').value || '☕';
       const bizAddr = document.getElementById('bizAddressInput').value.trim();
       const selling = document.getElementById('bizSellingInput').value.trim();
-      const campType = document.getElementById('bizCampaignTypeSelect').value;
       const campDetail = document.getElementById('bizCampaignDetailInput').value.trim();
       if (!bizName || !bizAddr || !campDetail) return showToast('İşletme adı, tam adres ve kampanya detayını yazın.');
 
@@ -1304,14 +1192,38 @@
         if (data && data[0]) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
       } catch (_e) {}
 
-      await sb.from('business_profiles').insert([{ owner_id: currentUser.id, business_name: bizName, category: bizCat, address: bizAddr, selling_items: selling, campaign_type: campType, campaign_detail: campDetail, latitude: lat, longitude: lng }]);
-      const fullText = `${campDetail}${selling ? ' • Ürünler: ' + selling : ''} (${bizAddr})`;
-      await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: bizName, category: 'deal', content_text: fullText, latitude: lat, longitude: lng, is_sponsored: true, sponsor_title: bizName, expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString() }]);
+      let image_url = null;
+      if (selectedVenuePhotoFile) {
+        const path = `${currentUser.id}/biz_${Date.now()}.jpg`;
+        const { error } = await sb.storage.from('vibe-media').upload(path, selectedVenuePhotoFile);
+        if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+      }
 
-      btn.disabled = false; btn.textContent = '💾 İşletme Profilini Kaydet & Haritada Göster';
+      await sb.from('business_profiles').insert([{
+        owner_id: currentUser.id, business_name: bizName, category: bizCatSymbol,
+        address: bizAddr, selling_items: selling, campaign_type: bizCatSymbol,
+        campaign_detail: campDetail, latitude: lat, longitude: lng
+      }]);
+
+      const fullText = `${campDetail}${selling ? ' • Ürünler: ' + selling : ''} (${bizAddr})`;
+      await sb.from('pins').insert([{
+        user_id: currentUser.id,
+        ghost_author_name: bizName,
+        ghost_avatar_emoji: bizCatSymbol,
+        category: 'deal',
+        content_text: fullText,
+        latitude: lat,
+        longitude: lng,
+        image_url,
+        is_sponsored: true,
+        sponsor_title: bizName,
+        expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
+      }]);
+
+      btn.disabled = false; btn.textContent = '📍 İşletme Kampanyasını Haritaya Pinle';
       closeModal('businessSetupModal');
-      if (map) map.flyTo([lat, lng], 15);
-      showToast('🏪 İşletme kaydedildi ve haritada bayraklandı!');
+      if (map) map.flyTo([lat, lng], 16);
+      showToast(`${bizCatSymbol} İşletme haritaya pinlendi!`);
       loadPins();
     }
 
@@ -1325,7 +1237,7 @@
       if (!isFounder()) return;
       const email = document.getElementById('newAdminEmailInput').value.trim().toLowerCase();
       if (!email || !email.includes('@')) return showToast('Geçerli bir e-posta girin.');
-      await sb.from('app_admins').upsert({ email, can_tickets: document.getElementById('permTickets').checked, can_events: document.getElementById('permEvents').checked, can_flags: document.getElementById('permFlags').checked, can_delete_pins: document.getElementById('permDeletePins').checked });
+      await sb.from('app_admins').upsert({ email, can_tickets: document.getElementById('permTickets').checked, can_delete_pins: document.getElementById('permDeletePins').checked });
       document.getElementById('newAdminEmailInput').value = ''; showToast('👑 Admin yetkileri kaydedildi!'); loadAdminsList();
     }
     async function removeAdmin(email) { if (!isFounder()) return; await sb.from('app_admins').delete().eq('email', email); loadAdminsList(); }
@@ -1390,18 +1302,18 @@
       const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
       if (data) myProfile = data;
       document.getElementById('profileNameInput').value = myProfile.username || '';
-      const prevBox = document.getElementById('profilePhotoPreview'), dockIcon = document.getElementById('dockProfileIcon');
+      const avBtn = document.getElementById('myAvatarBtn'), prevBox = document.getElementById('profilePhotoPreview');
       if (myProfile.avatar_url) {
+        avBtn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
         prevBox.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
-        dockIcon.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />`;
       } else {
+        avBtn.textContent = myProfile.avatar_emoji || '🦊';
         prevBox.textContent = myProfile.avatar_emoji || '🦊';
-        dockIcon.textContent = myProfile.avatar_emoji || '🦊';
       }
     }
 
-    function openProfileModal() { setActiveDock('dockProfileBtn'); openModal('profileModal'); }
-    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); document.getElementById('profilePhotoPreview').textContent = emoji; document.getElementById('dockProfileIcon').textContent = emoji; }
+    function openProfileModal() { setActiveNav('navProfileBtn'); openModal('profileModal'); }
+    function pickAvatar(emoji, el) { myProfile.avatar_emoji = emoji; myProfile.avatar_url = null; document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected')); el.classList.add('selected'); document.getElementById('myAvatarBtn').textContent = emoji; document.getElementById('profilePhotoPreview').textContent = emoji; }
     function handleAvatarFile(input) { if (input.files?.[0]) { selectedAvatarFile = input.files[0]; document.getElementById('avatarUploadLabel').textContent = '✅ Seçildi'; const img = document.createElement('img'); img.src = URL.createObjectURL(selectedAvatarFile); img.style.cssText = 'width:100%;height:100%;object-fit:cover;'; const prev = document.getElementById('profilePhotoPreview'); prev.innerHTML = ''; prev.appendChild(img); } }
 
     async function saveProfile() {
@@ -1431,87 +1343,12 @@
     }
 
     async function signOutUser() { await sb.auth.signOut(); currentUser = null; closeModal('profileModal'); document.getElementById('authGate').style.display = 'flex'; }
-    function locateUser() { if (!navigator.geolocation || !map) return; navigator.geolocation.getCurrentPosition((pos) => { realGpsCoords = [pos.coords.latitude, pos.coords.longitude]; userCoords = [...realGpsCoords]; map.flyTo(userCoords, 15); if (myLocationMarker) myLocationMarker.setLatLng(realGpsCoords); document.getElementById('returnLocBtn').style.display = 'none'; }, () => {}, { enableHighAccuracy: true }); }
-    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').classList.toggle('ghost-active', ghostMode); showToast(ghostMode ? '👑 Kurucu Hayalet Modu Açık' : 'Kapalı'); }
+    function locateUser() { if (!navigator.geolocation || !map) return; navigator.geolocation.getCurrentPosition((pos) => { realGpsCoords = [pos.coords.latitude, pos.coords.longitude]; userCoords = [...realGpsCoords]; map.flyTo(userCoords, 15); if (myLocationMarker) myLocationMarker.setLatLng(realGpsCoords); }, () => {}, { enableHighAccuracy: true }); }
+    function toggleGhostMode() { if (!isFounder()) return; ghostMode = !ghostMode; document.getElementById('ghostBtn').style.borderColor = ghostMode ? '#facc15' : 'rgba(255,255,255,0.14)'; showToast(ghostMode ? '👑 Kurucu Hayalet Modu Açık' : 'Kapalı'); }
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     function selectCat(cat, el) { selectedCategory = cat; document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); }
     function setFilter(cat, el) { currentFilter = cat; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); renderPins(); }
-
-    function openGlobalEventsStudio() {
-      if (!adminPerms.can_events) return showToast('⛔ Bu alan için yetkiniz bulunmuyor.');
-      document.getElementById('glCityInput').value = ''; document.getElementById('glVenueAddressInput').value = ''; document.getElementById('glEventDescInput').value = '';
-      const existingGuides = allPins.filter(p => (p.ghost_author_name || '').includes('VibePin Etkinlik Rehberi'));
-      const btn = document.getElementById('publishDailyPackBtn'), note = document.getElementById('dailyPackStatusNote');
-      if (existingGuides.length >= 10) { btn.disabled = true; btn.style.opacity = '0.55'; btn.textContent = `✅ Bugünün Paketi Zaten Yayında (${existingGuides.length} Nokta)`; note.textContent = 'Üst üste binmeyi önlemek için ikinci kez ekleme kilitlendi.'; }
-      else { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '🌍 Bugünün Dünya Etkinliklerini Haritaya Yay'; note.textContent = 'Aynı paket haritada aktifken ikinci kez üst üste eklenmesine izin verilmez.'; }
-      openModal('globalEventsModal');
-    }
-
-    async function publishDailyGlobalPack() {
-      if (!adminPerms.can_events) return; await loadPins();
-      if (allPins.filter(p => (p.ghost_author_name || '').includes('VibePin Etkinlik Rehberi')).length >= 10) return showToast('⚠️ Bugünün global etkinlik paketi zaten yayında!');
-      const btn = document.getElementById('publishDailyPackBtn'); btn.disabled = true; btn.textContent = '⏳ Yayılıyor...';
-      const rows = GLOBAL_DAILY_VENUES.map(item => ({ user_id: currentUser.id, ghost_author_name: `🏛️ VibePin Etkinlik Rehberi • ${item.city}`, ghost_avatar_emoji: '🎟️', category: 'event', content_text: `${item.venue}: ${item.text}`, latitude: item.lat, longitude: item.lng, is_sponsored: false, expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString() }));
-      const { error } = await sb.from('pins').insert(rows);
-      if (error) { btn.disabled = false; return showToast(error.message); }
-      closeModal('globalEventsModal'); showToast(`🌍 ${rows.length} etkinlik noktası yayıldı!`); loadPins();
-    }
-
-    async function clearExistingGuidePins() {
-      if (!adminPerms.can_events) return;
-      const { error } = await sb.from('pins').delete().ilike('ghost_author_name', '%VibePin Etkinlik Rehberi%');
-      if (error) return showToast(error.message);
-      showToast('🧹 Rehber etkinlikleri temizlendi.'); await loadPins(); openGlobalEventsStudio();
-    }
-
-    async function publishSingleGlobalEvent() {
-      if (!adminPerms.can_events) return;
-      const country = document.getElementById('glCountryInput').value.trim() || 'Türkiye', city = document.getElementById('glCityInput').value.trim(), venueAddr = document.getElementById('glVenueAddressInput').value.trim(), desc = document.getElementById('glEventDescInput').value.trim();
-      if (!city || !venueAddr || !desc) return showToast('Şehir, adres ve detayı yazın.');
-      const btn = document.getElementById('publishSingleGlBtn'); btn.disabled = true; btn.textContent = '🔍 Konum Aranıyor...';
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${venueAddr}, ${city}, ${country}`)}`);
-        const data = await res.json();
-        let lat, lng;
-        if (data && data[0]) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
-        else { const cRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${city}, ${country}`)}`); const cData = await cRes.json(); if (!cData || !cData[0]) throw new Error('Konum bulunamadı.'); lat = parseFloat(cData[0].lat); lng = parseFloat(cData[0].lon); }
-        await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: `🏛️ VibePin Etkinlik Rehberi • ${city}, ${country}`, ghost_avatar_emoji: '🎟️', category: 'event', content_text: `📍 ${venueAddr}: ${desc}`, latitude: lat, longitude: lng, is_sponsored: false, expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString() }]);
-        btn.disabled = false; btn.textContent = '📌 Tam Adresini Bul & Haritaya Ekle'; closeModal('globalEventsModal'); if (map) map.flyTo([lat, lng], 14); showToast('🌍 Etkinlik eklendi!'); loadPins();
-      } catch (err) { btn.disabled = false; btn.textContent = '📌 Tam Adresini Bul & Haritaya Ekle'; showToast(err.message); }
-    }
-
-    function startFlagPlacement() {
-      if (!adminPerms.can_flags || !map) return showToast('⛔ Yetkiniz yok.');
-      if (draggableFlagMarker) map.removeLayer(draggableFlagMarker);
-      const center = map.getCenter(); pendingFlagCoords = [center.lat, center.lng];
-      const dragIcon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-card">🚩 Sürükle & Bırak</div><div class="venue-flag-pole"></div></div>`, iconSize: [150, 44], iconAnchor: [20, 44] });
-      draggableFlagMarker = L.marker(center, { icon: dragIcon, draggable: true, zIndexOffset: 1200 }).addTo(map);
-      draggableFlagMarker.on('dragend', () => { const pos = draggableFlagMarker.getLatLng(); pendingFlagCoords = [pos.lat, pos.lng]; });
-      document.getElementById('flagPlaceBar').style.display = 'flex';
-    }
-
-    function cancelFlagPlacement() { if (draggableFlagMarker && map) { map.removeLayer(draggableFlagMarker); draggableFlagMarker = null; } pendingFlagCoords = null; document.getElementById('flagPlaceBar').style.display = 'none'; }
-    function confirmFlagPlacement() {
-      if (!adminPerms.can_flags) return;
-      if (draggableFlagMarker) { const pos = draggableFlagMarker.getLatLng(); pendingFlagCoords = [pos.lat, pos.lng]; map.removeLayer(draggableFlagMarker); draggableFlagMarker = null; }
-      document.getElementById('flagPlaceBar').style.display = 'none';
-      if (pendingFlagCoords) document.getElementById('venueSelectedCoordsText').textContent = `📍 Seçilen Tam Konum: ${pendingFlagCoords[0].toFixed(5)}, ${pendingFlagCoords[1].toFixed(5)}`;
-      openModal('venueFlagModal');
-    }
-
-    function handleVenuePhoto(input) { if (input.files?.[0]) { selectedVenuePhotoFile = input.files[0]; const img = document.getElementById('venuePhotoPreview'); img.src = URL.createObjectURL(selectedVenuePhotoFile); img.style.display = 'block'; } }
-
-    async function submitVenueFlag() {
-      if (!adminPerms.can_flags) return;
-      const venueName = document.getElementById('venueNameInput').value.trim(), offerBadge = document.getElementById('venueOfferBadgeInput').value.trim(), campaignDesc = document.getElementById('venueCampaignDescInput').value.trim(), durationHours = parseInt(document.getElementById('venueDurationSelect').value, 10) || 168;
-      if (!venueName || !campaignDesc) return showToast('Mekan adı ve detay yazın.');
-      let image_url = null;
-      if (selectedVenuePhotoFile) { const path = `${currentUser.id}/venue_${Date.now()}.jpg`; const { error } = await sb.storage.from('vibe-media').upload(path, selectedVenuePhotoFile); if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl; }
-      const target = pendingFlagCoords || (map ? [map.getCenter().lat, map.getCenter().lng] : userCoords);
-      await sb.from('pins').insert([{ user_id: currentUser.id, ghost_author_name: venueName, category: 'deal', content_text: offerBadge ? `${offerBadge}: ${campaignDesc}` : campaignDesc, latitude: target[0], longitude: target[1], image_url, is_sponsored: true, sponsor_title: venueName, expires_at: new Date(Date.now() + durationHours * 3600 * 1000).toISOString() }]);
-      pendingFlagCoords = null; closeModal('venueFlagModal'); showToast('🚩 İşletme bayrağı dikildi!'); loadPins();
-    }
 
     function openCreatePin(fromGhost = false) {
       if (!isFounder()) {
@@ -1565,7 +1402,7 @@
     async function loadPins() {
       if (!currentUser) return;
       const { data } = await sb.from('pins').select('*, profiles(username, avatar_emoji, avatar_url, trust_score)').gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false });
-      if (data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderEventRings(); renderPins(); renderHeatmap(); }
+      if (data) { allPins = data.filter(p => !blockedIds.includes(p.user_id)); renderLiveNearbyCards(); renderPins(); }
     }
 
     function renderPins() {
@@ -1573,13 +1410,21 @@
       const filtered = currentFilter === 'all' ? allPins : (currentFilter === 'sponsored' ? allPins.filter(p => p.is_sponsored) : allPins.filter(p => p.category === currentFilter));
       const z = map ? map.getZoom() : 14; const radiusKm = z <= 12 ? 1.2 : (z === 13 ? 0.7 : (z === 14 ? 0.38 : (z === 15 ? 0.18 : 0.07)));
 
+      /* 🏪 3. İşletme Paylaşımları: Bayraksız, Kendi Kategori Sembolü + Sponsorlu Rozeti */
       filtered.filter(p => p.is_sponsored).forEach(pin => {
-        const label = esc(pin.sponsor_title || pin.ghost_author_name || 'İşletme');
-        const icon = L.divIcon({ className: '', html: `<div class="venue-flag-pin"><div class="venue-flag-card"><span>🚩</span><span>${label}</span></div><div class="venue-flag-pole"></div></div>`, iconSize: [165, 44], iconAnchor: [24, 44] });
+        const catIcon = esc(pin.ghost_avatar_emoji || '☕');
+        const bgCol = BIZ_COLOR_MAP[pin.ghost_avatar_emoji] || '#d97706';
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="biz-cat-pin"><div class="biz-cat-bubble" style="background:${bgCol};"><span>${catIcon}</span></div><div class="biz-sponsored-pill">Sponsorlu</div></div>`,
+          iconSize: [68, 66],
+          iconAnchor: [34, 46]
+        });
         const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: 900 });
         m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
       });
 
+      /* 👤 1. Kullanıcı Paylaşımları: Kullanıcının Profil Fotoğrafı veya Avatarı ile Pinlenir */
       const clusters = [];
       filtered.filter(p => !p.is_sponsored).forEach(pin => {
         let hit = clusters.find(c => getDistanceKm(c.lat, c.lng, pin.latitude, pin.longitude) <= radiusKm);
@@ -1589,16 +1434,26 @@
       clusters.forEach(cluster => {
         cluster.items.sort((a, b) => getPinImportance(b).score - getPinImportance(a).score);
         if (cluster.items.length === 1) {
-          const pin = cluster.items[0], imp = getPinImportance(pin), meta = CAT_META[pin.category] || CAT_META.event;
-          const isGuidePin = (pin.ghost_author_name || '').includes('Etkinlik Rehberi');
-          const badge = isGuidePin ? '🎟️' : (imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : (pin.image_url ? '📷' : (pin.audio_url ? '🎙️' : meta.emoji))));
-          const extra = imp.isTrending ? 'width:48px;height:48px;border:3px solid #ffe600;' : '';
-          const icon = L.divIcon({ className: '', html: `<div class="vibe-marker" style="background:${isGuidePin ? '#0284c7' : (imp.hasAlertWord ? '#ef4444' : meta.color)};${extra}"><span>${badge}</span></div>`, iconSize: [44, 44], iconAnchor: [22, 44] });
-          const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: imp.isTrending ? 700 : 400 });
+          const pin = cluster.items[0];
+          const avUrl = pin.ghost_avatar_url || pin.profiles?.avatar_url;
+          const avEmoji = esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊');
+          const ringColor = pin.category === 'event' ? '#a855f7' : (pin.category === 'social' ? '#22d3ee' : '#ffffff');
+          const innerHtml = avUrl ? `<img src="${esc(avUrl)}" />` : `<span>${avEmoji}</span>`;
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="user-avatar-pin"><div class="user-pin-circle" style="border-color:${ringColor};">${innerHtml}</div><div class="user-pin-tip" style="border-top-color:${ringColor};"></div></div>`,
+            iconSize: [46, 54],
+            iconAnchor: [23, 54]
+          });
+          const m = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: 500 });
           m.on('click', () => openPinDetail(pin)); markersLayer.addLayer(m);
         } else {
-          const hasHot = cluster.items.some(p => getPinImportance(p).isTrending);
-          const icon = L.divIcon({ className: '', html: `<div class="cluster-pin" style="${hasHot ? 'background:linear-gradient(135deg,#ef4444,#ff5400);border-color:#ffe600;' : ''}"><span style="font-size:12px;">${hasHot ? '🔥' : '📍'}</span><span style="font-size:12px;">+${cluster.items.length}</span></div>`, iconSize: [48, 48], iconAnchor: [24, 24] });
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="cluster-pin"><span style="font-size:13px;">+${cluster.items.length}</span></div>`,
+            iconSize: [46, 46],
+            iconAnchor: [23, 23]
+          });
           const m = L.marker([cluster.lat, cluster.lng], { icon, zIndexOffset: 650 });
           m.on('click', () => openClusterModal(cluster.items)); markersLayer.addLayer(m);
         }
@@ -1608,9 +1463,8 @@
     function openClusterModal(items) {
       document.getElementById('clusterTitle').textContent = `📍 Bu Bölgede ${items.length} Paylaşım`;
       document.getElementById('clusterListContainer').innerHTML = items.map(pin => {
-        const imp = getPinImportance(pin);
-        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid ${imp.isTrending ? '#ffe600' : 'var(--border)'};cursor:pointer;">
-          <div style="font-size:13.5px;font-weight:800;">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')} ${imp.hasAlertWord ? '🚨' : (imp.isTrending ? '🔥' : '')}</div>
+        return `<div onclick="closeModal('clusterModal'); openPinDetailById('${pin.id}')" style="padding:12px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid var(--border);cursor:pointer;">
+          <div style="font-size:13.5px;font-weight:800;">${esc(pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı')}</div>
           <div style="font-size:12.5px;color:#cbd5e1;">${esc(pin.content_text)}</div>
         </div>`;
       }).join('');
@@ -1623,19 +1477,18 @@
       activePin = pin; await loadBlockedUsers();
       const hideAv = blockedIds.includes(pin.user_id) || blockedByIds.includes(pin.user_id);
       const author = pin.ghost_author_name || pin.profiles?.username || 'Kullanıcı';
-      const isGuidePin = (pin.ghost_author_name || '').includes('Etkinlik Rehberi');
-      document.getElementById('detailAuthor').innerHTML = `<span>${pin.is_sponsored ? '🚩' : (hideAv ? '👤' : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊'))}</span> <span>${esc(author)}</span>`;
+      document.getElementById('detailAuthor').innerHTML = `<span>${pin.is_sponsored ? esc(pin.ghost_avatar_emoji || '🏪') : (hideAv ? '👤' : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊'))}</span> <span>${esc(author)}</span>`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
       const goingCnt = pin.upvotes_count || 1;
       document.getElementById('detailUpvotes').textContent = goingCnt; document.getElementById('detailGoingCount').textContent = goingCnt;
-      document.getElementById('goingEventBtn').style.display = (pin.category === 'event' || isGuidePin) ? 'block' : 'none';
+      document.getElementById('goingEventBtn').style.display = pin.category === 'event' ? 'block' : 'none';
       document.getElementById('detailFakes').textContent = pin.fake_reports_count || 0;
       const sbEl = document.getElementById('sponsorBanner');
-      if (pin.is_sponsored) { sbEl.style.display = 'block'; sbEl.textContent = `🚩 ${pin.sponsor_title || author}`; } else sbEl.style.display = 'none';
+      if (pin.is_sponsored) { sbEl.style.display = 'block'; sbEl.textContent = `⭐ Sponsorlu İşletme • ${pin.sponsor_title || author}`; } else sbEl.style.display = 'none';
       const mine = pin.user_id === currentUser.id;
-      document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored && !isGuidePin) ? 'block' : 'none';
-      document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored && !isGuidePin) ? 'block' : 'none';
+      document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
+      document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
       document.getElementById('deletePinBtn').style.display = (mine || adminPerms.can_delete_pins) ? 'block' : 'none';
       const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
       if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else img.style.display = 'none';
@@ -1714,7 +1567,7 @@
       if (waTab === 'chats') {
         const q = (document.getElementById('waSearchInput').value || '').toLowerCase();
         const list = waFriendsCache.filter(x => x.name.toLowerCase().includes(q));
-        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#667781;">Sohbet yok. Alt bardaki 🔍 Ara/Keşfet ile kullanıcı bulabilirsin.</div>' : list.map(item => {
+        box.innerHTML = !list.length ? '<div style="padding:36px;text-align:center;color:#667781;">Sohbet yok. Keşfet arama çubuğundan kullanıcı bulabilirsin.</div>' : list.map(item => {
           const prev = typingUsersMap[item.friendId] ? '<span style="color:var(--wa-green);font-weight:700;">yazıyor...</span>' : (item.lastMsg ? esc(item.lastMsg.message_text || (item.lastMsg.audio_url ? '🎙️ Sesli mesaj' : '📷 Fotoğraf')) : 'Mesaj gönder 👋');
           return `<div class="wa-chat-row" onclick="openDirectChat('${item.friendId}')"><div class="wa-avatar">${avatarHtml(item.profile, '🦊', item.blockedByThem)}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#111b21;">${esc(item.name)}</div><div style="font-size:13px;color:#54656f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${prev}</div></div>${item.unread ? `<span class="wa-badge">${item.unread}</span>` : ''}</div>`;
         }).join('');
