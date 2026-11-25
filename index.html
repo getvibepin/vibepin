@@ -36,6 +36,11 @@
     .dark-tiles { filter: invert(100%) hue-rotate(180deg) brightness(86%) contrast(88%) saturate(38%); }
     .leaflet-control-attribution { display:none !important; }
 
+    /* Görsel İndirme & Sağ Tık Koruması */
+    .protected-media { position:relative; overflow:hidden; user-select:none; -webkit-user-select:none; }
+    .protected-media img { pointer-events:none !important; -webkit-touch-callout:none !important; user-select:none !important; -webkit-user-drag:none; }
+    .img-shield { position:absolute; inset:0; z-index:2; background:transparent; }
+
     .my-loc-wrap { position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
     .my-loc-pulse { position:absolute; inset:0; border-radius:50%; background:rgba(37,99,235,0.28); animation:locPulse 2.2s infinite ease-out; }
     .my-loc-dot { position:relative; width:15px; height:15px; border-radius:50%; background:#2563eb; border:3px solid #ffffff; box-shadow:0 0 12px rgba(37,99,235,0.8); }
@@ -137,7 +142,7 @@
     }
     .chip.active { background:linear-gradient(90deg,#c026d3,#9333ea); color:#ffffff; border-color:transparent; }
 
-    /* 🗺️ 3. Belirgin Harita Modu Butonu & Konumuma Dön */
+    /* Harita Modu Butonu & Konumuma Dön */
     .map-floating-controls {
       position:fixed; right:12px; bottom:185px; z-index:1000;
       display:flex; flex-direction:column; align-items:flex-end; gap:8px;
@@ -179,7 +184,7 @@
       box-shadow:0 8px 20px rgba(0,0,0,0.45);
     }
 
-    /* 🎯 7. En Alt Bar: İşletme • Keşfet • (+) • Mesaj • Profil */
+    /* En Alt Bar */
     .bottom-nav {
       position:fixed; bottom:0; left:0; right:0; z-index:1000;
       height:66px; background:#0b1021;
@@ -241,7 +246,7 @@
     .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
     .cat-opt { padding:9px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.03); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; text-align:left; }
     .cat-opt.selected { border-color:var(--cyan); background:rgba(34,211,238,0.16); }
-    textarea, input[type="email"], input[type="password"], input[type="text"], input[type="number"], input[type="date"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:13px; padding:11px 13px; color:#fff; font-size:13.5px; outline:none; margin-bottom:9px; }
+    textarea, input[type="email"], input[type="password"], input[type="text"], input[type="url"], input[type="number"], input[type="date"], select { width:100%; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:13px; padding:11px 13px; color:#fff; font-size:13.5px; outline:none; margin-bottom:9px; }
     select option { background:#111827; color:#fff; }
     textarea:focus, input:focus, select:focus { border-color:var(--cyan); background:rgba(255,255,255,0.09); }
     .media-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
@@ -257,9 +262,9 @@
     .av-opt.selected { border-color:var(--cyan); background:rgba(34,211,238,0.22); transform:scale(1.06); }
     .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:10020; background:#1e293b; border:1px solid var(--cyan); color:#fff; padding:10px 18px; border-radius:999px; font-size:12px; font-weight:700; display:none; text-align:center; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.5); }
 
-    #imageLightboxModal { position:fixed; inset:0; background:rgba(0,0,0,0.94); z-index:10050; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
+    #imageLightboxModal { position:fixed; inset:0; background:rgba(0,0,0,0.94); z-index:10050; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; user-select:none; -webkit-user-select:none; }
     #imageLightboxModal.open { display:flex; }
-    #lightboxImg { max-width:96%; max-height:80vh; border-radius:16px; object-fit:contain; box-shadow:0 16px 48px rgba(0,0,0,0.85); }
+    #lightboxImg { max-width:96%; max-height:80vh; border-radius:16px; object-fit:contain; box-shadow:0 16px 48px rgba(0,0,0,0.85); pointer-events:none; -webkit-touch-callout:none; }
 
     .lang-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .lang-opt { display:flex; align-items:center; justify-content:space-between; padding:11px 13px; border-radius:13px; border:1px solid var(--border); background:rgba(255,255,255,0.04); cursor:pointer; font-size:13.5px; font-weight:700; }
@@ -273,15 +278,24 @@
     .stat-val { font-size:21px; font-weight:900; color:var(--cyan); margin-top:4px; }
     .stat-lbl { font-size:11.5px; color:#cbd5e1; font-weight:700; }
 
-    /* Profil Çoklu Fotoğraf Galerisi & Sayaç Kartları */
+    /* Tıklanabilir Profil Sayaçları & Korumalı Galeri */
     .profile-stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
-    .p-stat-box { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:14px; padding:10px 6px; text-align:center; }
+    .p-stat-box { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:14px; padding:10px 6px; text-align:center; cursor:pointer; transition:0.18s; }
+    .p-stat-box:hover, .p-stat-box:active { border-color:var(--cyan); background:rgba(34,211,238,0.12); transform:scale(0.98); }
     .p-stat-num { font-size:18px; font-weight:900; color:var(--cyan); }
     .p-stat-txt { font-size:11px; color:#cbd5e1; font-weight:700; margin-top:2px; }
+
     .profile-gallery-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
-    .p-gal-item { position:relative; aspect-ratio:1/1; border-radius:13px; overflow:hidden; border:1.5px solid var(--border); background:#1e293b; cursor:pointer; }
-    .p-gal-item img { width:100%; height:100%; object-fit:cover; }
-    .p-gal-badge { position:absolute; bottom:4px; left:4px; background:rgba(11,16,33,0.85); color:var(--cyan); font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:999px; }
+    .p-gal-item { position:relative; aspect-ratio:1/1; border-radius:13px; overflow:hidden; border:1.5px solid var(--border); background:#1e293b; cursor:pointer; user-select:none; -webkit-user-select:none; }
+    .p-gal-item img { width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-touch-callout:none; }
+    .p-gal-badge { position:absolute; bottom:4px; left:4px; z-index:4; background:rgba(11,16,33,0.88); color:var(--cyan); font-size:9.5px; font-weight:800; padding:3px 7px; border-radius:999px; border:1px solid rgba(34,211,238,0.35); }
+    .p-gal-del { position:absolute; top:4px; right:4px; z-index:4; width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.92); color:#fff; border:none; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.45); }
+
+    /* İşletme Vitrin Galerisi & Web Sitesi Rozeti */
+    .biz-gallery-strip { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; }
+    .biz-gallery-strip .protected-media { min-width:190px; height:135px; border-radius:14px; flex-shrink:0; border:1px solid var(--border); cursor:pointer; }
+    .biz-gallery-strip img { width:100%; height:100%; object-fit:cover; }
+    .biz-web-pill { display:inline-flex; align-items:center; gap:6px; padding:8px 13px; border-radius:12px; background:rgba(34,211,238,0.14); border:1px solid rgba(34,211,238,0.4); color:var(--cyan); font-size:12.5px; font-weight:800; text-decoration:none; margin-bottom:10px; }
 
     .user-search-card {
       display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -295,7 +309,7 @@
       font-size:20px; overflow:hidden; flex-shrink:0; border:1.5px solid var(--cyan);
       cursor:pointer;
     }
-    .user-search-av img { width:100%; height:100%; object-fit:cover; }
+    .user-search-av img { width:100%; height:100%; object-fit:cover; pointer-events:none; }
 
     /* WhatsApp Tarzı Ferah Mesajlaşma */
     .wa-sheet { width:100%; max-width:480px; height:88vh; background:var(--wa-light-bg); color:#111b21; border-top:1px solid rgba(0,0,0,0.12); border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; }
@@ -308,7 +322,7 @@
     .wa-list { flex:1; overflow-y:auto; padding:4px 0; background:#ffffff; color:#111b21; }
     .wa-chat-row { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(0,0,0,0.05); }
     .wa-avatar { width:46px; height:46px; border-radius:50%; background:#e2e8f0; color:#111b21; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(0,0,0,0.1); }
-    .wa-avatar img { width:100%; height:100%; object-fit:cover; }
+    .wa-avatar img { width:100%; height:100%; object-fit:cover; pointer-events:none; }
     .wa-badge { background:var(--wa-green); color:#ffffff; font-size:11px; font-weight:800; min-width:20px; height:20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px; }
     .wa-messages {
       flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:7px;
@@ -330,14 +344,18 @@
     .wa-menu-item { padding:12px 16px; font-size:13.5px; font-weight:600; color:#111b21; cursor:pointer; display:flex; align-items:center; gap:8px; }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
   <div id="toast" class="toast"></div>
 
-  <div id="imageLightboxModal" onclick="closeLightbox()">
-    <div style="width:100%; max-width:480px; display:flex; justify-content:flex-end; margin-bottom:10px;">
+  <!-- Sağ Tık & İndirme Korumalı Lightbox -->
+  <div id="imageLightboxModal" onclick="closeLightbox()" oncontextmenu="return false;">
+    <div style="width:100%; max-width:480px; display:flex; justify-content:flex-end; margin-bottom:10px; z-index:5;">
       <button class="close-btn" onclick="event.stopPropagation(); closeLightbox();" style="width:38px; height:38px; font-size:18px; background:rgba(255,255,255,0.16);">✕</button>
     </div>
-    <img id="lightboxImg" src="" alt="Büyük Görünüm" onclick="event.stopPropagation();" />
+    <div class="protected-media" onclick="event.stopPropagation();" style="max-width:96%; max-height:80vh; border-radius:16px;">
+      <img id="lightboxImg" src="" alt="Büyük Görünüm" />
+      <div class="img-shield"></div>
+    </div>
     <div id="lightboxCaption" style="margin-top:10px; font-size:13px; color:#e2e8f0; font-weight:700;"></div>
   </div>
 
@@ -403,7 +421,6 @@
         <p id="loginStatus" style="font-size:12px; color:#f87171; margin-top:6px; text-align:center;"></p>
       </div>
 
-      <!-- 4. Ana Ekranda Doğrudan Şifremi Unuttum Seçeneği -->
       <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 6px 0;">
         <a href="#forgot" onclick="event.preventDefault(); openForgotModal();" style="font-size:12px; color:var(--cyan); text-decoration:none; font-weight:700;" data-i18n="forgot_link">🔑 Şifremi Unuttum</a>
         <a href="#legal" onclick="event.preventDefault(); openModal('legalModal');" style="font-size:11.5px; color:#cbd5e1; text-decoration:none;">Koşullar & Gizlilik</a>
@@ -411,7 +428,7 @@
     </div>
   </div>
 
-  <!-- Dil Seçimi (12 Dil Tam) -->
+  <!-- Dil Seçimi (12 Dil) -->
   <div id="langModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('langModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">🌍 Select Language / Tüm Diller</div><button class="close-btn" onclick="closeModal('langModal')">✕</button></div>
@@ -432,7 +449,7 @@
     </div>
   </div>
 
-  <!-- 5. Logolu Hoş Geldin Kartı (İlk Kayıtta Gösterilir & E-posta Tetiklenir) -->
+  <!-- Hoş Geldin Kartı -->
   <div id="welcomeModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('welcomeModal')">
     <div class="sheet" style="text-align:center;">
       <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:10px;">
@@ -469,7 +486,7 @@
     </div>
   </div>
 
-  <!-- Harita & Ana Üst Bar (Üstteki Mesaj İkonu Kaldırıldı, Dil Seçici Eklendi) -->
+  <!-- Harita & Ana Üst Bar -->
   <div id="map"></div>
 
   <div class="map-top-panel">
@@ -497,7 +514,6 @@
       </div>
     </div>
 
-    <!-- 6. Şehir, Yakında Keşfet & Kullanıcı Arama Çubuğu -->
     <div class="search-pill-bar" onclick="openExploreSheet()">
       <span style="font-size:15px; color:#94a3b8;">🔍</span>
       <input type="text" readonly data-i18n-ph="search_ph" placeholder="Şehir, mekan veya kullanıcı ara..." style="cursor:pointer;" />
@@ -514,7 +530,7 @@
     </div>
   </div>
 
-  <!-- 3. Belirgin Harita Modu Butonu & Konumuma Dön -->
+  <!-- Harita Modu Butonu & Konumuma Dön -->
   <div class="map-floating-controls">
     <button class="map-style-pill-btn" id="mapStyleBadgeBtn" onclick="cycleMapStyle()">
       <span>🗺️</span> <span id="mapStyleLabel">Sokak</span>
@@ -530,7 +546,7 @@
     <div class="live-cards-row" id="liveNearbyCardsRow"></div>
   </div>
 
-  <!-- 🎯 7. Alt Navigasyon Barı: İşletme • Keşfet • (+) • Mesaj • Profil -->
+  <!-- Alt Navigasyon Barı -->
   <div class="bottom-nav">
     <button type="button" class="nav-btn" id="navBizBtn" onclick="openBusinessSetupModal()">
       <span class="ico">🏪</span>
@@ -551,13 +567,13 @@
     </button>
   </div>
 
-  <!-- İşletme Paylaşım & Kampanya Ekleme -->
+  <!-- 5. Zenginleştirilmiş İşletme Paylaşım & Kampanya Ekleme -->
   <div id="businessSetupModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('businessSetupModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
-          <div class="sheet-title" style="color:#facc15;">🏪 İşletme Paylaşımı & Kampanya</div>
-          <div style="font-size:11.5px; color:var(--muted);">Adresini, kategorini ve kampanyanı gir; haritaya kendi sembolünle düşsün</div>
+          <div class="sheet-title" style="color:#facc15;">🏪 İşletme Vitrini & Kampanya</div>
+          <div style="font-size:11.5px; color:var(--muted);">Adres, web sitesi, çoklu galeri ve kampanyanı gir; haritaya kendi sembolünle düşsün</div>
         </div>
         <button class="close-btn" onclick="closeModal('businessSetupModal')">✕</button>
       </div>
@@ -571,16 +587,36 @@
         <option value="⚡">⚡ Diğer İşletme / Hizmet</option>
       </select>
       <input type="text" id="bizAddressInput" placeholder="Tam Adres (örn: Caferağa Mah. Moda Cad. No:42 Kadıköy)" />
-      <textarea id="bizSellingInput" rows="2" placeholder="Ne satıyorsunuz?"></textarea>
-      <textarea id="bizCampaignDetailInput" rows="2" placeholder="Kampanya veya fırsatınız nedir?"></textarea>
-      <label class="media-btn" for="bizPhotoInput" id="bizPhotoLabel" style="margin-bottom:10px; border-color:#facc15; color:#fef08a;">📸 Mekan / Kampanya Fotoğrafı Ekle (İsteğe Bağlı)</label>
-      <input type="file" id="bizPhotoInput" accept="image/*" style="display:none;" onchange="handleVenuePhoto(this)" />
-      <img id="venuePhotoPreview" style="display:none; width:100%; max-height:150px; object-fit:cover; border-radius:14px; margin-bottom:10px;" />
-      <button class="btn-gold" id="saveBizBtn" onclick="saveBusinessProfile()">📍 İşletme Kampanyasını Haritaya Pinle</button>
+      <input type="url" id="bizWebsiteInput" placeholder="🌐 Web Sitesi veya Instagram Bağlantısı (https://...)" />
+      <textarea id="bizSellingInput" rows="2" placeholder="Hizmetleriniz / Ürünleriniz nelerdir?"></textarea>
+      <textarea id="bizCampaignDetailInput" rows="2" placeholder="Kampanya veya fırsat detayınız nedir?"></textarea>
+      <label class="media-btn" for="bizPhotoInput" id="bizPhotoLabel" style="margin-bottom:10px; border-color:#facc15; color:#fef08a;">📸 Mekan & Kampanya Fotoğrafları Ekle (Çoklu Seçim)</label>
+      <input type="file" id="bizPhotoInput" accept="image/*" multiple style="display:none;" onchange="handleVenuePhotos(this)" />
+      <div id="venuePhotoPreviewRow" style="display:none; gap:8px; overflow-x:auto; margin-bottom:10px;"></div>
+      <button class="btn-gold" id="saveBizBtn" onclick="saveBusinessProfile()">📍 İşletme Vitrinini Haritaya Pinle</button>
     </div>
   </div>
 
-  <!-- 🔍 6. Şehir & Kullanıcı Arama Modalı -->
+  <!-- 5b. İşletme Paylaşımı Düzenleme Modalı -->
+  <div id="editPinModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('editPinModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" style="color:#facc15;">✏️ İşletme Paylaşımını Düzenle</div>
+          <div style="font-size:11.5px; color:var(--muted);">Başlık, kampanya açıklaması, web sitesi ve galeri görsellerini güncelle</div>
+        </div>
+        <button class="close-btn" onclick="closeModal('editPinModal')">✕</button>
+      </div>
+      <input type="text" id="editBizTitleInput" placeholder="İşletme Adı / Başlık" />
+      <input type="url" id="editBizWebInput" placeholder="🌐 Web Sitesi (https://...)" />
+      <textarea id="editBizDescInput" rows="3" placeholder="Kampanya ve hizmet detayları..."></textarea>
+      <label class="media-btn" for="editBizPhotosInput" id="editBizPhotosLabel" style="margin-bottom:10px; border-color:var(--cyan); color:var(--cyan);">➕ Galeriye Yeni Fotoğraflar Ekle</label>
+      <input type="file" id="editBizPhotosInput" accept="image/*" multiple style="display:none;" onchange="if(this.files?.length) document.getElementById('editBizPhotosLabel').textContent = `✅ ${this.files.length} Yeni Fotoğraf Seçildi`;" />
+      <button class="btn-gold" id="saveEditPinBtn" onclick="saveEditedPin()">💾 Değişiklikleri Kaydet</button>
+    </div>
+  </div>
+
+  <!-- Şehir & Kullanıcı Arama Modalı -->
   <div id="exploreSearchModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('exploreSearchModal')">
     <div class="sheet">
       <div class="sheet-header">
@@ -687,40 +723,52 @@
     </div>
   </div>
 
-  <!-- Pin Detayı (8. Güven Oranı Kaldırıldı) -->
+  <!-- 4 & 5. Pin Detayı (Beğen / Beğenme, Yorum Sayacı, İşletme Düzenleme, Web Sitesi ve Çoklu Galeri) -->
   <div id="detailModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('detailModal')">
     <div class="sheet">
       <div class="sheet-header">
         <div>
           <div class="sheet-title" id="detailAuthor">Kullanıcı</div>
-          <div style="font-size:11px; color:var(--cyan); margin-top:2px;">⏳ 24 Saat Canlı</div>
+          <div style="font-size:11px; color:var(--cyan); margin-top:2px;">⏳ Canlı Paylaşım</div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
+          <button id="editPinBtn" style="display:none; padding:6px 11px; border-radius:999px; border:1px solid #facc15; background:rgba(250,204,21,0.18); color:#fef08a; font-size:11.5px; font-weight:800; cursor:pointer;" onclick="openEditPinModal()">✏️ Düzenle</button>
           <button id="addFriendBtn" style="padding:6px 11px; border-radius:999px; border:none; background:var(--purple); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="sendFriendRequest()">➕ Arkadaş Ekle</button>
           <button id="blockUserBtn" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.15); color:#fca5a5; font-size:11.5px; font-weight:700; cursor:pointer;" onclick="blockAuthor()">🚫</button>
           <button class="close-btn" onclick="closeModal('detailModal')">✕</button>
         </div>
       </div>
+
       <div id="sponsorBanner" style="display:none; padding:10px 12px; border-radius:12px; background:rgba(250,204,21,0.16); border:1px solid var(--gold); color:#fef08a; font-size:13px; font-weight:800; margin-bottom:10px;"></div>
-      <img id="detailImg" onclick="openLightbox(this.src, document.getElementById('detailAuthor').textContent)" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:16px; margin-bottom:12px; cursor:pointer;" />
+      <a id="detailBizWebsite" class="biz-web-pill" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">🌐 İşletme Web Sitesini Ziyaret Et</a>
+
+      <!-- İndirme Korumalı Tekli veya Çoklu Galeri Görselleri -->
+      <div id="detailImgWrap" class="protected-media" onclick="openLightbox(document.getElementById('detailImg').src, document.getElementById('detailAuthor').textContent)" style="display:none; width:100%; max-height:240px; border-radius:16px; margin-bottom:12px; cursor:pointer;">
+        <img id="detailImg" style="width:100%; max-height:240px; object-fit:cover; display:block;" />
+        <div class="img-shield"></div>
+      </div>
+      <div id="detailGalleryStrip" class="biz-gallery-strip" style="display:none;"></div>
+
       <audio id="detailAudio" controls style="display:none; width:100%; margin-bottom:12px;"></audio>
       <p id="detailText" style="font-size:15px; line-height:1.45; margin-bottom:12px;"></p>
 
       <button id="goingEventBtn" onclick="upvoteCurrentPin()" style="width:100%; padding:11px; border-radius:13px; border:1px solid rgba(34,211,238,0.5); background:rgba(34,211,238,0.14); color:var(--cyan); font-size:13.5px; font-weight:800; cursor:pointer; margin-bottom:10px;">🎟️ Ben de Gidiyorum / Katılacağım (<span id="detailGoingCount">1</span> Kişi)</button>
 
+      <!-- Doğrula & Yalan Kaldırıldı -> Beğen / Beğenme + Canlı Yorum Sayacı -->
       <div class="action-bar">
-        <button class="act-pill" onclick="likeCurrentPin()">❤️ Beğen (<span id="detailLikes">0</span>)</button>
-        <button class="act-pill" onclick="upvoteCurrentPin()">✅ Doğrula (<span id="detailUpvotes">1</span>)</button>
-        <button class="act-pill" style="color:#fca5a5;" onclick="reportFakePin()">⚠️ Yalan (<span id="detailFakes">0</span>)</button>
+        <button class="act-pill" onclick="likeCurrentPin()">👍 Beğen (<span id="detailLikes">0</span>)</button>
+        <button class="act-pill" style="color:#fca5a5;" onclick="dislikeCurrentPin()">👎 Beğenme (<span id="detailDislikes">0</span>)</button>
+        <button class="act-pill" style="color:var(--cyan);" onclick="document.getElementById('commentInput').focus()">💬 Yorum (<span id="detailCommentCount">0</span>)</button>
       </div>
+
       <button id="deletePinBtn" class="btn-danger" style="display:none; margin-bottom:12px;" onclick="deleteCurrentPin()">🗑️ Bu Paylaşımı Sil</button>
-      <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">💬 Yorumlar:</div>
-      <div id="commentsList" style="max-height:125px; overflow-y:auto; margin-bottom:10px;"></div>
-      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
+      <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:6px;">💬 Yorumlar (<span id="detailCommentHeaderCount">0</span>):</div>
+      <div id="commentsList" style="max-height:135px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;"><input type="text" id="commentInput" style="margin-bottom:0;" placeholder="Yorum yaz..." onkeydown="if(event.key==='Enter') submitComment()" /><button class="btn-primary" style="width:auto; padding:0 16px;" onclick="submitComment()">Gönder</button></div>
     </div>
   </div>
 
-  <!-- 9 & 11. Geliştirilmiş Profil Ayarları (Çoklu Fotoğraf Galerisi, Arkadaş/Takip Sayacı, Yaş & Cinsiyet) -->
+  <!-- 1, 2 & 3. Profil Ayarları (Tıklanabilir Sayaçlar, Profil/Galeri Ayrımı, Silme & İndirme Engeli) -->
   <div id="profileModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('profileModal')">
     <div class="sheet">
       <div class="sheet-header">
@@ -731,23 +779,37 @@
         <button class="close-btn" onclick="closeModal('profileModal')">✕</button>
       </div>
 
-      <!-- Arkadaş & Takip Sayaçları -->
+      <!-- 3. Tıklanabilir Arkadaş / Gelen İstek / Takip Kutuları -->
       <div class="profile-stats-row">
-        <div class="p-stat-box"><div class="p-stat-num" id="pStatFriends">0</div><div class="p-stat-txt">Arkadaş</div></div>
-        <div class="p-stat-box"><div class="p-stat-num" id="pStatFollowers">0</div><div class="p-stat-txt">Gelen İstek</div></div>
-        <div class="p-stat-box"><div class="p-stat-num" id="pStatFollowing">0</div><div class="p-stat-txt">Takip / İstek</div></div>
+        <div class="p-stat-box" onclick="openProfileConnections('chats')">
+          <div class="p-stat-num" id="pStatFriends">0</div>
+          <div class="p-stat-txt">Arkadaş ›</div>
+        </div>
+        <div class="p-stat-box" onclick="openProfileConnections('requests')">
+          <div class="p-stat-num" id="pStatFollowers">0</div>
+          <div class="p-stat-txt">Gelen İstek ›</div>
+        </div>
+        <div class="p-stat-box" onclick="openProfileConnections('chats')">
+          <div class="p-stat-num" id="pStatFollowing">0</div>
+          <div class="p-stat-txt">Takip / İstek ›</div>
+        </div>
       </div>
 
-      <!-- Ana Profil Fotoğrafı + Çoklu Fotoğraf Ekleme -->
+      <!-- 2. Ana Profil Fotoğrafı ile Galeri Yükleme Ayrımı -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-        <div id="profilePhotoPreview" onclick="viewMyProfilePhoto()" style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; border:2.5px solid var(--cyan); cursor:pointer; flex-shrink:0;">🦊</div>
-        <label class="media-btn" for="avatarFileInput" style="flex:1; border-color:var(--cyan);" id="avatarUploadLabel">📸 Profiline Fotoğraf Ekle (Çoklu)</label>
-        <input type="file" id="avatarFileInput" accept="image/*" multiple style="display:none;" onchange="handleAvatarFiles(this)" />
+        <div id="profilePhotoPreview" class="protected-media" onclick="viewMyProfilePhoto()" style="width:66px; height:66px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:28px; border:2.5px solid var(--cyan); cursor:pointer; flex-shrink:0;">🦊</div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <label class="media-btn" for="mainAvatarOnlyInput" style="border-color:var(--cyan); color:var(--cyan); padding:8px;">🖼️ Ana Profil Resmi Yap</label>
+          <input type="file" id="mainAvatarOnlyInput" accept="image/*" style="display:none;" onchange="uploadMainAvatarOnly(this)" />
+
+          <label class="media-btn" for="galleryOnlyInput" id="avatarUploadLabel" style="border-color:var(--purple); color:#e9d5ff; padding:8px;">➕ Galerime Ekle (Profil Resmini Değiştirmez)</label>
+          <input type="file" id="galleryOnlyInput" accept="image/*" multiple style="display:none;" onchange="uploadToGalleryOnly(this)" />
+        </div>
       </div>
 
-      <!-- Kullanıcının Yüklediği Fotoğraflar Galerisi -->
-      <div style="font-size:11.5px; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🖼️ Profil Fotoğraflarım (Büyütmek için dokun):</div>
-      <div class="profile-gallery-grid" id="profileGalleryGrid"></div>
+      <!-- 1 & 2. İndirme Korumalı ve Silme Butonlu Fotoğraf Galerisi -->
+      <div style="font-size:11.5px; color:#cbd5e1; font-weight:700; margin-bottom:6px;">🖼️ Korumalı Fotoğraf Galerim (Büyütmek için dokun):</div>
+      <div class="profile-gallery-grid" id="profileGalleryGrid" oncontextmenu="return false;"></div>
 
       <!-- Avatar Seçimi -->
       <div class="avatar-grid" id="avatarGrid">
@@ -765,7 +827,7 @@
         <div class="av-opt" onclick="pickAvatar('✨', this)">✨</div>
       </div>
 
-      <!-- 11. Cinsiyet & Doğum Tarihi (Yaş) -->
+      <!-- Cinsiyet & Doğum Tarihi -->
       <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:8px;">
         <select id="profileGenderInput" style="margin-bottom:8px;">
           <option value="">Cinsiyet Seç</option>
@@ -786,7 +848,7 @@
     </div>
   </div>
 
-  <!-- 10. Sebepli Hesap Silme & Kurucuya Geri Bildirim -->
+  <!-- Hesap Silme -->
   <div id="deleteAccountModal" class="modal-backdrop" onclick="if(event.target===this) closeModal('deleteAccountModal')">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title" style="color:#fca5a5;">🗑️ Hesap Silme & Geri Bildirim</div><button class="close-btn" onclick="closeModal('deleteAccountModal')">✕</button></div>
@@ -830,7 +892,7 @@
     </div>
   </div>
 
-  <!-- 1. Gerçek Çevrimiçi / Son Görülme Durumlu Sohbet Penceresi -->
+  <!-- Sohbet Penceresi -->
   <div id="chatModal" class="modal-backdrop" onclick="if(event.target===this) closeChatModal()">
     <div class="wa-sheet" style="position:relative;">
       <div class="wa-top">
@@ -978,7 +1040,7 @@
     let adminPerms = { isFounder: false, can_tickets: false, can_events: false, can_flags: false, can_delete_pins: false };
     let myProfile = { username: 'Vibe Üyesi', avatar_emoji: '🦊', avatar_url: null, gallery_urls: [], gender: '', birth_date: '', last_seen_at: null, friend_requests_sent: 0 };
     let activePin = null, allPins = [], blockedIds = [], blockedByIds = [], markersLayer = null, myLocationMarker = null;
-    let selectedPhotoFile = null, pendingAvatarFiles = [], selectedGhostAvatarFile = null, selectedVenuePhotoFile = null;
+    let selectedPhotoFile = null, selectedGhostAvatarFile = null, selectedVenuePhotoFiles = [];
     let selectedDmPhotoFile = null, dmAudioBlob = null, dmRecorder = null, dmAudioChunks = [], speechRecognizer = null, isListeningStt = false;
     let mediaRecorder = null, audioChunks = [], recordedAudioBlob = null;
     let extraFriendQuota = 0, activeChatFriend = null, listPollTimer = null;
@@ -1008,7 +1070,7 @@
       if (el) el.classList.add('active');
     }
 
-    /* 🔍 6. Şehir Arama & Kullanıcı Arama Ekranı */
+    /* Şehir Arama & Kullanıcı Arama */
     function openExploreSheet() {
       setActiveNav('navExploreBtn');
       document.getElementById('cityJumpInput').value = '';
@@ -1019,7 +1081,7 @@
       refreshFriendsData();
     }
 
-    function renderExplorePinsList(cityLabel = '') {
+    function renderExplorePinsList() {
       const center = map ? map.getCenter() : { lat: userCoords[0], lng: userCoords[1] };
       const sorted = [...allPins].sort((a, b) => getDistanceKm(center.lat, center.lng, a.latitude, a.longitude) - getDistanceKm(center.lat, center.lng, b.latitude, b.longitude)).slice(0, 14);
       document.getElementById('explorePinsListContainer').innerHTML = !sorted.length
@@ -1089,7 +1151,7 @@
 
           return `<div class="user-search-card">
             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-              <div class="user-search-av" onclick="${safeImg ? `openLightbox('${safeImg}', '${safeName.replace(/'/g, "\\'")}')` : ''}">${avInner}</div>
+              <div class="user-search-av protected-media" onclick="${safeImg ? `openLightbox('${safeImg}', '${safeName.replace(/'/g, "\\'")}')` : ''}">${avInner}<div class="img-shield"></div></div>
               <div style="min-width:0;">
                 <div style="font-size:13.5px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safeName}</div>
                 ${metaStr ? `<div style="font-size:11px;color:var(--cyan);">${metaStr}</div>` : ''}
@@ -1209,7 +1271,7 @@
       return esc((profile && profile.avatar_emoji) || fallbackEmoji);
     }
 
-    /* 3. Belirgin Harita Modu Geçişi */
+    /* Harita Modu Geçişi */
     function cycleMapStyle() {
       const order = ['street', 'satellite', 'dark'];
       const next = order[(order.indexOf(currentMapMode) + 1) % order.length];
@@ -1288,20 +1350,24 @@
       setInterval(checkNotifications, 10000);
     }
 
-    /* İşletme Paylaşımı & Kampanya Ekleme */
+    /* 5. Zenginleştirilmiş İşletme Paylaşımı, Çoklu Galeri, Web Sitesi & Düzenleme */
     function openBusinessSetupModal() {
       setActiveNav('navBizBtn');
-      selectedVenuePhotoFile = null;
-      document.getElementById('venuePhotoPreview').style.display = 'none';
+      selectedVenuePhotoFiles = [];
+      document.getElementById('bizWebsiteInput').value = '';
+      document.getElementById('bizPhotoLabel').textContent = '📸 Mekan & Kampanya Fotoğrafları Ekle (Çoklu Seçim)';
+      const row = document.getElementById('venuePhotoPreviewRow');
+      row.innerHTML = ''; row.style.display = 'none';
       openModal('businessSetupModal');
     }
 
-    function handleVenuePhoto(input) {
-      if (input.files?.[0]) {
-        selectedVenuePhotoFile = input.files[0];
-        const img = document.getElementById('venuePhotoPreview');
-        img.src = URL.createObjectURL(selectedVenuePhotoFile);
-        img.style.display = 'block';
+    function handleVenuePhotos(input) {
+      if (input.files && input.files.length) {
+        selectedVenuePhotoFiles = Array.from(input.files);
+        document.getElementById('bizPhotoLabel').textContent = `✅ ${selectedVenuePhotoFiles.length} Fotoğraf Seçildi`;
+        const row = document.getElementById('venuePhotoPreviewRow');
+        row.style.display = 'flex';
+        row.innerHTML = selectedVenuePhotoFiles.map(f => `<img src="${URL.createObjectURL(f)}" style="width:90px;height:75px;object-fit:cover;border-radius:10px;flex-shrink:0;" />`).join('');
       }
     }
 
@@ -1309,11 +1375,12 @@
       const bizName = document.getElementById('bizNameInput').value.trim();
       const bizCatSymbol = document.getElementById('bizCategorySelect').value || '☕';
       const bizAddr = document.getElementById('bizAddressInput').value.trim();
+      const bizWeb = document.getElementById('bizWebsiteInput').value.trim();
       const selling = document.getElementById('bizSellingInput').value.trim();
       const campDetail = document.getElementById('bizCampaignDetailInput').value.trim();
       if (!bizName || !bizAddr || !campDetail) return showToast('İşletme adı, tam adres ve kampanya detayını yazın.');
 
-      const btn = document.getElementById('saveBizBtn'); btn.disabled = true; btn.textContent = '📍 Adres Konumlandırılıyor...';
+      const btn = document.getElementById('saveBizBtn'); btn.disabled = true; btn.textContent = '📍 İşletme Vitrini Hazırlanıyor...';
       let lat = map ? map.getCenter().lat : userCoords[0];
       let lng = map ? map.getCenter().lng : userCoords[1];
 
@@ -1323,12 +1390,14 @@
         if (data && data[0]) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
       } catch (_e) {}
 
-      let image_url = null;
-      if (selectedVenuePhotoFile) {
-        const path = `${currentUser.id}/biz_${Date.now()}.jpg`;
-        const { error } = await sb.storage.from('vibe-media').upload(path, selectedVenuePhotoFile);
-        if (!error) image_url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+      let uploadedUrls = [];
+      for (let i = 0; i < selectedVenuePhotoFiles.length; i++) {
+        const f = selectedVenuePhotoFiles[i];
+        const path = `${currentUser.id}/biz_${Date.now()}_${i}.jpg`;
+        const { error } = await sb.storage.from('vibe-media').upload(path, f);
+        if (!error) uploadedUrls.push(sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl);
       }
+      const image_url = uploadedUrls[0] || null;
 
       await sb.from('business_profiles').insert([{
         owner_id: currentUser.id, business_name: bizName, category: bizCatSymbol,
@@ -1336,8 +1405,8 @@
         campaign_detail: campDetail, latitude: lat, longitude: lng
       }]);
 
-      const fullText = `${campDetail}${selling ? ' • Ürünler: ' + selling : ''} (${bizAddr})`;
-      await sb.from('pins').insert([{
+      const fullText = `${campDetail}${selling ? '\n• Hizmet/Ürünler: ' + selling : ''}\n📍 ${bizAddr}`;
+      const payload = {
         user_id: currentUser.id,
         ghost_author_name: bizName,
         ghost_avatar_emoji: bizCatSymbol,
@@ -1346,15 +1415,75 @@
         latitude: lat,
         longitude: lng,
         image_url,
+        gallery_urls: uploadedUrls,
+        website_url: bizWeb || null,
         is_sponsored: true,
         sponsor_title: bizName,
         expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
-      }]);
+      };
 
-      btn.disabled = false; btn.textContent = '📍 İşletme Kampanyasını Haritaya Pinle';
+      const { error: pinErr } = await sb.from('pins').insert([payload]);
+      if (pinErr) {
+        delete payload.gallery_urls;
+        delete payload.website_url;
+        await sb.from('pins').insert([payload]);
+      }
+
+      btn.disabled = false; btn.textContent = '📍 İşletme Vitrinini Haritaya Pinle';
       closeModal('businessSetupModal');
       if (map) map.flyTo([lat, lng], 16);
-      showToast(`${bizCatSymbol} İşletme haritaya pinlendi!`);
+      showToast(`${bizCatSymbol} İşletme vitrini haritaya eklendi!`);
+      loadPins();
+    }
+
+    function openEditPinModal() {
+      if (!activePin) return;
+      document.getElementById('editBizTitleInput').value = activePin.ghost_author_name || activePin.sponsor_title || '';
+      document.getElementById('editBizWebInput').value = activePin.website_url || '';
+      document.getElementById('editBizDescInput').value = activePin.content_text || '';
+      document.getElementById('editBizPhotosInput').value = '';
+      document.getElementById('editBizPhotosLabel').textContent = '➕ Galeriye Yeni Fotoğraflar Ekle';
+      openModal('editPinModal');
+    }
+
+    async function saveEditedPin() {
+      if (!activePin) return;
+      const newTitle = document.getElementById('editBizTitleInput').value.trim() || activePin.ghost_author_name;
+      const newWeb = document.getElementById('editBizWebInput').value.trim();
+      const newDesc = document.getElementById('editBizDescInput').value.trim() || activePin.content_text;
+      const newFiles = Array.from(document.getElementById('editBizPhotosInput').files || []);
+
+      const btn = document.getElementById('saveEditPinBtn'); btn.disabled = true; btn.textContent = '⏳ Güncelleniyor...';
+      let existingGallery = Array.isArray(activePin.gallery_urls) ? [...activePin.gallery_urls] : (activePin.image_url ? [activePin.image_url] : []);
+
+      for (let i = 0; i < newFiles.length; i++) {
+        const path = `${currentUser.id}/biz_edit_${Date.now()}_${i}.jpg`;
+        const { error } = await sb.storage.from('vibe-media').upload(path, newFiles[i]);
+        if (!error) existingGallery.unshift(sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl);
+      }
+
+      const mainImg = existingGallery[0] || activePin.image_url || null;
+      const updateData = {
+        ghost_author_name: newTitle,
+        sponsor_title: newTitle,
+        content_text: newDesc,
+        image_url: mainImg,
+        gallery_urls: existingGallery,
+        website_url: newWeb || null
+      };
+
+      const { error } = await sb.from('pins').update(updateData).eq('id', activePin.id);
+      if (error) {
+        delete updateData.gallery_urls;
+        delete updateData.website_url;
+        await sb.from('pins').update(updateData).eq('id', activePin.id);
+      }
+
+      Object.assign(activePin, { ghost_author_name: newTitle, sponsor_title: newTitle, content_text: newDesc, image_url: mainImg, gallery_urls: existingGallery, website_url: newWeb || null });
+      btn.disabled = false; btn.textContent = '💾 Değişiklikleri Kaydet';
+      closeModal('editPinModal');
+      showToast('✅ İşletme paylaşımı güncellendi!');
+      openPinDetail(activePin);
       loadPins();
     }
 
@@ -1373,7 +1502,7 @@
     }
     async function removeAdmin(email) { if (!isFounder()) return; await sb.from('app_admins').delete().eq('email', email); loadAdminsList(); }
 
-    /* 1. Realtime Presence (Gerçek Çevrimiçi / Son Görülme & Yazıyor) */
+    /* Realtime Presence */
     function setupRealtime() {
       if (!sb || !currentUser || realtimeChatChannel) return;
       realtimeChatChannel = sb.channel('vibepin-live', { config: { presence: { key: currentUser.id } } })
@@ -1439,7 +1568,6 @@
       if (error) document.getElementById('loginStatus').textContent = error.message; else enterApp(data.user);
     }
 
-    /* 5. Yeni Kayıt & Logolu Hoş Geldin E-postası */
     async function triggerWelcomeEmail(email, username) {
       try {
         await sb.functions.invoke('welcome-email', {
@@ -1474,7 +1602,7 @@
       }
     }
 
-    /* 9 & 11. Profil Yükleme, Çoklu Fotoğraf Galerisi, Yaş & Cinsiyet */
+    /* 1, 2 & 3. Profil Yükleme, Korumalı Galeri, Profil/Galeri Ayrımı & Silme */
     async function loadMyProfile() {
       const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
       if (data) myProfile = data;
@@ -1491,7 +1619,7 @@
       const avBtn = document.getElementById('myAvatarBtn'), prevBox = document.getElementById('profilePhotoPreview');
       if (myProfile.avatar_url) {
         avBtn.innerHTML = `<img src="${esc(myProfile.avatar_url)}" />`;
-        prevBox.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" />`;
+        prevBox.innerHTML = `<img src="${esc(myProfile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" /><div class="img-shield"></div>`;
       } else {
         avBtn.textContent = myProfile.avatar_emoji || '🦊';
         prevBox.textContent = myProfile.avatar_emoji || '🦊';
@@ -1499,21 +1627,96 @@
       renderProfileGallery();
     }
 
+    /* 2A: Yalnızca Ana Profil Resmini Güncelle */
+    async function uploadMainAvatarOnly(input) {
+      const file = input.files?.[0];
+      if (!file) return;
+      showToast('⏳ Ana profil fotoğrafı yükleniyor...');
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${currentUser.id}/avatar_${Date.now()}.${ext}`;
+      const { error } = await sb.storage.from('vibe-media').upload(path, file);
+      if (error) return showToast('Fotoğraf yüklenemedi: ' + error.message);
+
+      const url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+      myProfile.avatar_url = url;
+      await sb.from('profiles').update({ avatar_url: url }).eq('id', currentUser.id);
+      input.value = '';
+      showToast('✅ Ana profil fotoğrafın güncellendi!');
+      loadMyProfile();
+      loadPins();
+    }
+
+    /* 2B: Yalnızca Galeriye Ekle (Ana Profil Resmini Değiştirmez) */
+    async function uploadToGalleryOnly(input) {
+      const files = Array.from(input.files || []);
+      if (!files.length) return;
+      showToast(`⏳ ${files.length} fotoğraf galeriye ekleniyor...`);
+      let gallery = Array.isArray(myProfile.gallery_urls) ? [...myProfile.gallery_urls] : [];
+
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const ext = f.name.split('.').pop() || 'jpg';
+        const path = `${currentUser.id}/gal_${Date.now()}_${i}.${ext}`;
+        const { error } = await sb.storage.from('vibe-media').upload(path, f);
+        if (!error) {
+          const url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
+          gallery.unshift(url);
+        }
+      }
+
+      myProfile.gallery_urls = gallery;
+      await sb.from('profiles').update({ gallery_urls: gallery }).eq('id', currentUser.id);
+      input.value = '';
+      showToast('✅ Fotoğraflar galerine eklendi!');
+      renderProfileGallery();
+    }
+
+    /* 1 & 2C: İndirme Korumalı Galeri + Fotoğraf Silme İşlevi */
     function renderProfileGallery() {
       const grid = document.getElementById('profileGalleryGrid');
       if (!grid) return;
       const urls = [...new Set([myProfile.avatar_url, ...(myProfile.gallery_urls || [])].filter(Boolean))];
       if (!urls.length) {
-        grid.innerHTML = '<div style="grid-column:1/-1; font-size:12px; color:var(--muted); padding:8px; background:rgba(255,255,255,0.03); border-radius:12px; text-align:center;">Henüz fotoğraf eklemedin. Yukarıdan birden fazla fotoğraf seçebilirsin.</div>';
+        grid.innerHTML = '<div style="grid-column:1/-1; font-size:12px; color:var(--muted); padding:8px; background:rgba(255,255,255,0.03); border-radius:12px; text-align:center;">Henüz fotoğraf eklemedin. Yukarıdan ana profil resmi veya galeri fotoğrafı ekleyebilirsin.</div>';
         return;
       }
       grid.innerHTML = urls.map((u, idx) => {
         const isMain = u === myProfile.avatar_url;
-        return `<div class="p-gal-item" onclick="openLightbox('${esc(u)}', '${esc(myProfile.username)} (${idx + 1}/${urls.length})')">
-          <img src="${esc(u)}" />
-          ${isMain ? '<span class="p-gal-badge">Ana</span>' : `<span class="p-gal-badge" onclick="event.stopPropagation(); setAsMainAvatar('${esc(u)}')">Profil Yap</span>`}
+        const safeUrl = esc(u);
+        return `<div class="p-gal-item" oncontextmenu="return false;" onclick="openLightbox('${safeUrl}', '${esc(myProfile.username)} (${idx + 1}/${urls.length})')">
+          <img src="${safeUrl}" />
+          <div class="img-shield"></div>
+          <button type="button" class="p-gal-del" title="Fotoğrafı Sil" onclick="event.stopPropagation(); deleteGalleryPhoto('${safeUrl}')">🗑️</button>
+          ${isMain ? '<span class="p-gal-badge">Ana</span>' : `<span class="p-gal-badge" onclick="event.stopPropagation(); setAsMainAvatar('${safeUrl}')">Profil Yap</span>`}
         </div>`;
       }).join('');
+    }
+
+    async function deleteGalleryPhoto(targetUrl) {
+      if (!targetUrl) return;
+      myProfile.gallery_urls = (myProfile.gallery_urls || []).filter(u => u !== targetUrl);
+      if (myProfile.avatar_url === targetUrl) {
+        myProfile.avatar_url = myProfile.gallery_urls[0] || null;
+      }
+
+      // Storage dosyasını da temizle (URL içinden path çıkararak)
+      try {
+        const marker = '/object/public/vibe-media/';
+        const idx = targetUrl.indexOf(marker);
+        if (idx !== -1) {
+          const storagePath = decodeURIComponent(targetUrl.slice(idx + marker.length));
+          await sb.storage.from('vibe-media').remove([storagePath]);
+        }
+      } catch (_e) {}
+
+      await sb.from('profiles').update({
+        avatar_url: myProfile.avatar_url,
+        gallery_urls: myProfile.gallery_urls
+      }).eq('id', currentUser.id);
+
+      showToast('🗑️ Fotoğraf galeriden silindi.');
+      loadMyProfile();
+      loadPins();
     }
 
     async function setAsMainAvatar(url) {
@@ -1531,6 +1734,13 @@
       openModal('profileModal');
     }
 
+    /* 3. Profil Sayaçlarına Tıklayınca İlgili Listeyi Aç */
+    function openProfileConnections(targetTab) {
+      closeModal('profileModal');
+      openFriendsModal();
+      switchWaTab(targetTab || 'chats');
+    }
+
     function pickAvatar(emoji, el) {
       myProfile.avatar_emoji = emoji; myProfile.avatar_url = null;
       document.querySelectorAll('.av-opt').forEach(a => a.classList.remove('selected'));
@@ -1539,54 +1749,25 @@
       document.getElementById('profilePhotoPreview').textContent = emoji;
     }
 
-    function handleAvatarFiles(input) {
-      if (input.files && input.files.length) {
-        pendingAvatarFiles = Array.from(input.files);
-        document.getElementById('avatarUploadLabel').textContent = `✅ ${pendingAvatarFiles.length} Fotoğraf Seçildi`;
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(pendingAvatarFiles[0]);
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-        const prev = document.getElementById('profilePhotoPreview');
-        prev.innerHTML = ''; prev.appendChild(img);
-      }
-    }
-
     async function saveProfile() {
       const newName = document.getElementById('profileNameInput').value.trim() || myProfile.username;
       const gender = document.getElementById('profileGenderInput').value;
       const birth_date = document.getElementById('profileBirthInput').value || null;
-      let gallery = Array.isArray(myProfile.gallery_urls) ? [...myProfile.gallery_urls] : [];
-
-      if (pendingAvatarFiles.length) {
-        for (let i = 0; i < pendingAvatarFiles.length; i++) {
-          const f = pendingAvatarFiles[i];
-          const ext = f.name.split('.').pop() || 'jpg';
-          const path = `${currentUser.id}/gal_${Date.now()}_${i}.${ext}`;
-          const { error } = await sb.storage.from('vibe-media').upload(path, f);
-          if (!error) {
-            const url = sb.storage.from('vibe-media').getPublicUrl(path).data.publicUrl;
-            gallery.unshift(url);
-            if (i === 0) myProfile.avatar_url = url;
-          }
-        }
-        pendingAvatarFiles = [];
-        document.getElementById('avatarUploadLabel').textContent = '📸 Profiline Fotoğraf Ekle (Çoklu)';
-      }
 
       await sb.from('profiles').upsert({
         id: currentUser.id,
         username: newName,
         avatar_emoji: myProfile.avatar_emoji,
         avatar_url: myProfile.avatar_url,
-        gallery_urls: gallery,
+        gallery_urls: myProfile.gallery_urls || [],
         gender,
         birth_date
       });
-      myProfile.username = newName; myProfile.gallery_urls = gallery; myProfile.gender = gender; myProfile.birth_date = birth_date;
+      myProfile.username = newName; myProfile.gender = gender; myProfile.birth_date = birth_date;
       closeModal('profileModal'); showToast('✅ Profil kaydedildi!'); loadMyProfile(); loadPins();
     }
 
-    /* 10. Sebepli Hesap Silme & Kurucuya Geri Bildirim */
+    /* Hesap Silme */
     function openDeleteAccountModal() {
       document.getElementById('deleteConfirmInput').value = '';
       document.getElementById('deleteReasonDetailInput').value = '';
@@ -1748,6 +1929,7 @@
 
     function openPinDetailById(id) { const p = allPins.find(x => String(x.id) === String(id)); if (p) openPinDetail(p); }
 
+    /* 4 & 5. Pin Detayı Açma (Beğen / Beğenme, Yorum Sayısı, İşletme Düzenleme & Web Sitesi) */
     async function openPinDetail(pin) {
       activePin = pin; await loadBlockedUsers();
       const hideAv = blockedIds.includes(pin.user_id) || blockedByIds.includes(pin.user_id);
@@ -1755,20 +1937,57 @@
       document.getElementById('detailAuthor').innerHTML = `<span>${pin.is_sponsored ? esc(pin.ghost_avatar_emoji || '🏪') : (hideAv ? '👤' : esc(pin.ghost_avatar_emoji || pin.profiles?.avatar_emoji || '🦊'))}</span> <span>${esc(author)}</span>`;
       document.getElementById('detailText').textContent = pin.content_text;
       document.getElementById('detailLikes').textContent = pin.likes_count || 0;
+      document.getElementById('detailDislikes').textContent = pin.dislikes_count || pin.fake_reports_count || 0;
+
       const goingCnt = pin.upvotes_count || 1;
-      document.getElementById('detailUpvotes').textContent = goingCnt; document.getElementById('detailGoingCount').textContent = goingCnt;
+      document.getElementById('detailGoingCount').textContent = goingCnt;
       document.getElementById('goingEventBtn').style.display = pin.category === 'event' ? 'block' : 'none';
-      document.getElementById('detailFakes').textContent = pin.fake_reports_count || 0;
+
       const sbEl = document.getElementById('sponsorBanner');
       if (pin.is_sponsored) { sbEl.style.display = 'block'; sbEl.textContent = `⭐ Sponsorlu İşletme • ${pin.sponsor_title || author}`; } else sbEl.style.display = 'none';
+
+      const webBtn = document.getElementById('detailBizWebsite');
+      if (pin.website_url) {
+        webBtn.href = pin.website_url.startsWith('http') ? pin.website_url : 'https://' + pin.website_url;
+        webBtn.style.display = 'inline-flex';
+      } else {
+        webBtn.style.display = 'none';
+      }
+
       const mine = pin.user_id === currentUser.id;
+      document.getElementById('editPinBtn').style.display = (mine && pin.is_sponsored) ? 'inline-block' : 'none';
       document.getElementById('addFriendBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
       document.getElementById('blockUserBtn').style.display = (!mine && !pin.is_sponsored) ? 'block' : 'none';
       document.getElementById('deletePinBtn').style.display = (mine || adminPerms.can_delete_pins) ? 'block' : 'none';
-      const img = document.getElementById('detailImg'), aud = document.getElementById('detailAudio');
-      if (pin.image_url) { img.src = pin.image_url; img.style.display = 'block'; } else img.style.display = 'none';
+
+      // Tekli veya Çoklu İşletme Galerisi (Sağ Tık / İndirme Korumalı)
+      const imgWrap = document.getElementById('detailImgWrap');
+      const img = document.getElementById('detailImg');
+      const strip = document.getElementById('detailGalleryStrip');
+      const aud = document.getElementById('detailAudio');
+      const galUrls = Array.isArray(pin.gallery_urls) && pin.gallery_urls.length ? pin.gallery_urls : [];
+
+      if (galUrls.length > 1) {
+        imgWrap.style.display = 'none';
+        strip.style.display = 'flex';
+        strip.innerHTML = galUrls.map((u, i) => `
+          <div class="protected-media" oncontextmenu="return false;" onclick="openLightbox('${esc(u)}', '${esc(author)} (${i + 1}/${galUrls.length})')">
+            <img src="${esc(u)}" />
+            <div class="img-shield"></div>
+          </div>
+        `).join('');
+      } else if (pin.image_url || galUrls[0]) {
+        strip.style.display = 'none';
+        img.src = pin.image_url || galUrls[0];
+        imgWrap.style.display = 'block';
+      } else {
+        imgWrap.style.display = 'none';
+        strip.style.display = 'none';
+      }
+
       if (pin.audio_url) { aud.src = pin.audio_url; aud.style.display = 'block'; } else aud.style.display = 'none';
-      openModal('detailModal'); loadComments(pin.id);
+      openModal('detailModal');
+      loadComments(pin.id);
     }
 
     async function sendFriendRequest() {
@@ -1788,8 +2007,16 @@
     }
 
     async function likeCurrentPin() { if (!activePin) return; const v = (activePin.likes_count || 0) + 1; await sb.from('pins').update({ likes_count: v }).eq('id', activePin.id); activePin.likes_count = v; document.getElementById('detailLikes').textContent = v; renderPins(); }
-    async function upvoteCurrentPin() { if (!activePin) return; const v = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: v }).eq('id', activePin.id); activePin.upvotes_count = v; document.getElementById('detailUpvotes').textContent = v; document.getElementById('detailGoingCount').textContent = v; showToast('🎟️ Katılımın eklendi!'); renderPins(); }
-    async function reportFakePin() { if (!activePin) return; const v = (activePin.fake_reports_count || 0) + 1; await sb.from('pins').update({ fake_reports_count: v }).eq('id', activePin.id); activePin.fake_reports_count = v; document.getElementById('detailFakes').textContent = v; if (v >= 3 && !activePin.is_sponsored) { await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); } }
+    async function dislikeCurrentPin() {
+      if (!activePin) return;
+      const v = (activePin.dislikes_count || activePin.fake_reports_count || 0) + 1;
+      const { error } = await sb.from('pins').update({ dislikes_count: v }).eq('id', activePin.id);
+      if (error) await sb.from('pins').update({ fake_reports_count: v }).eq('id', activePin.id);
+      activePin.dislikes_count = v;
+      activePin.fake_reports_count = v;
+      document.getElementById('detailDislikes').textContent = v;
+    }
+    async function upvoteCurrentPin() { if (!activePin) return; const v = (activePin.upvotes_count || 1) + 1; await sb.from('pins').update({ upvotes_count: v }).eq('id', activePin.id); activePin.upvotes_count = v; document.getElementById('detailGoingCount').textContent = v; showToast('🎟️ Katılımın eklendi!'); renderPins(); }
     async function deleteCurrentPin() { if (!activePin) return; await sb.from('pins').delete().eq('id', activePin.id); closeModal('detailModal'); loadPins(); }
     async function blockAuthor() { if (!activePin?.user_id) return; if (!blockedIds.includes(activePin.user_id)) { await sb.from('blocked_users').insert([{ blocker_id: currentUser.id, blocked_id: activePin.user_id }]); blockedIds.push(activePin.user_id); } closeModal('detailModal'); loadPins(); }
 
@@ -1989,9 +2216,13 @@
       document.getElementById('ticketsContainer').innerHTML = !(data || []).length ? '<div style="color:var(--muted);">Kayıt yok.</div>' : data.map(t => `<div style="padding:10px;border-radius:12px;background:rgba(255,255,255,0.05);margin-bottom:8px;"><strong>[${esc(t.category)}] ${esc(t.user_email || '')}</strong><div>${esc(t.message)}</div></div>`).join('');
     }
 
+    /* 4. Yorumları Yükle ve Canlı Yorum Sayacını Güncelle */
     async function loadComments(pinId) {
       const { data } = await sb.from('pin_comments').select('*,profiles(username)').eq('pin_id', pinId).order('created_at', { ascending: true });
-      document.getElementById('commentsList').innerHTML = !(data || []).length ? '<div style="color:var(--muted);font-size:12px;">Henüz yorum yok. İlk yazan sen ol!</div>' : data.map(c => `<div style="padding:8px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:13px;"><strong>${esc(c.profiles?.username || 'Kullanıcı')}:</strong> ${esc(c.comment_text)}</div>`).join('');
+      const list = data || [];
+      document.getElementById('detailCommentCount').textContent = list.length;
+      document.getElementById('detailCommentHeaderCount').textContent = list.length;
+      document.getElementById('commentsList').innerHTML = !list.length ? '<div style="color:var(--muted);font-size:12px;">Henüz yorum yok. İlk yazan sen ol!</div>' : list.map(c => `<div style="padding:8px;border-radius:10px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:13px;"><strong>${esc(c.profiles?.username || 'Kullanıcı')}:</strong> ${esc(c.comment_text)}</div>`).join('');
     }
 
     async function submitComment() {
